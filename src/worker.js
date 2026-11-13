@@ -16,6 +16,7 @@ import {
 import {
     getSupabaseConfig,
     getJobs,
+    getJobsVersion,
     getJobById,
     addJob,
     updateJob,
@@ -421,6 +422,17 @@ app.get('/api/jobs', async (c) => {
     }
 });
 
+app.get('/api/jobs/version', async (c) => {
+    try {
+        const version = await getJobsVersion(c.env);
+        return c.json({ success: true, version }, 200, {
+            'Cache-Control': 'no-store, max-age=0'
+        });
+    } catch (err) {
+        return c.json({ success: false, error: err.message }, 500);
+    }
+});
+
 app.get('/api/jobs/:id', async (c) => {
     try {
         const job = await getJobById(c.env, c.req.param('id'));
@@ -518,7 +530,7 @@ app.patch('/api/jobs/:id/status', requireAdminAuth, async (c) => {
     try {
         const body = await c.req.json();
         const status = body?.status;
-        if (!['published', 'draft', 'scheduled'].includes(status)) {
+        if (!['published', 'active', 'expired', 'draft', 'scheduled', 'closed'].includes(status)) {
             return c.json({ error: 'Status tidak valid!' }, 400);
         }
         const updated = await toggleStatus(c.env, c.req.param('id'), status);

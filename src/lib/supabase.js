@@ -247,6 +247,15 @@ export async function getJobs(env, { status = 'all', category = 'all', location 
     return jobs;
 }
 
+export async function getJobsVersion(env) {
+    const rows = await supabaseFetch(
+        env,
+        'jobs?status=not.in.(system_settings,system_master_data,system_flyer_themes,system_company_images,system_uploaded_file)&select=id,status,updated_at,is_featured&order=id.desc&limit=80'
+    );
+    const list = Array.isArray(rows) ? rows : [];
+    return `${list.length}:${list.slice(0, 25).map(r => `${r.id}-${r.status}-${r.is_featured ? 1 : 0}-${r.updated_at || ''}`).join('|')}`;
+}
+
 export async function getJobById(env, id) {
     const rows = await supabaseFetch(env, `jobs?id=eq.${encodeURIComponent(id)}&select=*`);
     if (Array.isArray(rows) && rows.length > 0) {

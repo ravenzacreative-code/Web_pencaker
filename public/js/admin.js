@@ -2630,6 +2630,21 @@ window.handleAdminRowClick = function(event, jobId) {
 // -------------------------------------------------------------
 // LOAD ADMIN JOBS (High-Speed Parallel Fetch & SWR Local Cache)
 // -------------------------------------------------------------
+function broadcastPublicJobsSync(jobsArray) {
+  if (!Array.isArray(jobsArray)) return;
+  try {
+    safeLocalSet('kerja_public_jobs_cache', JSON.stringify(jobsArray));
+    safeLocalSet('kerjahub_jobs_sync_ts', String(Date.now()));
+  } catch (e) {}
+  if (typeof BroadcastChannel === 'function') {
+    try {
+      const bc = new BroadcastChannel('kerjahub_jobs_sync');
+      bc.postMessage({ type: 'jobs_updated', ts: Date.now(), jobs: jobsArray });
+      bc.close();
+    } catch (e) {}
+  }
+}
+
 async function loadAdminJobs(forceRefresh = false) {
   const tbody = document.getElementById('admin-jobs-tbody');
 
@@ -2660,7 +2675,15 @@ async function loadAdminJobs(forceRefresh = false) {
   try {
     // 2. High-Speed Concurrent Race: Query local API AND Supabase Cloud concurrently
     const localApiPromise = (async () => {
-      const { ok, data } = await safeFetchJson(getApiEndpoint('/api/jobs?status=all'));
+      if (!forceRefresh && window.__initialAdminJobsPrefetch) {
+        const pre = await window.__initialAdminJobsPrefetch;
+        window.__initialAdminJobsPrefetch = null;
+        if (pre && pre.success && Array.isArray(pre.data) && pre.data.length > 0) {
+          return pre.data;
+        }
+      }
+      const endpoint = forceRefresh ? `/api/jobs?status=all&_t=${Date.now()}` : '/api/jobs?status=all';
+      const { ok, data } = await safeFetchJson(getApiEndpoint(endpoint));
       if (ok && data && data.success && Array.isArray(data.data) && data.data.length > 0) {
         return data.data;
       }
@@ -2669,7 +2692,12 @@ async function loadAdminJobs(forceRefresh = false) {
 
     const supabasePromise = (async () => {
       if (!sbClient) throw new Error('Supabase client not initialized');
-      const fetchJobs = () => sbClient.from('jobs').select('*').order('id', { ascending: false });
+      const fetchJobs = () => sbClient
+        .from('jobs')
+        .select('*')
+        .neq('status', 'system_company_images')
+        .neq('status', 'system_uploaded_file')
+        .order('id', { ascending: false });
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
       let res = await Promise.race([fetchJobs(), timeoutPromise]);
       if (res && res.error && (res.error.code === 'PGRST301' || res.status === 401 || String(res.error.message || '').includes('API key'))) {
@@ -2703,6 +2731,7 @@ async function loadAdminJobs(forceRefresh = false) {
       try {
         safeLocalSet('kerja_admin_jobs_cache_v3', JSON.stringify(adminJobs));
         safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
+        broadcastPublicJobsSync(adminJobs);
       } catch (e) {}
     } else if (!adminJobs) {
       adminJobs = [];
@@ -2765,6 +2794,7 @@ window.toggleJobLock = async function(jobId, newStatus) {
   if (updated) {
     try {
       safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
+      broadcastPublicJobsSync(adminJobs);
     } catch (e) {}
     const msg = newStatus === 'expired'
       ? `Lowongan "${job.title}" telah dikunci (Expired & pendaftaran ditutup).`
@@ -2863,6 +2893,7 @@ window.deleteJob = async function(jobId, title) {
   if (deleted) {
     try {
       safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
+      broadcastPublicJobsSync(adminJobs);
     } catch (e) {}
     showAdminToast('Lowongan Dihapus', `Lowongan "${title}" berhasil dihapus dari database.`, 'success');
   } else {
@@ -7668,7 +7699,10 @@ window.publishJobFromStudio = async function() {
       const idx = adminJobs.findIndex(j => Number(j.id) === jobId);
       if (idx >= 0) {
         adminJobs[idx] = { ...adminJobs[idx], ...payload };
-        try { safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs)); } catch (e) {}
+        try {
+          safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
+          broadcastPublicJobsSync(adminJobs);
+        } catch (e) {}
         renderAdminJobsTable();
       }
     } else {
@@ -7886,6 +7920,7 @@ window.savePosterChangesToJob = async function() {
         try {
           safeLocalSet('kerja_admin_jobs_cache_v3', JSON.stringify(adminJobs));
           safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
+          broadcastPublicJobsSync(adminJobs);
         } catch (e) {}
         renderAdminJobsTable();
       }

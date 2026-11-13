@@ -426,6 +426,75 @@ function setupSupabaseRealtimeSync() {
   }
 }
 
+let _lastKnownJobsVersion = '';
+let _liveJobsPollTimer = null;
+let _liveJobsBc = null;
+
+function setupLiveJobsAutoSync() {
+  if (_liveJobsPollTimer) return;
+
+  // 1. Instant cross-tab sync (<10ms) when Admin creates/edits/deletes a job in another tab
+  if (typeof BroadcastChannel === 'function' && !_liveJobsBc) {
+    try {
+      _liveJobsBc = new BroadcastChannel('kerjahub_jobs_sync');
+      _liveJobsBc.onmessage = (ev) => {
+        const msg = ev && ev.data;
+        if (!msg || msg.type !== 'jobs_updated') return;
+        if (Array.isArray(msg.jobs) && msg.jobs.length > 0) {
+          rawAllJobs = msg.jobs.map(window.cleanJobData).filter(isJobPubliclyVisible);
+          try {
+            safeLocalSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
+            safeSessionSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
+          } catch (e) {}
+          updateTabCounters();
+          applyFiltersAndRender();
+        }
+        loadJobs({ silent: true, bypassCache: true });
+      };
+    } catch (e) {}
+  }
+
+  // 2. Fallback cross-tab storage event listener
+  window.addEventListener('storage', (e) => {
+    if (!e || (e.key !== 'kerjahub_jobs_sync_ts' && e.key !== 'kerja_public_jobs_cache')) return;
+    try {
+      const cached = safeLocalGet('kerja_public_jobs_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          rawAllJobs = parsed.map(window.cleanJobData).filter(isJobPubliclyVisible);
+          updateTabCounters();
+          applyFiltersAndRender();
+        }
+      }
+    } catch (err) {}
+    loadJobs({ silent: true, bypassCache: true });
+  });
+
+  // 3. Cross-device lightweight version polling (6s) + focus/visibility sync
+  const checkVersionAndSync = async () => {
+    if (document.visibilityState === 'hidden') return;
+    try {
+      const { ok, data: json } = await safeFetchJson(getApiEndpoint('/api/jobs/version?_t=' + Date.now()));
+      if (ok && json && json.success && typeof json.version === 'string') {
+        if (!_lastKnownJobsVersion) {
+          _lastKnownJobsVersion = json.version;
+        } else if (json.version !== _lastKnownJobsVersion) {
+          _lastKnownJobsVersion = json.version;
+          await loadJobs({ silent: true, bypassCache: true });
+        }
+      }
+    } catch (e) {}
+  };
+
+  checkVersionAndSync();
+  _liveJobsPollTimer = setInterval(checkVersionAndSync, 6000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') checkVersionAndSync();
+  });
+  window.addEventListener('focus', checkVersionAndSync);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   initSupabaseClient();
@@ -434,6 +503,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupModalDismiss('job-detail-modal');
   setupModalDismiss('poster-lightbox');
   setupCvMatcher();
+  setupLiveJobsAutoSync();
   await Promise.all([
     loadCompanyImagesCache(),
     loadMasterDataFilters(),
@@ -1085,8 +1155,9 @@ function isJobPubliclyVisible(j) {
 }
 
 // Load Jobs: Ultra-Fast Multi-Layer Fetching with 0ms Instant Cache & Concurrent Race
-async function loadJobs() {
-  if (isLoadingPublicJobs) return;
+async function loadJobs(options = {}) {
+  const { silent = false, bypassCache = false } = options || {};
+  if (isLoadingPublicJobs && !bypassCache) return;
   isLoadingPublicJobs = true;
 
   try {
@@ -1094,20 +1165,22 @@ async function loadJobs() {
 
     // 1. Instant 0ms perceived load time: check localStorage first, then sessionStorage
     let hadCached = false;
-    try {
-      const cached = safeLocalGet('kerja_public_jobs_cache') || safeSessionGet('kerja_public_jobs_cache');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          rawAllJobs = parsed.map(window.cleanJobData).filter(isJobPubliclyVisible);
-          updateTabCounters();
-          applyFiltersAndRender();
-          hadCached = true;
+    if (!bypassCache) {
+      try {
+        const cached = safeLocalGet('kerja_public_jobs_cache') || safeSessionGet('kerja_public_jobs_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            rawAllJobs = parsed.map(window.cleanJobData).filter(isJobPubliclyVisible);
+            updateTabCounters();
+            applyFiltersAndRender();
+            hadCached = true;
+          }
         }
-      }
-    } catch (e) {}
+      } catch (e) {}
+    }
 
-    if (!hadCached && container) {
+    if (!hadCached && !silent && (!rawAllJobs || rawAllJobs.length === 0) && container) {
       container.innerHTML = `
         <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
           <i class="fa-solid fa-spinner fa-spin" style="font-size: 2.2rem; color: var(--primary);"></i>
@@ -1116,16 +1189,24 @@ async function loadJobs() {
       `;
     }
 
-    // 2. Ultra-Fast Parallel Fetch: Query local /api/jobs AND Supabase Cloud concurrently
-    // Whichever responds first with valid jobs wins immediately!
+    // 2. Ultra-Fast Parallel Race: Query Worker /api/jobs AND Supabase Cloud concurrently
+    // First valid response wins immediately without waiting for the slower one!
     const fetchLocalApi = async () => {
       try {
-        const { ok, data: json } = await safeFetchJson(getApiEndpoint('/api/jobs'));
+        if (!bypassCache && window.__initialJobsPrefetch) {
+          const pre = await window.__initialJobsPrefetch;
+          window.__initialJobsPrefetch = null;
+          if (pre && pre.success && Array.isArray(pre.data) && pre.data.length > 0) {
+            return pre.data.map(window.cleanJobData).filter(isJobPubliclyVisible);
+          }
+        }
+        const endpoint = bypassCache ? `/api/jobs?_t=${Date.now()}` : '/api/jobs';
+        const { ok, data: json } = await safeFetchJson(getApiEndpoint(endpoint));
         if (ok && json && json.success && Array.isArray(json.data) && json.data.length > 0) {
           return json.data.map(window.cleanJobData).filter(isJobPubliclyVisible);
         }
       } catch (e) {}
-      return null;
+      throw new Error('empty');
     };
 
     const fetchSupabase = async () => {
@@ -1136,7 +1217,7 @@ async function loadJobs() {
           currentSupabaseKey = DEFAULT_SUPABASE_KEY;
         }
       }
-      if (!sbClient) return null;
+      if (!sbClient) throw new Error('empty');
       try {
         const fetchQuery = () => sbClient
           .from('jobs')
@@ -1144,6 +1225,8 @@ async function loadJobs() {
           .neq('status', 'system_master_data')
           .neq('status', 'system_settings')
           .neq('status', 'system_flyer_themes')
+          .neq('status', 'system_company_images')
+          .neq('status', 'system_uploaded_file')
           .order('is_featured', { ascending: false })
           .order('id', { ascending: false });
 
@@ -1165,17 +1248,26 @@ async function loadJobs() {
           return res.data.map(window.cleanJobData).filter(isJobPubliclyVisible);
         }
       } catch (e) {}
-      return null;
+      throw new Error('empty');
     };
 
-    // Fetch both sources in parallel
-    const [localResult, supabaseResult] = await Promise.all([fetchLocalApi(), fetchSupabase()]);
-    let freshJobs = (supabaseResult && supabaseResult.length > 0) ? supabaseResult : localResult;
+    // Race both sources concurrently — fastest wins immediately!
+    let freshJobs = null;
+    try {
+      freshJobs = await Promise.any([fetchLocalApi(), fetchSupabase()]);
+    } catch (e) {
+      freshJobs = null;
+    }
 
     // Fallback if both returned null
-    if (!freshJobs && sbClient && !supabaseResult) {
+    if (!freshJobs && sbClient) {
       try {
-        const { data } = await sbClient.from('jobs').select('*').limit(30);
+        const { data } = await sbClient
+          .from('jobs')
+          .select('*')
+          .neq('status', 'system_uploaded_file')
+          .neq('status', 'system_company_images')
+          .limit(30);
         if (Array.isArray(data) && data.length > 0) {
           freshJobs = data.map(window.cleanJobData).filter(isJobPubliclyVisible);
         }

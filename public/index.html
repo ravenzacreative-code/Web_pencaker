@@ -9,14 +9,17 @@
   <!-- Favicon / Fonts / Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://nptmawuukuysqzqakwej.supabase.co" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
   
   <link rel="stylesheet" href="./css/style.css?v=20261031_05">
+  <!-- Start Jobs Prefetch Immediately at t=0ms -->
+  <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function(r){return r.ok ? r.json() : null;}).catch(function(){return null;});</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
-  <script src="./vendor/supabase/supabase.min.js"></script>
+  <script src="./vendor/supabase/supabase.min.js" defer></script>
   <!-- PDF.js (Self-Hosted Local Vendor Asset) -->
-  <script src="./vendor/pdfjs/pdf.min.js"></script>
+  <script src="./vendor/pdfjs/pdf.min.js" defer></script>
 </head>
 <body>
 
@@ -447,6 +450,6 @@
     </a>
   </div>
 
-  <script src="./js/app.js?v=20261101_09"></script>
+  <script src="./js/app.js?v=20261113_01" defer></script>
 </body>
 </html>
