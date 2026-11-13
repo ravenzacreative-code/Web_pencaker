@@ -2084,6 +2084,9 @@ function renderDashboardStats(jobsList) {
   document.getElementById('badge-scheduled-count') && (document.getElementById('badge-scheduled-count').textContent = `${scheduledJobs.length} Mengantre`);
   document.getElementById('stat-closed-jobs') && (document.getElementById('stat-closed-jobs').textContent = closedJobs.length);
   document.getElementById('stat-total-views') && (document.getElementById('stat-total-views').textContent = totalViews);
+  document.getElementById('sidebar-jobs-count') && (document.getElementById('sidebar-jobs-count').textContent = totalJobs);
+  document.getElementById('sidebar-stat-active') && (document.getElementById('sidebar-stat-active').textContent = activeJobs.length);
+  document.getElementById('sidebar-stat-views') && (document.getElementById('sidebar-stat-views').textContent = Number(totalViews || 0).toLocaleString('id-ID'));
 
   // Render recent table in dashboard
   const recentTbody = document.getElementById('dashboard-recent-tbody');
