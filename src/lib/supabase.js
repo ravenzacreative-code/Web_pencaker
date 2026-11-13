@@ -213,6 +213,15 @@ export async function checkAndPublishScheduledJobs(env) {
     }
 }
 
+export const LIGHT_JOB_COLS = [
+    'id', 'title', 'company_name', 'category', 'job_type', 'location',
+    'salary_display', 'experience_level', 'description', 'requirements',
+    'responsibilities', 'benefits', 'contact_type', 'contact_value', 'deadline',
+    'status', 'is_featured', 'views_count', 'created_at', 'updated_at',
+    'whatsapp', 'email', 'website_url', 'source_platform', 'source_label',
+    'scheduled_at', 'apply_info'
+].join(',');
+
 export async function getJobs(env, { status = 'all', category = 'all', location = 'all', education = 'all', search = '' } = {}) {
     const statusFilter = status && status !== 'all'
         ? `status=eq.${encodeURIComponent(status)}`
@@ -222,8 +231,36 @@ export async function getJobs(env, { status = 'all', category = 'all', location 
     if (category && category !== 'all') params.push(`category=eq.${encodeURIComponent(category)}`);
     if (location && location !== 'all') params.push(`location=ilike.*${encodeURIComponent(location)}*`);
 
-    const rows = await supabaseFetch(env, `jobs?${params.join('&')}&select=*`);
-    let jobs = Array.isArray(rows) ? rows.map(enrichJobPlatform) : [];
+    // Fetch lightweight metadata (~95 KB) + lightweight image pointers in parallel (avoids 16+ MB base64 500 OOM/timeout)
+    const [rows, posterDataRows, posterUrlRows, coverDataRows, coverUrlRows] = await Promise.all([
+        supabaseFetch(env, `jobs?${params.join('&')}&select=${LIGHT_JOB_COLS}`),
+        supabaseFetch(env, 'jobs?select=id&poster_image=like.data:*').catch(() => []),
+        supabaseFetch(env, 'jobs?select=id,poster_image&poster_image=not.like.data:*&poster_image=not.is.null&poster_image=neq.').catch(() => []),
+        supabaseFetch(env, 'jobs?select=id&cover_image=like.data:*').catch(() => []),
+        supabaseFetch(env, 'jobs?select=id,cover_image&cover_image=not.like.data:*&cover_image=not.is.null&cover_image=neq.').catch(() => [])
+    ]);
+
+    const posterDataSet = new Set((Array.isArray(posterDataRows) ? posterDataRows : []).map(r => r.id));
+    const posterUrlMap = new Map((Array.isArray(posterUrlRows) ? posterUrlRows : []).map(r => [r.id, r.poster_image]));
+    const coverDataSet = new Set((Array.isArray(coverDataRows) ? coverDataRows : []).map(r => r.id));
+    const coverUrlMap = new Map((Array.isArray(coverUrlRows) ? coverUrlRows : []).map(r => [r.id, r.cover_image]));
+
+    let jobs = (Array.isArray(rows) ? rows : []).map((row) => {
+        const ver = encodeURIComponent(row.updated_at || row.id);
+        if (posterUrlMap.has(row.id)) {
+            row.poster_image = posterUrlMap.get(row.id);
+        } else if (posterDataSet.has(row.id)) {
+            row.poster_image = `/api/jobs/${row.id}/image/poster?v=${ver}`;
+        }
+
+        if (coverUrlMap.has(row.id)) {
+            row.cover_image = coverUrlMap.get(row.id);
+        } else if (coverDataSet.has(row.id)) {
+            row.cover_image = `/api/jobs/${row.id}/image/cover?v=${ver}`;
+        }
+
+        return enrichJobPlatform(row);
+    });
 
     if (education && education !== 'all') {
         const eduQ = education.trim().toLowerCase();
@@ -245,6 +282,22 @@ export async function getJobs(env, { status = 'all', category = 'all', location 
     }
 
     return jobs;
+}
+
+export async function getJobImageValue(env, id, slot = 'poster') {
+    const col = slot === 'cover' ? 'cover_image' : (slot.startsWith('flyer_') ? 'flyer_images' : 'poster_image');
+    const rows = await supabaseFetch(env, `jobs?id=eq.${encodeURIComponent(id)}&select=${col}`);
+    if (!Array.isArray(rows) || rows.length === 0) return '';
+    const row = rows[0];
+    if (col === 'flyer_images') {
+        const idx = parseInt(slot.replace('flyer_', ''), 10) || 0;
+        let arr = row.flyer_images;
+        if (typeof arr === 'string') {
+            try { arr = JSON.parse(arr); } catch { arr = []; }
+        }
+        return Array.isArray(arr) && arr[idx] ? arr[idx] : '';
+    }
+    return row[col] || '';
 }
 
 export async function getJobsVersion(env) {

@@ -17,6 +17,7 @@ import {
     getSupabaseConfig,
     getJobs,
     getJobsVersion,
+    getJobImageValue,
     getJobById,
     addJob,
     updateJob,
@@ -433,6 +434,48 @@ app.get('/api/jobs/version', async (c) => {
     }
 });
 
+function decodeBase64DataUrl(dataUrl) {
+    const match = String(dataUrl || '').match(/^data:([^;]+);base64,(.+)$/s);
+    if (!match) return null;
+    const contentType = match[1];
+    const binary = atob(match[2].replace(/\s+/g, ''));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return { contentType, bytes };
+}
+
+app.get('/api/jobs/:id/image/:slot', async (c) => {
+    try {
+        const id = c.req.param('id');
+        const slot = c.req.param('slot') || 'poster';
+        const val = await getJobImageValue(c.env, id, slot);
+        if (!val) return c.json({ error: 'Gambar tidak ditemukan' }, 404);
+
+        if (val.startsWith('data:')) {
+            const decoded = decodeBase64DataUrl(val);
+            if (!decoded) return c.json({ error: 'Format gambar tidak valid' }, 400);
+            return new Response(decoded.bytes, {
+                status: 200,
+                headers: {
+                    'Content-Type': decoded.contentType,
+                    'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+                    'X-Content-Type-Options': 'nosniff'
+                }
+            });
+        }
+
+        if (val.startsWith('/') || val.startsWith('http://') || val.startsWith('https://')) {
+            return c.redirect(val, 302);
+        }
+
+        return c.json({ error: 'Gambar tidak ditemukan' }, 404);
+    } catch (err) {
+        return c.json({ error: err.message }, 500);
+    }
+});
+
 app.get('/api/jobs/:id', async (c) => {
     try {
         const job = await getJobById(c.env, c.req.param('id'));
@@ -486,6 +529,12 @@ app.put('/api/jobs/:id', requireAdminAuth, async (c) => {
         const body = await parseJobRequestBody(c);
         const payload = normalizeJobPayload(body, false);
 
+        if (typeof payload.cover_image === 'string' && payload.cover_image.startsWith('/api/jobs/')) {
+            delete payload.cover_image;
+        }
+        if (typeof payload.poster_image === 'string' && payload.poster_image.startsWith('/api/jobs/')) {
+            delete payload.poster_image;
+        }
         if (!payload.cover_image && existing.cover_image) {
             payload.cover_image = existing.cover_image;
         }

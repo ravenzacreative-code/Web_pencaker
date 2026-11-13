@@ -195,11 +195,21 @@ async function loadAllJobs() {
   }
   const sb = cekCvSbClient;
 
-  // 1. Direct Supabase Query (works instantly on GitHub Pages, workdev, and local)
-  if (sb) {
+  // 1. Try lightweight backend /api/jobs first (avoids 16+ MB base64 payloads)
+  try {
+    const { ok, data: json } = await safeFetchJson(getApiEndpoint('/api/jobs?status=active'));
+    if (ok && json && json.success && Array.isArray(json.data) && json.data.length > 0) {
+      const normalizer = typeof window.cleanJobData === 'function' ? window.cleanJobData : (j => j);
+      allJobs = json.data.map(normalizer).filter(j => j && (!j.status || !j.status.startsWith('system_')));
+    }
+  } catch (e) {}
+
+  // 2. Lightweight Direct Supabase Fallback (if API unavailable)
+  if ((!allJobs || allJobs.length === 0) && sb) {
     try {
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 7000));
-      const fetchPromise = sb.from('jobs').select('*').in('status', ['active']);
+      const LIGHT_COLS = 'id,title,company_name,category,job_type,location,salary_display,experience_level,description,requirements,responsibilities,benefits,status,is_featured,created_at,updated_at';
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000));
+      const fetchPromise = sb.from('jobs').select(LIGHT_COLS).in('status', ['active', 'published']);
       const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
       if (!error && Array.isArray(data) && data.length > 0) {
         const normalizer = typeof window.cleanJobData === 'function' ? window.cleanJobData : (j => j);

@@ -1189,8 +1189,8 @@ async function loadJobs(options = {}) {
       `;
     }
 
-    // 2. Ultra-Fast Parallel Race: Query Worker /api/jobs AND Supabase Cloud concurrently
-    // First valid response wins immediately without waiting for the slower one!
+    const LIGHT_JOB_COLS = 'id,title,company_name,category,job_type,location,salary_display,experience_level,description,requirements,responsibilities,benefits,contact_type,contact_value,deadline,status,is_featured,views_count,created_at,updated_at,whatsapp,email,website_url,source_platform,source_label,scheduled_at,apply_info';
+
     const fetchLocalApi = async () => {
       try {
         if (!bypassCache && window.__initialJobsPrefetch) {
@@ -1206,7 +1206,7 @@ async function loadJobs(options = {}) {
           return json.data.map(window.cleanJobData).filter(isJobPubliclyVisible);
         }
       } catch (e) {}
-      throw new Error('empty');
+      return null;
     };
 
     const fetchSupabase = async () => {
@@ -1217,11 +1217,11 @@ async function loadJobs(options = {}) {
           currentSupabaseKey = DEFAULT_SUPABASE_KEY;
         }
       }
-      if (!sbClient) throw new Error('empty');
+      if (!sbClient) return null;
       try {
         const fetchQuery = () => sbClient
           .from('jobs')
-          .select('*')
+          .select(LIGHT_JOB_COLS)
           .neq('status', 'system_master_data')
           .neq('status', 'system_settings')
           .neq('status', 'system_flyer_themes')
@@ -1230,7 +1230,7 @@ async function loadJobs(options = {}) {
           .order('is_featured', { ascending: false })
           .order('id', { ascending: false });
 
-        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 3000));
+        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 4000));
         let res = await Promise.race([fetchQuery(), timeoutPromise]);
 
         if (res && res.error && (res.error.code === 'PGRST301' || res.status === 401 || String(res.error.message || '').includes('API key'))) {
@@ -1239,39 +1239,25 @@ async function loadJobs(options = {}) {
           if (altClient) {
             sbClient = altClient;
             currentSupabaseKey = altKey;
-            const altTimeout = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 3000));
+            const altTimeout = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 4000));
             res = await Promise.race([fetchQuery(), altTimeout]);
           }
         }
 
         if (res && !res.timeout && !res.error && Array.isArray(res.data) && res.data.length > 0) {
-          return res.data.map(window.cleanJobData).filter(isJobPubliclyVisible);
+          return res.data.map((row) => {
+            row.poster_image = row.poster_image || `/api/jobs/${row.id}/image/poster`;
+            return window.cleanJobData(row);
+          }).filter(isJobPubliclyVisible);
         }
       } catch (e) {}
-      throw new Error('empty');
+      return null;
     };
 
-    // Race both sources concurrently — fastest wins immediately!
-    let freshJobs = null;
-    try {
-      freshJobs = await Promise.any([fetchLocalApi(), fetchSupabase()]);
-    } catch (e) {
-      freshJobs = null;
-    }
-
-    // Fallback if both returned null
-    if (!freshJobs && sbClient) {
-      try {
-        const { data } = await sbClient
-          .from('jobs')
-          .select('*')
-          .neq('status', 'system_uploaded_file')
-          .neq('status', 'system_company_images')
-          .limit(30);
-        if (Array.isArray(data) && data.length > 0) {
-          freshJobs = data.map(window.cleanJobData).filter(isJobPubliclyVisible);
-        }
-      } catch (e) {}
+    // Prioritize lightweight Edge-Cached /api/jobs (avoids 16+ MB Supabase 500 timeout), fallback to lightweight Supabase only if needed
+    let freshJobs = await fetchLocalApi();
+    if (!freshJobs) {
+      freshJobs = await fetchSupabase();
     }
 
     if (freshJobs && Array.isArray(freshJobs) && freshJobs.length > 0) {

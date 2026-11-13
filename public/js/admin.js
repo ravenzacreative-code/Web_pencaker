@@ -444,6 +444,14 @@ function prepareJobPayloadForSupabase(jobObj) {
     }
   }
 
+  // Never overwrite stored base64/R2 image columns with internal proxy URLs
+  if (typeof clean.poster_image === 'string' && clean.poster_image.startsWith('/api/jobs/')) {
+    delete clean.poster_image;
+  }
+  if (typeof clean.cover_image === 'string' && clean.cover_image.startsWith('/api/jobs/')) {
+    delete clean.cover_image;
+  }
+
   // Prevent duplicate cover_image if identical to poster_image
   if (clean.cover_image && clean.poster_image && clean.cover_image === clean.poster_image) {
     clean.cover_image = null;
@@ -2673,35 +2681,38 @@ async function loadAdminJobs(forceRefresh = false) {
   let jobs = null;
 
   try {
-    // 2. High-Speed Concurrent Race: Query local API AND Supabase Cloud concurrently
-    const localApiPromise = (async () => {
-      if (!forceRefresh && window.__initialAdminJobsPrefetch) {
-        const pre = await window.__initialAdminJobsPrefetch;
-        window.__initialAdminJobsPrefetch = null;
-        if (pre && pre.success && Array.isArray(pre.data) && pre.data.length > 0) {
-          return pre.data;
-        }
-      }
-      const endpoint = forceRefresh ? `/api/jobs?status=all&_t=${Date.now()}` : '/api/jobs?status=all';
-      const { ok, data } = await safeFetchJson(getApiEndpoint(endpoint));
-      if (ok && data && data.success && Array.isArray(data.data) && data.data.length > 0) {
-        return data.data;
-      }
-      throw new Error('Local API returned no jobs');
-    })();
+    const LIGHT_JOB_COLS = 'id,title,company_name,category,job_type,location,salary_display,experience_level,description,requirements,responsibilities,benefits,contact_type,contact_value,deadline,status,is_featured,views_count,created_at,updated_at,whatsapp,email,website_url,source_platform,source_label,scheduled_at,apply_info';
 
-    const supabasePromise = (async () => {
-      if (!sbClient) throw new Error('Supabase client not initialized');
+    // 2. Prioritize lightweight Edge-Cached /api/jobs?status=all (avoids 16+ MB Supabase 500 OOM/timeout)
+    const fetchLocalApi = async () => {
+      try {
+        if (!forceRefresh && window.__initialAdminJobsPrefetch) {
+          const pre = await window.__initialAdminJobsPrefetch;
+          window.__initialAdminJobsPrefetch = null;
+          if (pre && pre.success && Array.isArray(pre.data) && pre.data.length > 0) {
+            return pre.data;
+          }
+        }
+        const endpoint = forceRefresh ? `/api/jobs?status=all&_t=${Date.now()}` : '/api/jobs?status=all';
+        const { ok, data } = await safeFetchJson(getApiEndpoint(endpoint));
+        if (ok && data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+          return data.data;
+        }
+      } catch (e) {}
+      return null;
+    };
+
+    const fetchSupabaseFallback = async () => {
+      if (!sbClient) return null;
       const fetchJobs = () => sbClient
         .from('jobs')
-        .select('*')
+        .select(LIGHT_JOB_COLS)
         .neq('status', 'system_company_images')
         .neq('status', 'system_uploaded_file')
         .order('id', { ascending: false });
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000));
       let res = await Promise.race([fetchJobs(), timeoutPromise]);
       if (res && res.error && (res.error.code === 'PGRST301' || res.status === 401 || String(res.error.message || '').includes('API key'))) {
-        console.warn('Primary Supabase key failed (401), trying alternate key in admin...');
         const altKey = (currentSupabaseKey === DEFAULT_SUPABASE_KEY) ? ALTERNATE_SUPABASE_KEY : DEFAULT_SUPABASE_KEY;
         const altClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, altKey, clientOptions);
         if (altClient) {
@@ -2713,17 +2724,12 @@ async function loadAdminJobs(forceRefresh = false) {
       if (res && !res.error && Array.isArray(res.data) && res.data.length > 0) {
         return res.data;
       }
-      throw new Error('Supabase returned no jobs or error');
-    })();
+      return null;
+    };
 
-    try {
-      // Race whichever is fastest!
-      jobs = await Promise.any([localApiPromise, supabasePromise]);
-    } catch (errRace) {
-      // If Promise.any failed, wait for whichever might still succeed
-      try {
-        jobs = await localApiPromise.catch(() => null) || await supabasePromise.catch(() => null);
-      } catch (e) {}
+    jobs = await fetchLocalApi();
+    if (!jobs) {
+      jobs = await fetchSupabaseFallback().catch(() => null);
     }
 
     if (jobs && Array.isArray(jobs) && jobs.length > 0) {
