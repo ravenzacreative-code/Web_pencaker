@@ -308,18 +308,32 @@ const clientOptions = {
   }
 };
 
+function getOrCreateSupabaseClient(url, key, baseOpts) {
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+  const cache = (window.__khSupabaseClients = window.__khSupabaseClients || {});
+  const cacheKey = `${url}::${key}`;
+  if (cache[cacheKey]) return cache[cacheKey];
+
+  const authOpts = Object.assign({}, (baseOpts && baseOpts.auth) || {}, {
+    storageKey: 'kh_auth_' + String(key).slice(-8)
+  });
+  const opts = Object.assign({}, baseOpts || {}, { auth: authOpts });
+  cache[cacheKey] = window.supabase.createClient(url, key, opts);
+  return cache[cacheKey];
+}
+
 async function initSupabaseClient() {
 
   // 1. Immediately initialize with client-side default Supabase credentials so it works on GitHub Pages, workdev, and static previews
-  if (window.supabase && typeof window.supabase.createClient === 'function') {
-    if (!sbClient) {
-      try {
-        sbClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, clientOptions);
+  if (!sbClient) {
+    try {
+      sbClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, clientOptions);
+      if (sbClient) {
         currentSupabaseUrl = DEFAULT_SUPABASE_URL;
         currentSupabaseKey = DEFAULT_SUPABASE_KEY;
-      } catch (e) {
-        console.warn('Initial Supabase createClient error:', e);
       }
+    } catch (e) {
+      console.warn('Initial Supabase createClient error:', e);
     }
   }
 
@@ -328,12 +342,15 @@ async function initSupabaseClient() {
     try {
       const { ok, data } = await safeFetchJson(getApiEndpoint('/api/config'));
       if (ok && data) {
-        if (data.supabaseUrl && data.supabaseKey && window.supabase && typeof window.supabase.createClient === 'function') {
+        if (data.supabaseUrl && data.supabaseKey) {
           if (data.supabaseUrl !== currentSupabaseUrl || data.supabaseKey !== currentSupabaseKey) {
             try {
-              sbClient = window.supabase.createClient(data.supabaseUrl, data.supabaseKey, clientOptions);
-              currentSupabaseUrl = data.supabaseUrl;
-              currentSupabaseKey = data.supabaseKey;
+              const nextClient = getOrCreateSupabaseClient(data.supabaseUrl, data.supabaseKey, clientOptions);
+              if (nextClient) {
+                sbClient = nextClient;
+                currentSupabaseUrl = data.supabaseUrl;
+                currentSupabaseKey = data.supabaseKey;
+              }
             } catch (e) {
               console.warn('Supabase createClient error:', e);
             }
@@ -387,17 +404,23 @@ let searchDebounceTimer = null;
 let _publicRealtimeChannel = null;
 function setupSupabaseRealtimeSync() {
   if (!sbClient || typeof sbClient.channel !== 'function') return;
+  if (String(currentSupabaseKey || '').startsWith('sb_publishable_')) return;
   if (_publicRealtimeChannel) return;
   try {
-    _publicRealtimeChannel = sbClient.channel('public-jobs-realtime-stream')
+    const channel = sbClient.channel('public-jobs-realtime-stream')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, async (payload) => {
         console.log('⚡ [Public Realtime] Realtime job update detected:', payload.eventType);
         safeSessionRemove('kerja_public_jobs_cache');
         await loadJobs();
       })
       .subscribe((status) => {
-        console.log('⚡ [Public Realtime] Realtime listener status:', status);
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          try { sbClient.removeChannel(channel); } catch (e) {}
+          try { sbClient.realtime?.disconnect(); } catch (e) {}
+          _publicRealtimeChannel = null;
+        }
       });
+    _publicRealtimeChannel = channel;
   } catch (err) {
     console.warn('Realtime sync warning in public app:', err);
   }
@@ -1106,12 +1129,12 @@ async function loadJobs() {
     };
 
     const fetchSupabase = async () => {
-      if (!sbClient && window.supabase && typeof window.supabase.createClient === 'function') {
-        try {
-          sbClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, clientOptions);
+      if (!sbClient) {
+        sbClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, clientOptions);
+        if (sbClient) {
           currentSupabaseUrl = DEFAULT_SUPABASE_URL;
           currentSupabaseKey = DEFAULT_SUPABASE_KEY;
-        } catch (e) {}
+        }
       }
       if (!sbClient) return null;
       try {
@@ -1124,15 +1147,16 @@ async function loadJobs() {
           .order('is_featured', { ascending: false })
           .order('id', { ascending: false });
 
-        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 8000));
+        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 3000));
         let res = await Promise.race([fetchQuery(), timeoutPromise]);
 
         if (res && res.error && (res.error.code === 'PGRST301' || res.status === 401 || String(res.error.message || '').includes('API key'))) {
           const altKey = (currentSupabaseKey === DEFAULT_SUPABASE_KEY) ? ALTERNATE_SUPABASE_KEY : DEFAULT_SUPABASE_KEY;
-          if (window.supabase && typeof window.supabase.createClient === 'function') {
-            sbClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, altKey, clientOptions);
+          const altClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, altKey, clientOptions);
+          if (altClient) {
+            sbClient = altClient;
             currentSupabaseKey = altKey;
-            const altTimeout = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 8000));
+            const altTimeout = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 3000));
             res = await Promise.race([fetchQuery(), altTimeout]);
           }
         }

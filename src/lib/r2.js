@@ -1,3 +1,5 @@
+import { getSupabaseConfig, supabaseFetch } from './supabase.js';
+
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
 const IMAGE_MIME_MAP = {
@@ -59,9 +61,8 @@ function base64ToUint8Array(base64) {
 }
 
 function getSupabaseCreds(env) {
-    const url = (env?.SUPABASE_URL || '').trim().replace(/\/+$/, '');
-    const key = (env?.SUPABASE_SERVICE_ROLE_KEY || env?.SUPABASE_KEY || '').trim();
-    return { url, key };
+    const { url, key, candidateKeys } = getSupabaseConfig(env);
+    return { url, key, candidateKeys };
 }
 
 export function sanitizeR2Key(rawKey) {
@@ -183,26 +184,20 @@ export async function uploadFileToR2(env, file, options = {}) {
 
     // 3. 100% Free Zero-Setup Fallback: Supabase DB blob row
     const base64 = arrayBufferToBase64(buffer);
-    const dbRes = await fetch(`${sbUrl}/rest/v1/jobs`, {
-        method: 'POST',
-        headers: {
-            'apikey': sbKey,
-            'Authorization': `Bearer ${sbKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-            title: key,
-            company_name: validation.contentType,
-            location: 'UPLOAD',
-            status: 'system_uploaded_file',
-            description: base64
-        })
-    });
-
-    if (!dbRes.ok) {
-        const errText = await dbRes.text();
-        throw new Error(`Gagal menyimpan file upload: ${errText}`);
+    try {
+        await supabaseFetch(env, 'jobs', {
+            method: 'POST',
+            headers: { 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+                title: key,
+                company_name: validation.contentType,
+                location: 'UPLOAD',
+                status: 'system_uploaded_file',
+                description: base64
+            })
+        });
+    } catch (err) {
+        throw new Error(`Gagal menyimpan file upload: ${err.message}`);
     }
 
     return {
@@ -255,25 +250,17 @@ export async function getUploadResponseFromR2(env, rawKey) {
 
     // 3. Supabase DB blob fallback
     try {
-        const dbRes = await fetch(
-            `${sbUrl}/rest/v1/jobs?status=eq.system_uploaded_file&title=eq.${encodeURIComponent(key)}&limit=1&select=company_name,description`,
-            {
-                headers: {
-                    'apikey': sbKey,
-                    'Authorization': `Bearer ${sbKey}`
-                }
-            }
+        const rows = await supabaseFetch(
+            env,
+            `jobs?status=eq.system_uploaded_file&title=eq.${encodeURIComponent(key)}&limit=1&select=company_name,description`
         );
-        if (dbRes.ok) {
-            const rows = await dbRes.json();
-            if (Array.isArray(rows) && rows.length > 0 && rows[0].description) {
-                const bytes = base64ToUint8Array(rows[0].description);
-                const headers = new Headers();
-                headers.set('Content-Type', rows[0].company_name || getFallbackContentType(key));
-                headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-                headers.set('X-Content-Type-Options', 'nosniff');
-                return new Response(bytes, { headers });
-            }
+        if (Array.isArray(rows) && rows.length > 0 && rows[0].description) {
+            const bytes = base64ToUint8Array(rows[0].description);
+            const headers = new Headers();
+            headers.set('Content-Type', rows[0].company_name || getFallbackContentType(key));
+            headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+            headers.set('X-Content-Type-Options', 'nosniff');
+            return new Response(bytes, { headers });
         }
     } catch { /* ignore */ }
 
@@ -298,9 +285,9 @@ export async function deleteUploadFromR2(env, keyOrUrl) {
             headers: { 'apikey': sbKey, 'Authorization': `Bearer ${sbKey}` }
         }).catch(() => null);
 
-        await fetch(`${sbUrl}/rest/v1/jobs?status=eq.system_uploaded_file&title=eq.${encodeURIComponent(key)}`, {
+        await supabaseFetch(env, `jobs?status=eq.system_uploaded_file&title=eq.${encodeURIComponent(key)}`, {
             method: 'DELETE',
-            headers: { 'apikey': sbKey, 'Authorization': `Bearer ${sbKey}`, 'Prefer': 'return=minimal' }
+            headers: { 'Prefer': 'return=minimal' }
         }).catch(() => null);
     }
 

@@ -163,21 +163,32 @@ window.openCvOrderWhatsApp = function() {
 // Load Jobs and Settings directly from Supabase with API fallback
 let cekCvSbClient = null;
 const cekCvMemoryStore = {};
+function getOrCreateCekCvSupabaseClient(url, key) {
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+  const cache = (window.__khSupabaseClients = window.__khSupabaseClients || {});
+  const cacheKey = `${url}::${key}`;
+  if (cache[cacheKey]) return cache[cacheKey];
+
+  cache[cacheKey] = window.supabase.createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      storageKey: 'kh_auth_' + String(key).slice(-8),
+      storage: {
+        getItem: (k) => cekCvMemoryStore[k] || null,
+        setItem: (k, v) => { cekCvMemoryStore[k] = String(v); },
+        removeItem: (k) => { delete cekCvMemoryStore[k]; }
+      }
+    }
+  });
+  return cache[cacheKey];
+}
+
 async function loadAllJobs() {
-  if (window.supabase && typeof window.supabase.createClient === 'function' && !cekCvSbClient) {
+  if (!cekCvSbClient) {
     try {
-      cekCvSbClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          detectSessionInUrl: false,
-          storage: {
-            getItem: (k) => cekCvMemoryStore[k] || null,
-            setItem: (k, v) => { cekCvMemoryStore[k] = String(v); },
-            removeItem: (k) => { delete cekCvMemoryStore[k]; }
-          }
-        }
-      });
+      cekCvSbClient = getOrCreateCekCvSupabaseClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY);
     } catch (e) {
       console.warn('Initial Supabase client error in cek-cv:', e);
     }

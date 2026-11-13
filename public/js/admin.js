@@ -373,29 +373,46 @@ const clientOptions = {
   }
 };
 
+function getOrCreateSupabaseClient(url, key, baseOpts) {
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+  const cache = (window.__khSupabaseClients = window.__khSupabaseClients || {});
+  const cacheKey = `${url}::${key}`;
+  if (cache[cacheKey]) return cache[cacheKey];
+
+  const authOpts = Object.assign({}, (baseOpts && baseOpts.auth) || {}, {
+    storageKey: 'kh_auth_' + String(key).slice(-8)
+  });
+  const opts = Object.assign({}, baseOpts || {}, { auth: authOpts });
+  cache[cacheKey] = window.supabase.createClient(url, key, opts);
+  return cache[cacheKey];
+}
+
 async function initSupabaseClient() {
   // 1. Singleton initialization with default Supabase credentials
-  if (window.supabase && typeof window.supabase.createClient === 'function') {
-    if (!sbClient) {
-      try {
-        sbClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, clientOptions);
+  if (!sbClient) {
+    try {
+      sbClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, clientOptions);
+      if (sbClient) {
         currentSupabaseUrl = DEFAULT_SUPABASE_URL;
         currentSupabaseKey = DEFAULT_SUPABASE_KEY;
-      } catch (e) {
-        console.warn('Initial Supabase createClient error in admin:', e);
       }
+    } catch (e) {
+      console.warn('Initial Supabase createClient error in admin:', e);
     }
   }
 
   // 2. Fetch runtime /api/config from backend only if credentials differ
   try {
     const { ok, data } = await safeFetchJson(getApiEndpoint('/api/config'));
-    if (ok && data && data.supabaseUrl && data.supabaseKey && window.supabase && typeof window.supabase.createClient === 'function') {
+    if (ok && data && data.supabaseUrl && data.supabaseKey) {
       if (data.supabaseUrl !== currentSupabaseUrl || data.supabaseKey !== currentSupabaseKey) {
         try {
-          sbClient = window.supabase.createClient(data.supabaseUrl, data.supabaseKey, clientOptions);
-          currentSupabaseUrl = data.supabaseUrl;
-          currentSupabaseKey = data.supabaseKey;
+          const nextClient = getOrCreateSupabaseClient(data.supabaseUrl, data.supabaseKey, clientOptions);
+          if (nextClient) {
+            sbClient = nextClient;
+            currentSupabaseUrl = data.supabaseUrl;
+            currentSupabaseKey = data.supabaseKey;
+          }
         } catch (e) {
           console.warn('Supabase createClient override error in admin:', e);
         }
@@ -2653,13 +2670,14 @@ async function loadAdminJobs(forceRefresh = false) {
     const supabasePromise = (async () => {
       if (!sbClient) throw new Error('Supabase client not initialized');
       const fetchJobs = () => sbClient.from('jobs').select('*').order('id', { ascending: false });
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4500));
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
       let res = await Promise.race([fetchJobs(), timeoutPromise]);
       if (res && res.error && (res.error.code === 'PGRST301' || res.status === 401 || String(res.error.message || '').includes('API key'))) {
         console.warn('Primary Supabase key failed (401), trying alternate key in admin...');
         const altKey = (currentSupabaseKey === DEFAULT_SUPABASE_KEY) ? ALTERNATE_SUPABASE_KEY : DEFAULT_SUPABASE_KEY;
-        if (window.supabase && typeof window.supabase.createClient === 'function') {
-          sbClient = window.supabase.createClient(DEFAULT_SUPABASE_URL, altKey, clientOptions);
+        const altClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, altKey, clientOptions);
+        if (altClient) {
+          sbClient = altClient;
           currentSupabaseKey = altKey;
           res = await Promise.race([fetchJobs(), timeoutPromise]);
         }
@@ -3321,16 +3339,22 @@ function syncAdminJobsToOfficialDb() {
 
 function setupSupabaseRealtimeSync() {
   if (!sbClient || typeof sbClient.channel !== 'function') return;
+  if (String(currentSupabaseKey || '').startsWith('sb_publishable_')) return;
   if (_adminRealtimeChannel) return;
   try {
-    _adminRealtimeChannel = sbClient.channel('admin-jobs-realtime-stream')
+    const channel = sbClient.channel('admin-jobs-realtime-stream')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, async (payload) => {
         console.log('⚡ [Admin Realtime] Perubahan database terdeteksi:', payload.eventType);
         await loadAdminJobs(true);
       })
       .subscribe((status) => {
-        console.log('⚡ [Admin Realtime] Realtime listener aktif:', status);
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          try { sbClient.removeChannel(channel); } catch (e) {}
+          try { sbClient.realtime?.disconnect(); } catch (e) {}
+          _adminRealtimeChannel = null;
+        }
       });
+    _adminRealtimeChannel = channel;
   } catch (err) {
     console.warn('Realtime sync warning in admin:', err);
   }
@@ -5501,7 +5525,7 @@ window.loadFlyerThemes = async function() {
     const res = await fetch(getApiEndpoint('/api/flyer-themes'));
     if (res.ok) {
       const json = await res.json();
-      if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
+      if (json && json.success && Array.isArray(json.data)) {
         flyerThemes = json.data;
         saveThemesLocal();
         loadedFromApi = true;
@@ -5520,16 +5544,18 @@ window.loadFlyerThemes = async function() {
     } catch (e) {}
 
     // Fallback: check jobs table where status = 'system_flyer_themes'
-    try {
-      const { data: rows, error: rowErr } = await sbClient.from('jobs').select('description').eq('status', 'system_flyer_themes').limit(1);
-      if (!rowErr && rows && rows.length > 0 && rows[0].description) {
-        const parsed = JSON.parse(rows[0].description);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          flyerThemes = parsed;
-          saveThemesLocal();
+    if (flyerThemes.length === 0) {
+      try {
+        const { data: rows, error: rowErr } = await sbClient.from('jobs').select('description').eq('status', 'system_flyer_themes').limit(1);
+        if (!rowErr && rows && rows.length > 0 && rows[0].description) {
+          const parsed = JSON.parse(rows[0].description);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            flyerThemes = parsed;
+            saveThemesLocal();
+          }
         }
-      }
-    } catch (e) {}
+      } catch (e) {}
+    }
   }
 
   // Deduplicate themes to prevent duplicate render

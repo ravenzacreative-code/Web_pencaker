@@ -35,40 +35,84 @@ const SYSTEM_STATUSES = [
     'system_uploaded_file'
 ];
 
+const DEFAULT_SUPABASE_URL = 'https://nptmawuukuysqzqakwej.supabase.co';
+const CANDIDATE_SUPABASE_KEYS = [
+    'sb_publishable_CeLmp_Pj-sgJ_vIrShAj2A__rzAQIYT',
+    'sb_publishable_vhr-CPf4EI0fy2Xsl1uBPg_RxF7UwWT'
+];
+let cachedWorkingKey = '';
+
 export function getSupabaseConfig(env) {
-    const url = (env?.SUPABASE_URL || '').trim().replace(/\/+$/, '');
-    const key = (env?.SUPABASE_SERVICE_ROLE_KEY || env?.SUPABASE_KEY || '').trim();
-    const publicKey = (env?.SUPABASE_KEY || '').trim();
-    return { url, key, publicKey };
+    const rawUrl = (env?.SUPABASE_URL || DEFAULT_SUPABASE_URL).trim().replace(/\/+$/, '');
+    const url = rawUrl || DEFAULT_SUPABASE_URL;
+
+    const rawCandidates = [
+        cachedWorkingKey,
+        env?.SUPABASE_SERVICE_ROLE_KEY,
+        env?.SUPABASE_KEY,
+        ...CANDIDATE_SUPABASE_KEYS
+    ];
+
+    const seen = new Set();
+    const candidateKeys = [];
+    for (const k of rawCandidates) {
+        const clean = typeof k === 'string' ? k.trim() : '';
+        if (clean && !seen.has(clean)) {
+            seen.add(clean);
+            candidateKeys.push(clean);
+        }
+    }
+
+    const publicKey = cachedWorkingKey || CANDIDATE_SUPABASE_KEYS[0];
+    return {
+        url,
+        key: candidateKeys[0] || publicKey,
+        publicKey,
+        candidateKeys
+    };
 }
 
 export async function supabaseFetch(env, path, options = {}) {
-    const { url, key } = getSupabaseConfig(env);
-    if (!url || !key) {
+    const { url, candidateKeys } = getSupabaseConfig(env);
+    if (!url || candidateKeys.length === 0) {
         throw new Error('SUPABASE_URL atau SUPABASE_KEY belum dikonfigurasi pada environment.');
     }
 
     const endpoint = `${url}/rest/v1/${path}`;
-    const headers = {
-        'apikey': key,
-        'Authorization': `Bearer ${key}`,
-        'Content-Type': 'application/json',
-        ...(options.headers || {})
-    };
+    let lastError = null;
 
-    const res = await fetch(endpoint, {
-        ...options,
-        headers
-    });
+    for (const apiKey of candidateKeys) {
+        const headers = {
+            'apikey': apiKey,
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        };
 
-    if (!res.ok) {
+        const res = await fetch(endpoint, {
+            ...options,
+            headers
+        });
+
+        if (res.ok) {
+            if (!env?.SUPABASE_SERVICE_ROLE_KEY || apiKey !== env.SUPABASE_SERVICE_ROLE_KEY) {
+                cachedWorkingKey = apiKey;
+            }
+            const text = await res.text();
+            if (!text) return null;
+            return JSON.parse(text);
+        }
+
         const errText = await res.text();
-        throw new Error(`Supabase error (${res.status}): ${errText}`);
+        lastError = new Error(`Supabase error (${res.status}): ${errText}`);
+
+        const isKeyError = res.status === 401 || (res.status === 403 && errText.includes('Invalid API key'));
+        if (!isKeyError) {
+            throw lastError;
+        }
     }
 
-    const text = await res.text();
-    if (!text) return null;
-    return JSON.parse(text);
+    throw lastError || new Error('Supabase authentication failed across all candidate keys.');
 }
 
 export function enrichJobPlatform(job) {
