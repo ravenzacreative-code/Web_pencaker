@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
   
-  <link rel="stylesheet" href="./css/style.css?v=20261031_05">
+  <link rel="stylesheet" href="./css/style.css?v=20261113_03">
   <!-- Start Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function(r){return r.ok ? r.json() : null;}).catch(function(){return null;});</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
@@ -26,12 +26,19 @@
   <!-- NAVBAR -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="./" class="brand-logo" id="brand-logo-link">
-        <div class="brand-icon">
-          <i class="fa-solid fa-briefcase"></i>
-        </div>
-        <span>KerjaHub<span class="brand-tag">PORTAL</span></span>
-      </a>
+      <div class="brand-lockup">
+        <a href="./" class="brand-logo" id="brand-logo-link">
+          <div class="brand-icon">
+            <i class="fa-solid fa-briefcase"></i>
+          </div>
+          <span>KerjaHub<span class="brand-tag">PORTAL</span></span>
+        </a>
+        <span class="brand-credit-divider" aria-hidden="true"></span>
+        <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-top-credit" title="Powered by Daysheet.id">
+          <span class="daysheet-by">by</span>
+          <img src="./uploads/daysheet_logo.png" alt="Daysheet.id" class="daysheet-top-logo">
+        </a>
+      </div>
 
       <ul class="nav-links">
         <li><a href="#lowongan" class="nav-link active">Lowongan Kerja</a></li>
@@ -45,7 +52,7 @@
           <i class="fa-solid fa-wand-magic-sparkles"></i> Cek CV AI
         </a>
         <!-- Theme Toggle -->
-        <button class="btn-icon" id="theme-toggle-btn" title="Ganti Mode Gelap / Terang">
+        <button type="button" class="btn-icon" id="theme-toggle-btn" title="Ganti Mode Gelap / Terang">
           <i class="fa-solid fa-moon"></i>
         </button>
       </div>
@@ -163,7 +170,7 @@
             <input type="hidden" id="search-location" value="Semua">
           </div>
         </div>
-        <button class="btn btn-primary" id="search-btn">
+        <button type="button" class="btn btn-primary" id="search-btn">
           <i class="fa-solid fa-magnifying-glass"></i> Cari Lowongan
         </button>
       </div>
@@ -171,13 +178,13 @@
       <!-- TRENDING SEARCH CHIPS -->
       <div class="trending-keywords" id="kategori-section">
         <span class="trending-label"><i class="fa-solid fa-arrow-trend-up"></i> Populer:</span>
-        <button class="chip-keyword" id="btn-search-all-cat" data-keyword="" title="Semua Lowongan"><i class="fa-solid fa-arrows-to-dot" style="color: #6366f1;"></i> Semua Posisi</button>
-        <button class="chip-keyword" data-keyword="Operator"><i class="fa-solid fa-industry"></i> Operator Produksi</button>
-        <button class="chip-keyword" data-keyword="React"><i class="fa-brands fa-react"></i> React / Web Dev</button>
-        <button class="chip-keyword" data-keyword="UI/UX"><i class="fa-solid fa-pen-nib"></i> UI/UX Design</button>
-        <button class="chip-keyword" data-keyword="Marketing"><i class="fa-solid fa-chart-line"></i> Digital Marketing</button>
-        <button class="chip-keyword" data-keyword="K3"><i class="fa-solid fa-shield-halved"></i> K3 / Keselamatan Kerja</button>
-        <button class="chip-keyword" data-keyword="Frontliner"><i class="fa-solid fa-building-columns"></i> Frontliner / Bank</button>
+        <button type="button" class="chip-keyword" id="btn-search-all-cat" data-keyword="" title="Semua Lowongan"><i class="fa-solid fa-arrows-to-dot" style="color: #6366f1;"></i> Semua Posisi</button>
+        <button type="button" class="chip-keyword" data-keyword="Operator"><i class="fa-solid fa-industry"></i> Operator Produksi</button>
+        <button type="button" class="chip-keyword" data-keyword="React"><i class="fa-brands fa-react"></i> React / Web Dev</button>
+        <button type="button" class="chip-keyword" data-keyword="UI/UX"><i class="fa-solid fa-pen-nib"></i> UI/UX Design</button>
+        <button type="button" class="chip-keyword" data-keyword="Marketing"><i class="fa-solid fa-chart-line"></i> Digital Marketing</button>
+        <button type="button" class="chip-keyword" data-keyword="K3"><i class="fa-solid fa-shield-halved"></i> K3 / Keselamatan Kerja</button>
+        <button type="button" class="chip-keyword" data-keyword="Frontliner"><i class="fa-solid fa-building-columns"></i> Frontliner / Bank</button>
       </div>
 
       <!-- STATS RIBBON -->
@@ -223,16 +230,16 @@
 
       <!-- INTERACTIVE TAB NAVIGATION -->
       <div class="job-tabs-nav" id="job-tabs-container">
-        <button class="job-tab-btn active" data-tab="all">
+        <button type="button" class="job-tab-btn active" data-tab="all">
           <i class="fa-solid fa-briefcase"></i> Semua Lowongan <span class="job-tab-badge" id="tab-count-all">0</span>
         </button>
-        <button class="job-tab-btn" data-tab="featured">
+        <button type="button" class="job-tab-btn" data-tab="featured">
           <i class="fa-solid fa-star"></i> Rekomendasi Unggulan <span class="job-tab-badge" id="tab-count-featured">0</span>
         </button>
-        <button class="job-tab-btn" data-tab="remote">
+        <button type="button" class="job-tab-btn" data-tab="remote">
           <i class="fa-solid fa-laptop-code"></i> Remote (WFH) <span class="job-tab-badge" id="tab-count-remote">0</span>
         </button>
-        <button class="job-tab-btn" data-tab="freshgrad">
+        <button type="button" class="job-tab-btn" data-tab="freshgrad">
           <i class="fa-solid fa-graduation-cap"></i> Fresh Graduate <span class="job-tab-badge" id="tab-count-freshgrad">0</span>
         </button>
       </div>
@@ -264,7 +271,7 @@
         <aside class="filter-sidebar" id="filter-sidebar">
           <div class="sidebar-header">
             <span class="sidebar-title"><i class="fa-solid fa-sliders"></i> Filter Pencarian</span>
-            <button class="filter-reset" id="btn-reset-filter"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            <button type="button" class="filter-reset" id="btn-reset-filter"><i class="fa-solid fa-rotate-left"></i> Reset</button>
           </div>
 
 
@@ -368,8 +375,8 @@
               </div>
 
               <div class="view-toggles">
-                <button class="view-btn active" id="view-grid-btn" title="Tampilan Kartu Grid"><i class="fa-solid fa-table-cells-large"></i></button>
-                <button class="view-btn" id="view-list-btn" title="Tampilan Daftar List"><i class="fa-solid fa-list"></i></button>
+                <button type="button" class="view-btn active" id="view-grid-btn" title="Tampilan Kartu Grid"><i class="fa-solid fa-table-cells-large"></i></button>
+                <button type="button" class="view-btn" id="view-list-btn" title="Tampilan Daftar List"><i class="fa-solid fa-list"></i></button>
               </div>
             </div>
           </div>
@@ -387,7 +394,7 @@
   <!-- JOB DETAIL MODAL (DETAIL & DIRECT ACTION) -->
   <div class="modal-overlay" id="job-detail-modal">
     <div class="modal-container">
-      <button class="modal-close-btn" title="Tutup Modal"><i class="fa-solid fa-xmark"></i></button>
+      <button type="button" class="modal-close-btn" title="Tutup Modal"><i class="fa-solid fa-xmark"></i></button>
       <div id="job-detail-content">
         <!-- Rendered by JavaScript -->
       </div>
@@ -397,7 +404,7 @@
   <!-- POSTER FULLSCREEN LIGHTBOX -->
   <div class="lightbox-overlay" id="poster-lightbox">
     <div class="lightbox-content">
-      <button class="modal-close-btn lightbox-close-btn" style="top: -16px; right: -16px;" title="Tutup Lightbox">
+      <button type="button" class="modal-close-btn lightbox-close-btn" style="top: -16px; right: -16px;" title="Tutup Lightbox">
         <i class="fa-solid fa-xmark"></i>
       </button>
       <img id="lightbox-img" src="" alt="Desain Poster Lowongan">
@@ -433,9 +440,11 @@
         </ul>
       </div>
       <div class="footer-bottom">
-        &copy; 2026 KerjaHub - Portal Berbagi Poster Lowongan Kerja Resmi. | Copyright by <strong>Daysheet.id</strong>
+        &copy; 2026 KerjaHub - Portal Berbagi Poster Lowongan Kerja Resmi. | Copyright by <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-footer-link">Daysheet.id</a>
       </div>
     </div>
+  </footer>
+
   <!-- FLOATING WHATSAPP CV ORDER BUTTON -->
   <div class="floating-wa-cv-container">
     <a href="javascript:void(0)" class="floating-wa-cv-btn" id="btn-floating-pesan-cv" onclick="openCvOrderWhatsApp()" title="Pesan Layanan Pembuatan CV ATS via WhatsApp">
@@ -450,6 +459,6 @@
     </a>
   </div>
 
-  <script src="./js/app.js?v=20261113_02" defer></script>
+  <script src="./js/app.js?v=20261113_03" defer></script>
 </body>
 </html>

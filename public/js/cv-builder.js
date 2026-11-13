@@ -169,14 +169,14 @@ const CV_SUMMARY_PRESETS = [
 ];
 
 const CV_TEMPLATES_META = [
-  { id: 1, badge: 'Coklat & Pita', subtitle: 'Desain 1: Formal Hangat', color: '#eab308' },
-  { id: 2, badge: 'Boxed 2 Kolom', subtitle: 'Desain 2: Klasik Border', color: '#64748b' },
-  { id: 3, badge: 'Wave Biru Modern', subtitle: 'Desain 3: Aksen Biru Wave', color: '#3b82f6' },
-  { id: 4, badge: 'Sidebar Lengkung', subtitle: 'Desain 4: Sidebar Curve', color: '#71717a' },
-  { id: 5, badge: 'Biodata Klasik', subtitle: 'Desain 5: CV Resmi Indo', color: '#10b981' },
-  { id: 6, badge: 'ATS Bar Abu', subtitle: 'Desain 6: ATS Friendly Bar', color: '#8b5cf6' },
-  { id: 7, badge: 'ATS Tanpa Foto', subtitle: 'Desain 7: Full Text Center', color: '#06b6d4' },
-  { id: 8, badge: 'ATS Garis Tegas', subtitle: 'Desain 8: ATS Foto Kiri', color: '#f43f5e' }
+  { id: 1, badge: 'Coklat & Pita', subtitle: 'Desain 1: Espresso Eksekutif', color: '#d97706' },
+  { id: 2, badge: 'Boxed 2 Kolom', subtitle: 'Desain 2: Klasik Arsitektural', color: '#334155' },
+  { id: 3, badge: 'Wave Biru Modern', subtitle: 'Desain 3: Wave Ocean Modern', color: '#1d70b8' },
+  { id: 4, badge: 'Sidebar Lengkung', subtitle: 'Desain 4: Slate Curve Kontras', color: '#0284c7' },
+  { id: 5, badge: 'Biodata Klasik', subtitle: 'Desain 5: CV Resmi Indonesia', color: '#059669' },
+  { id: 6, badge: 'ATS Bar Abu', subtitle: 'Desain 6: ATS Korporat', color: '#475569' },
+  { id: 7, badge: 'ATS Tanpa Foto', subtitle: 'Desain 7: ATS Executive Text', color: '#1e3a8a' },
+  { id: 8, badge: 'ATS Garis Tegas', subtitle: 'Desain 8: ATS Signature Kiri', color: '#0f172a' }
 ];
 
 // STATE MANAGEMENT - PERSISTED TO LOCALSTORAGE DIRECTLY
@@ -302,11 +302,24 @@ function getDisplayedExperiences() {
   return valid.length > 0 ? valid : (cvData.experiences || []);
 }
 
+// Shared crisp inline SVG icon helpers for print-exact A4 rendering
+function cvSvgPhone(color = 'currentColor', size = 11) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1.5px;flex-shrink:0;" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
+}
+
+function cvSvgMail(color = 'currentColor', size = 11) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1.5px;flex-shrink:0;" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
+}
+
+function cvSvgPin(color = 'currentColor', size = 11) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1.5px;flex-shrink:0;" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+}
+
 // -------------------------------------------------------------
 // RENDERERS FOR ALL 8 TEMPLATES (CALIBRATED FOR EXACT 1-PAGE A4)
 // -------------------------------------------------------------
 
-// TEMPLATE 1: Coklat & Pita
+// TEMPLATE 1: Espresso & Pita Gold Eksekutif
 function renderTemplate1() {
   const softList = cvToLines(cvData.softSkills).map(cvToShortSkill);
   const hardList = cvToLines(cvData.hardSkills).map(cvToShortSkill);
@@ -316,55 +329,54 @@ function renderTemplate1() {
     <div class="cv-tpl-1">
       <!-- Ribbons -->
       <div class="cv-tpl-1-ribbon-tr">
-        <div style="position: absolute; top: -20px; right: -50px; width: 170px; height: 18px; background: #4a4238; transform: rotate(45deg); transform-origin: center;"></div>
-        <div style="position: absolute; top: -6px; right: -50px; width: 170px; height: 14px; background: #eab308; transform: rotate(45deg); transform-origin: center;"></div>
+        <div style="position: absolute; top: -20px; right: -50px; width: 170px; height: 18px; background: #2d241c; transform: rotate(45deg); transform-origin: center;"></div>
+        <div style="position: absolute; top: -6px; right: -50px; width: 170px; height: 13px; background: #d97706; transform: rotate(45deg); transform-origin: center;"></div>
       </div>
       <div class="cv-tpl-1-ribbon-bl">
-        <div style="position: absolute; bottom: -20px; left: -50px; width: 170px; height: 18px; background: #6b6257; transform: rotate(45deg); transform-origin: center;"></div>
-        <div style="position: absolute; bottom: -6px; left: -50px; width: 170px; height: 14px; background: #eab308; transform: rotate(45deg); transform-origin: center;"></div>
+        <div style="position: absolute; bottom: -20px; left: -50px; width: 170px; height: 18px; background: #5c4b3b; transform: rotate(45deg); transform-origin: center;"></div>
+        <div style="position: absolute; bottom: -6px; left: -50px; width: 170px; height: 13px; background: #d97706; transform: rotate(45deg); transform-origin: center;"></div>
       </div>
 
-      <!-- Left Column (Dark Brown) -->
+      <!-- Left Column (Espresso Umber) -->
       <div class="cv-tpl-1-left">
-        <!-- Circular Photo -->
-        <div style="width: 140px; height: 140px; border-radius: 50%; border: 5px solid #d6c7bc; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-bottom: 20px; flex-shrink: 0; background-color: ${esc(cvData.photoBg)};">
+        <div style="width: 136px; height: 136px; border-radius: 50%; border: 4px solid #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2), 0 6px 14px rgba(0,0,0,0.28); overflow: hidden; margin-bottom: 18px; flex-shrink: 0; background-color: ${esc(cvData.photoBg)};">
           <img src="${cvData.photo}" alt="${esc(cvData.fullName)}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
 
         <!-- KONTAK -->
-        <div style="width: 100%; margin-bottom: 18px;">
+        <div style="width: 100%; margin-bottom: 16px;">
           <div class="cv-tpl-1-pill-hdr">KONTAK</div>
-          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; padding: 0 4px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="width: 24px; height: 24px; border-radius: 50%; background: #ffffff; color: #362f28; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px;">
-                <i class="fa-solid fa-phone"></i>
+          <div style="display: flex; flex-direction: column; gap: 7px; font-size: 11.8px; padding: 0 4px;">
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <span style="width: 22px; height: 22px; border-radius: 50%; background: #fef3c7; color: #2f261f; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${cvSvgPhone('#2f261f', 11)}
               </span>
-              <span style="word-break: break-all;">${esc(cvData.phone)}</span>
+              <span style="word-break: break-all; color: #fafaf9;">${esc(cvData.phone)}</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="width: 24px; height: 24px; border-radius: 50%; background: #ffffff; color: #362f28; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px;">
-                <i class="fa-solid fa-envelope"></i>
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <span style="width: 22px; height: 22px; border-radius: 50%; background: #fef3c7; color: #2f261f; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${cvSvgMail('#2f261f', 11)}
               </span>
-              <span style="word-break: break-all;">${esc(cvData.email)}</span>
+              <span style="word-break: break-all; color: #fafaf9;">${esc(cvData.email)}</span>
             </div>
-            <div style="display: flex; align-items: flex-start; gap: 10px;">
-              <span style="width: 24px; height: 24px; border-radius: 50%; background: #ffffff; color: #362f28; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; margin-top: 2px;">
-                <i class="fa-solid fa-location-dot"></i>
+            <div style="display: flex; align-items: flex-start; gap: 9px;">
+              <span style="width: 22px; height: 22px; border-radius: 50%; background: #fef3c7; color: #2f261f; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;">
+                ${cvSvgPin('#2f261f', 11)}
               </span>
-              <span style="line-height: 1.35;">${esc(cvData.address)}</span>
+              <span style="line-height: 1.35; color: #e7e5e4;">${esc(cvData.address)}</span>
             </div>
           </div>
         </div>
 
         <!-- PENDIDIKAN -->
-        <div style="width: 100%; margin-bottom: 18px;">
+        <div style="width: 100%; margin-bottom: 16px;">
           <div class="cv-tpl-1-pill-hdr">PENDIDIKAN</div>
-          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; padding: 0 6px;">
+          <div style="display: flex; flex-direction: column; gap: 9px; font-size: 11.8px; padding: 0 6px;">
             ${[...getDisplayedEducations()].reverse().map(edu => `
-              <div>
-                <div style="font-weight: 800; color: #ffffff;">${esc(edu.period)}</div>
-                <div style="color: #e7e5e4; font-weight: 600;">${esc(edu.school)}</div>
-                ${edu.major ? `<div style="color: #d6d3d1; font-size: 11.5px;">${esc(edu.major)}</div>` : ''}
+              <div style="border-left: 2px solid #d97706; padding-left: 8px;">
+                <div style="font-weight: 800; color: #fcd34d; font-size: 11px;">${esc(edu.period)}</div>
+                <div style="color: #ffffff; font-weight: 700;">${esc(edu.school)}</div>
+                ${edu.major ? `<div style="color: #d6d3d1; font-size: 11.2px;">${esc(edu.major)}</div>` : ''}
               </div>
             `).join('')}
           </div>
@@ -373,15 +385,15 @@ function renderTemplate1() {
         <!-- KEMAMPUAN -->
         <div style="width: 100%;">
           <div class="cv-tpl-1-pill-hdr">KEMAMPUAN</div>
-          <div style="padding: 0 6px; font-size: 12px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="padding: 0 6px; font-size: 11.8px; display: flex; flex-direction: column; gap: 9px;">
             <div>
-              <div style="font-weight: 700; text-transform: uppercase; color: #e7e5e4; margin-bottom: 4px; font-size: 11px;">SOFT SKILL</div>
+              <div style="font-weight: 800; text-transform: uppercase; color: #fcd34d; margin-bottom: 4px; font-size: 10.5px; letter-spacing: 0.06em;">SOFT SKILL</div>
               <ul style="list-style: disc; padding-left: 16px; margin: 0; display: flex; flex-direction: column; gap: 2px; color: #f5f5f4;">
                 ${softList.slice(0, 5).map(item => `<li>${esc(item)}</li>`).join('')}
               </ul>
             </div>
             <div>
-              <div style="font-weight: 700; text-transform: uppercase; color: #e7e5e4; margin-bottom: 4px; font-size: 11px;">HARD SKILL</div>
+              <div style="font-weight: 800; text-transform: uppercase; color: #fcd34d; margin-bottom: 4px; font-size: 10.5px; letter-spacing: 0.06em;">HARD SKILL</div>
               <ul style="list-style: disc; padding-left: 16px; margin: 0; display: flex; flex-direction: column; gap: 2px; color: #f5f5f4;">
                 ${hardList.slice(0, 5).map(item => `<li>${esc(item)}</li>`).join('')}
               </ul>
@@ -392,39 +404,37 @@ function renderTemplate1() {
 
       <!-- Right Column -->
       <div class="cv-tpl-1-right">
-        <!-- Header -->
-        <div style="margin-bottom: 20px;">
-          <h1 style="font-size: 26px; font-weight: 900; letter-spacing: 0.04em; color: #5c4938; text-transform: uppercase; margin: 0 0 4px; line-height: 1.15;">
+        <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #d97706;">
+          <h1 style="font-size: 25px; font-weight: 900; letter-spacing: 0.03em; color: #2f261f; text-transform: uppercase; margin: 0 0 4px; line-height: 1.15;">
             ${esc(cvData.fullName)}
           </h1>
-          <p style="font-size: 14.5px; color: #655446; font-weight: 600; margin: 0; line-height: 1.35;">
+          <p style="font-size: 13.5px; color: #92400e; font-weight: 700; margin: 0; letter-spacing: 0.04em; text-transform: uppercase;">
             ${esc(cvData.jobTitle)}
           </p>
         </div>
 
-        <!-- TENTANG SAYA -->
-        <div style="margin-bottom: 18px;">
-          <h2 style="font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #5c4938; margin: 0 0 6px;">
+        <div style="margin-bottom: 16px;">
+          <h2 style="font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #2f261f; border-bottom: 1.5px solid #d6c7bc; padding-bottom: 3px; margin: 0 0 6px;">
             TENTANG SAYA
           </h2>
-          <p style="font-size: 12.5px; line-height: 1.5; color: #4b4239; text-align: justify; margin: 0;">
+          <p style="font-size: 12px; line-height: 1.5; color: #3c352e; text-align: justify; margin: 0;">
             ${esc(cvData.aboutMe)}
           </p>
         </div>
 
-        <!-- PENGALAMAN KERJA -->
-        <div style="margin-bottom: 16px;">
-          <h2 style="font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #5c4938; margin: 0 0 8px;">
+        <div style="margin-bottom: 14px;">
+          <h2 style="font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #2f261f; border-bottom: 1.5px solid #d6c7bc; padding-bottom: 3px; margin: 0 0 8px;">
             PENGALAMAN KERJA
           </h2>
-          <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 11px;">
             ${getDisplayedExperiences().map(exp => `
-              <div style="font-size: 12.5px;">
-                <div style="font-weight: 800; color: #4b4239; margin-bottom: 4px;">
-                  ${esc(exp.company || 'Nama Perusahaan')}
-                  <span style="font-weight: 500; color: #655446;"> | ${esc(exp.period)} | ${esc(exp.role)}</span>
+              <div style="font-size: 12px; border-left: 2.5px solid #d97706; padding-left: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                  <span style="font-weight: 800; color: #2f261f;">${esc(exp.company || 'Nama Perusahaan')}</span>
+                  <span style="font-size: 11px; font-weight: 700; color: #92400e;">${esc(exp.period)}</span>
                 </div>
-                <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 2px; color: #4b4239; line-height: 1.45;">
+                <div style="font-weight: 700; color: #655446; font-size: 11.5px; margin-bottom: 3px;">${esc(exp.role)}</div>
+                <ul style="list-style: disc; padding-left: 16px; margin: 0; display: flex; flex-direction: column; gap: 2px; color: #3c352e; line-height: 1.42;">
                   ${cvToLines(exp.tasks).map(t => `<li>${esc(t)}</li>`).join('')}
                 </ul>
               </div>
@@ -432,13 +442,12 @@ function renderTemplate1() {
           </div>
         </div>
 
-        <!-- SERTIFIKAT -->
         ${certList.length > 0 ? `
           <div>
-            <h2 style="font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #5c4938; margin: 0 0 6px;">
+            <h2 style="font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #2f261f; border-bottom: 1.5px solid #d6c7bc; padding-bottom: 3px; margin: 0 0 6px;">
               SERTIFIKAT DAN PELATIHAN
             </h2>
-            <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; color: #4b4239;">
+            <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #3c352e;">
               ${certList.map(c => `<li>${esc(c)}</li>`).join('')}
             </ul>
           </div>
@@ -448,7 +457,7 @@ function renderTemplate1() {
   `;
 }
 
-// TEMPLATE 2: Boxed 2 Kolom Klasik
+// TEMPLATE 2: Boxed 2 Kolom Klasik Arsitektural
 function renderTemplate2() {
   const softList = cvToLines(cvData.softSkills).map(cvToShortSkill);
   const hardList = cvToLines(cvData.hardSkills).map(cvToShortSkill);
@@ -457,60 +466,56 @@ function renderTemplate2() {
   return `
     <div class="cv-tpl-2">
       <div class="cv-tpl-2-inner">
-        <!-- Left Column -->
         <div class="cv-tpl-2-left">
-          <div style="padding: 16px; display: flex; flex-direction: column; align-items: center;">
-            <div style="width: 125px; height: 125px; border-radius: 50%; border: 2px solid #525252; overflow: hidden; margin-bottom: 10px; background-color: ${esc(cvData.photoBg)};">
+          <div style="padding: 16px 14px 12px; display: flex; flex-direction: column; align-items: center;">
+            <div style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid #1e293b; box-shadow: 0 4px 10px rgba(15,23,42,0.12); overflow: hidden; margin-bottom: 10px; background-color: ${esc(cvData.photoBg)};">
               <img src="${cvData.photo}" alt="${esc(cvData.fullName)}" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
-            <h3 style="font-weight: 800; letter-spacing: 0.05em; font-size: 13px; text-transform: uppercase; margin: 4px 0 0;">KONTAK</h3>
+            <h3 style="width: 100%; text-align: center; background: #1e293b; color: #ffffff; padding: 4px 8px; font-weight: 800; letter-spacing: 0.08em; font-size: 11.5px; text-transform: uppercase; margin: 0;">KONTAK</h3>
           </div>
-          <hr style="border: none; border-top: 2px solid #000000; margin: 0;">
 
-          <div style="padding: 14px; display: flex; flex-direction: column; gap: 10px; font-size: 12px;">
+          <div style="padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 11.5px; color: #1e293b;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-phone" style="width: 14px;"></i>
+              ${cvSvgPhone('#1e293b', 12)}
               <span style="word-break: break-all;">${esc(cvData.phone)}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-envelope" style="width: 14px;"></i>
+              ${cvSvgMail('#1e293b', 12)}
               <span style="word-break: break-all;">${esc(cvData.email)}</span>
             </div>
             <div style="display: flex; align-items: flex-start; gap: 8px;">
-              <i class="fa-solid fa-location-dot" style="width: 14px; margin-top: 2px;"></i>
-              <span style="line-height: 1.3;">${esc(cvData.address)}</span>
+              <span style="margin-top: 2px;">${cvSvgPin('#1e293b', 12)}</span>
+              <span style="line-height: 1.35;">${esc(cvData.address)}</span>
             </div>
           </div>
 
-          <div style="text-align: center; padding: 4px 0;">
-            <h3 style="font-weight: 800; letter-spacing: 0.05em; font-size: 13px; text-transform: uppercase; margin: 0;">PENDIDIKAN</h3>
+          <div style="padding: 0 14px;">
+            <h3 style="width: 100%; text-align: center; background: #1e293b; color: #ffffff; padding: 4px 8px; font-weight: 800; letter-spacing: 0.08em; font-size: 11.5px; text-transform: uppercase; margin: 0;">PENDIDIKAN</h3>
           </div>
-          <hr style="border: none; border-top: 2px solid #000000; margin: 0;">
 
-          <div style="padding: 14px; display: flex; flex-direction: column; gap: 10px; font-size: 12px;">
+          <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; font-size: 11.5px; color: #0f172a;">
             ${[...getDisplayedEducations()].reverse().map(edu => `
               <div>
-                <div style="font-weight: 600; font-size: 11.5px; color: #404040;">${esc(edu.period)}</div>
+                <div style="font-weight: 700; font-size: 10.8px; color: #475569;">${esc(edu.period)}</div>
                 <div style="font-weight: 800;">${esc(edu.school)}</div>
-                ${edu.major ? `<div style="font-size: 11.5px; color: #404040;">${esc(edu.major)}</div>` : ''}
+                ${edu.major ? `<div style="font-size: 11px; color: #334155;">${esc(edu.major)}</div>` : ''}
               </div>
             `).join('')}
           </div>
 
-          <div style="text-align: center; padding: 4px 0;">
-            <h3 style="font-weight: 800; letter-spacing: 0.05em; font-size: 13px; text-transform: uppercase; margin: 0;">KEMAMPUAN</h3>
+          <div style="padding: 0 14px;">
+            <h3 style="width: 100%; text-align: center; background: #1e293b; color: #ffffff; padding: 4px 8px; font-weight: 800; letter-spacing: 0.08em; font-size: 11.5px; text-transform: uppercase; margin: 0;">KEMAMPUAN</h3>
           </div>
-          <hr style="border: none; border-top: 2px solid #000000; margin: 0;">
 
-          <div style="padding: 14px; display: flex; flex-direction: column; gap: 10px; font-size: 12px; flex: 1;">
+          <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; font-size: 11.5px; flex: 1; color: #0f172a;">
             <div>
-              <div style="font-weight: 800; margin-bottom: 3px;">Soft Skill</div>
+              <div style="font-weight: 800; margin-bottom: 3px; text-transform: uppercase; font-size: 10.5px; color: #475569;">Soft Skill</div>
               <ul style="list-style: disc; padding-left: 16px; margin: 0; display: flex; flex-direction: column; gap: 2px;">
                 ${softList.slice(0, 5).map(s => `<li>${esc(s)}</li>`).join('')}
               </ul>
             </div>
             <div>
-              <div style="font-weight: 800; margin-bottom: 3px;">Hard Skill</div>
+              <div style="font-weight: 800; margin-bottom: 3px; text-transform: uppercase; font-size: 10.5px; color: #475569;">Hard Skill</div>
               <ul style="list-style: disc; padding-left: 16px; margin: 0; display: flex; flex-direction: column; gap: 2px;">
                 ${hardList.slice(0, 5).map(h => `<li>${esc(h)}</li>`).join('')}
               </ul>
@@ -518,30 +523,30 @@ function renderTemplate2() {
           </div>
         </div>
 
-        <!-- Right Column -->
         <div class="cv-tpl-2-right">
-          <div style="margin-bottom: 16px;">
-            <h1 style="font-size: 24px; font-weight: 900; letter-spacing: 0.03em; text-transform: uppercase; margin: 0 0 2px; line-height: 1.15;">
+          <div style="margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2.5px solid #0f172a;">
+            <h1 style="font-size: 24px; font-weight: 900; letter-spacing: 0.03em; text-transform: uppercase; color: #0f172a; margin: 0 0 3px; line-height: 1.15;">
               ${esc(cvData.fullName)}
             </h1>
-            <p style="font-size: 13.5px; color: #262626; margin: 0;">${esc(cvData.jobTitle)}</p>
-          </div>
-
-          <div style="margin-bottom: 16px;">
-            <h2 style="font-size: 13.5px; font-weight: 800; margin: 0 0 6px;">Tentang saya</h2>
-            <p style="font-size: 12px; line-height: 1.5; text-align: justify; margin: 0;">${esc(cvData.aboutMe)}</p>
+            <p style="font-size: 13px; color: #334155; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin: 0;">${esc(cvData.jobTitle)}</p>
           </div>
 
           <div style="margin-bottom: 14px;">
-            <h2 style="font-size: 13.5px; font-weight: 800; margin: 0 0 8px;">Pengalaman Kerja</h2>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
+            <h2 style="font-size: 12.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f172a; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 6px;">Tentang Saya</h2>
+            <p style="font-size: 12px; line-height: 1.5; text-align: justify; margin: 0; color: #1e293b;">${esc(cvData.aboutMe)}</p>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <h2 style="font-size: 12.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f172a; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 8px;">Pengalaman Kerja</h2>
+            <div style="display: flex; flex-direction: column; gap: 11px;">
               ${getDisplayedExperiences().map(exp => `
-                <div style="font-size: 12px;">
-                  <div style="font-weight: 600; color: #404040; margin-bottom: 1px;">${esc(exp.period)}</div>
-                  <div style="font-weight: 900; font-size: 13.5px; margin-bottom: 4px;">
-                    ${esc(exp.company || 'Nama Perusahaan')} | ${esc(exp.role)}
+                <div style="font-size: 12px; border-left: 2.5px solid #334155; padding-left: 10px;">
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                    <span style="font-weight: 900; color: #0f172a;">${esc(exp.company || 'Nama Perusahaan')}</span>
+                    <span style="font-weight: 700; font-size: 11px; color: #475569;">${esc(exp.period)}</span>
                   </div>
-                  <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 2px; line-height: 1.45;">
+                  <div style="font-weight: 700; font-size: 11.5px; color: #334155; margin-bottom: 3px;">${esc(exp.role)}</div>
+                  <ul style="list-style: disc; padding-left: 17px; margin: 0; display: flex; flex-direction: column; gap: 2px; line-height: 1.42; color: #1e293b;">
                     ${cvToLines(exp.tasks).map(t => `<li>${esc(t)}</li>`).join('')}
                   </ul>
                 </div>
@@ -551,8 +556,8 @@ function renderTemplate2() {
 
           ${certList.length > 0 ? `
             <div>
-              <h2 style="font-size: 13.5px; font-weight: 800; margin: 0 0 4px;">Sertifikat & Pelatihan</h2>
-              <ul style="list-style: disc; padding-left: 18px; margin: 0; font-size: 12px; display: flex; flex-direction: column; gap: 2px;">
+              <h2 style="font-size: 12.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f172a; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 5px;">Sertifikat & Pelatihan</h2>
+              <ul style="list-style: disc; padding-left: 18px; margin: 0; font-size: 12px; display: flex; flex-direction: column; gap: 2px; color: #1e293b;">
                 ${certList.map(c => `<li>${esc(c)}</li>`).join('')}
               </ul>
             </div>
@@ -563,7 +568,7 @@ function renderTemplate2() {
   `;
 }
 
-// TEMPLATE 3: Modern Garis Biru & Wave
+// TEMPLATE 3: Wave Ocean Biru & Aksen Gold Modern
 function renderTemplate3() {
   const softList = cvToLines(cvData.softSkills).map(cvToShortSkill);
   const hardList = cvToLines(cvData.hardSkills).map(cvToShortSkill);
@@ -571,46 +576,45 @@ function renderTemplate3() {
 
   return `
     <div class="cv-tpl-3">
-      <!-- Wave SVGs -->
-      <svg style="position: absolute; top: 0; right: 0; width: 140px; height: 140px; pointer-events: none;" viewBox="0 0 200 200">
-        <path d="M40,0 C110,20 175,85 200,160 L200,0 Z" fill="#b08d6a" opacity="0.85" />
-        <path d="M70,0 C130,25 180,80 200,135 L200,0 Z" fill="#1d70b8" />
-        <path d="M110,0 C150,20 185,55 200,95 L200,0 Z" fill="#004b87" />
+      <svg style="position: absolute; top: 0; right: 0; width: 150px; height: 150px; pointer-events: none;" viewBox="0 0 200 200">
+        <path d="M35,0 C105,22 175,85 200,165 L200,0 Z" fill="#c69c6d" opacity="0.85" />
+        <path d="M68,0 C128,25 180,82 200,138 L200,0 Z" fill="#1d70b8" />
+        <path d="M110,0 C150,22 185,55 200,95 L200,0 Z" fill="#0f4c81" />
       </svg>
       <svg style="position: absolute; bottom: 0; left: 0; width: 140px; height: 140px; pointer-events: none;" viewBox="0 0 200 200">
-        <path d="M0,40 C25,115 85,175 160,200 L0,200 Z" fill="#b08d6a" opacity="0.85" />
-        <path d="M0,70 C25,130 80,180 135,200 L0,200 Z" fill="#1d70b8" />
-        <path d="M0,110 C20,150 55,185 95,200 L0,200 Z" fill="#004b87" />
+        <path d="M0,40 C25,115 85,175 160,200 L0,200 Z" fill="#c69c6d" opacity="0.85" />
+        <path d="M0,72 C25,132 80,180 135,200 L0,200 Z" fill="#1d70b8" />
+        <path d="M0,112 C20,150 55,185 95,200 L0,200 Z" fill="#0f4c81" />
       </svg>
 
       <!-- Header -->
-      <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; position: relative; z-index: 10;">
-        <div style="width: 125px; height: 155px; overflow: hidden; flex-shrink: 0; border: 1px solid #d4d4d4; box-shadow: 0 2px 6px rgba(0,0,0,0.06); background-color: ${esc(cvData.photoBg)};">
+      <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 18px; position: relative; z-index: 10;">
+        <div style="width: 120px; height: 148px; overflow: hidden; flex-shrink: 0; border-radius: 6px; border: 2.5px solid #0f4c81; box-shadow: 0 4px 12px rgba(15, 76, 129, 0.14); background-color: ${esc(cvData.photoBg)};">
           <img src="${cvData.photo}" alt="${esc(cvData.fullName)}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
 
-        <div style="flex: 1; padding-top: 2px;">
-          <h1 style="font-size: 25px; font-weight: 900; letter-spacing: 0.03em; text-transform: uppercase; margin: 0 0 2px; line-height: 1.15;">
+        <div style="flex: 1;">
+          <h1 style="font-size: 24px; font-weight: 900; letter-spacing: 0.03em; text-transform: uppercase; color: #0f172a; margin: 0 0 3px; line-height: 1.15;">
             ${esc(cvData.fullName)}
           </h1>
-          <p style="font-size: 14px; color: #262626; margin: 0 0 12px; font-weight: 600;">${esc(cvData.jobTitle)}</p>
+          <p style="font-size: 13.5px; color: #0f4c81; margin: 0 0 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;">${esc(cvData.jobTitle)}</p>
 
-          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="width: 22px; height: 22px; border-radius: 50%; background: #005a9e; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px;">
-                <i class="fa-solid fa-phone"></i>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12.2px; color: #1e293b;">
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <span style="width: 21px; height: 21px; border-radius: 50%; background: #0f4c81; color: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${cvSvgPhone('#ffffff', 11)}
               </span>
               <span>${esc(cvData.phone)}</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="width: 22px; height: 22px; border-radius: 50%; background: #005a9e; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px;">
-                <i class="fa-solid fa-envelope"></i>
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <span style="width: 21px; height: 21px; border-radius: 50%; background: #0f4c81; color: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${cvSvgMail('#ffffff', 11)}
               </span>
               <span>${esc(cvData.email)}</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="width: 22px; height: 22px; border-radius: 50%; background: #005a9e; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px;">
-                <i class="fa-solid fa-location-dot"></i>
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <span style="width: 21px; height: 21px; border-radius: 50%; background: #0f4c81; color: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${cvSvgPin('#ffffff', 11)}
               </span>
               <span>${esc(cvData.address)}</span>
             </div>
@@ -619,43 +623,44 @@ function renderTemplate3() {
       </div>
 
       <!-- TENTANG SAYA -->
-      <div style="margin-bottom: 16px; position: relative; z-index: 10;">
-        <h2 style="font-size: 13.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2.5px solid #005a9e; padding-bottom: 3px; margin: 0 0 6px;">
+      <div style="margin-bottom: 14px; position: relative; z-index: 10;">
+        <h2 style="font-size: 12.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f4c81; border-bottom: 2px solid #0f4c81; padding-bottom: 3px; margin: 0 0 6px;">
           TENTANG SAYA
         </h2>
-        <p style="font-size: 12.5px; line-height: 1.5; text-align: justify; margin: 0;">${esc(cvData.aboutMe)}</p>
+        <p style="font-size: 12px; line-height: 1.5; text-align: justify; margin: 0; color: #1e293b;">${esc(cvData.aboutMe)}</p>
       </div>
 
       <!-- PENDIDIKAN -->
-      <div style="margin-bottom: 16px; position: relative; z-index: 10;">
-        <h2 style="font-size: 13.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2.5px solid #005a9e; padding-bottom: 3px; margin: 0 0 6px;">
+      <div style="margin-bottom: 14px; position: relative; z-index: 10;">
+        <h2 style="font-size: 12.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f4c81; border-bottom: 2px solid #0f4c81; padding-bottom: 3px; margin: 0 0 6px;">
           PENDIDIKAN
         </h2>
-        <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px;">
+        <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
           ${getDisplayedEducations().map(edu => `
-            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
               <div>
-                <span style="font-weight: 700; text-transform: uppercase;">${esc(edu.school)}</span>
-                ${edu.major ? `<span style="color: #404040;"> — ${esc(edu.major)}</span>` : ''}
+                <span style="font-weight: 800; color: #0f172a; text-transform: uppercase;">${esc(edu.school)}</span>
+                ${edu.major ? `<span style="color: #475569;"> — ${esc(edu.major)}</span>` : ''}
               </div>
-              <span style="font-weight: 600; color: #262626;">${esc(edu.period)}</span>
+              <span style="font-weight: 700; color: #0f4c81; font-size: 11.5px; white-space: nowrap;">${esc(edu.period)}</span>
             </div>
           `).join('')}
         </div>
       </div>
 
       <!-- PENGALAMAN KERJA -->
-      <div style="margin-bottom: 16px; position: relative; z-index: 10;">
-        <h2 style="font-size: 13.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2.5px solid #005a9e; padding-bottom: 3px; margin: 0 0 6px;">
+      <div style="margin-bottom: 14px; position: relative; z-index: 10;">
+        <h2 style="font-size: 12.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f4c81; border-bottom: 2px solid #0f4c81; padding-bottom: 3px; margin: 0 0 7px;">
           PENGALAMAN KERJA
         </h2>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
           ${getDisplayedExperiences().map(exp => `
-            <div style="font-size: 12.5px;">
-              <div style="font-weight: 900; margin-bottom: 3px;">
-                ${esc(exp.company || 'Nama Perusahaan')} | ${esc(exp.role)} | ${esc(exp.period)}
+            <div style="font-size: 12px; border-left: 2.5px solid #1d70b8; padding-left: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                <span style="font-weight: 900; color: #0f172a;">${esc(exp.company || 'Nama Perusahaan')} <span style="font-weight: 700; color: #0f4c81;">| ${esc(exp.role)}</span></span>
+                <span style="font-weight: 700; font-size: 11px; color: #475569; white-space: nowrap;">${esc(exp.period)}</span>
               </div>
-              <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 2px; line-height: 1.45;">
+              <ul style="list-style: disc; padding-left: 17px; margin: 3px 0 0; display: flex; flex-direction: column; gap: 2px; line-height: 1.42; color: #1e293b;">
                 ${cvToLines(exp.tasks).map(t => `<li>${esc(t)}</li>`).join('')}
               </ul>
             </div>
@@ -665,11 +670,11 @@ function renderTemplate3() {
 
       <!-- SERTIFIKAT -->
       ${certList.length > 0 ? `
-        <div style="margin-bottom: 16px; position: relative; z-index: 10;">
-          <h2 style="font-size: 13.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2.5px solid #005a9e; padding-bottom: 3px; margin: 0 0 6px;">
+        <div style="margin-bottom: 14px; position: relative; z-index: 10;">
+          <h2 style="font-size: 12.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f4c81; border-bottom: 2px solid #0f4c81; padding-bottom: 3px; margin: 0 0 6px;">
             SERTIFIKAT DAN PELATIHAN
           </h2>
-          <ul style="list-style: disc; padding-left: 18px; margin: 0; font-size: 12.5px; display: flex; flex-direction: column; gap: 2px;">
+          <ul style="list-style: disc; padding-left: 18px; margin: 0; font-size: 12px; display: flex; flex-direction: column; gap: 2px; color: #1e293b;">
             ${certList.map(c => `<li>${esc(c)}</li>`).join('')}
           </ul>
         </div>
@@ -677,19 +682,19 @@ function renderTemplate3() {
 
       <!-- KEMAMPUAN -->
       <div style="position: relative; z-index: 10;">
-        <h2 style="font-size: 13.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2.5px solid #005a9e; padding-bottom: 3px; margin: 0 0 8px;">
+        <h2 style="font-size: 12.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f4c81; border-bottom: 2px solid #0f4c81; padding-bottom: 3px; margin: 0 0 7px;">
           KEMAMPUAN
         </h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 12.5px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; font-size: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px;">
           <div>
-            <h3 style="font-weight: 900; font-size: 13px; margin: 0 0 4px;">Soft Skill</h3>
-            <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 2px;">
+            <h3 style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; color: #0f4c81; margin: 0 0 4px;">Soft Skill</h3>
+            <ul style="list-style: disc; padding-left: 17px; margin: 0; display: flex; flex-direction: column; gap: 2px; color: #1e293b;">
               ${softList.slice(0, 5).map(s => `<li>${esc(s)}</li>`).join('')}
             </ul>
           </div>
           <div>
-            <h3 style="font-weight: 900; font-size: 13px; margin: 0 0 4px;">Hard Skill</h3>
-            <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 2px;">
+            <h3 style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; color: #0f4c81; margin: 0 0 4px;">Hard Skill</h3>
+            <ul style="list-style: disc; padding-left: 17px; margin: 0; display: flex; flex-direction: column; gap: 2px; color: #1e293b;">
               ${hardList.slice(0, 5).map(h => `<li>${esc(h)}</li>`).join('')}
             </ul>
           </div>
@@ -699,75 +704,72 @@ function renderTemplate3() {
   `;
 }
 
-// TEMPLATE 4: Sidebar Abu-Abu Melengkung
+// TEMPLATE 4: Sidebar Lengkung Slate Kontras Tinggi
 function renderTemplate4() {
   const softList = cvToLines(cvData.softSkills).map(cvToShortSkill);
   const hardList = cvToLines(cvData.hardSkills).map(cvToShortSkill);
-  const combinedSkills = [...hardList, ...softList].slice(0, 6);
+  const combinedSkills = [...hardList, ...softList].slice(0, 7);
 
   return `
     <div class="cv-tpl-4">
-      <div style="position: absolute; top: 16px; right: 30px; display: flex; gap: 8px; z-index: 20;">
-        <span style="width: 12px; height: 12px; border-radius: 50%; background: #000000;"></span>
-        <span style="width: 12px; height: 12px; border-radius: 50%; background: #000000;"></span>
-        <span style="width: 12px; height: 12px; border-radius: 50%; background: #000000;"></span>
+      <div style="position: absolute; top: 18px; right: 28px; display: flex; gap: 7px; z-index: 20;">
+        <span style="width: 10px; height: 10px; border-radius: 50%; background: #0f172a;"></span>
+        <span style="width: 10px; height: 10px; border-radius: 50%; background: #334155;"></span>
+        <span style="width: 10px; height: 10px; border-radius: 50%; background: #0284c7;"></span>
       </div>
-      <div style="position: absolute; top: 16px; bottom: 16px; right: 0; width: 12px; background: #999999; border-top-left-radius: 12px; border-bottom-left-radius: 12px;"></div>
+      <div style="position: absolute; top: 16px; bottom: 16px; right: 0; width: 10px; background: #334155; border-top-left-radius: 10px; border-bottom-left-radius: 10px;"></div>
 
       <!-- Left Column -->
       <div class="cv-tpl-4-left">
-        <div style="height: 40px; width: 100%; background: #999999; border-top-right-radius: 36px;"></div>
+        <div style="height: 42px; width: 100%; background: #334155; border-top-right-radius: 36px;"></div>
 
-        <div style="display: flex; justify-content: center; margin-top: -18px; margin-bottom: 8px; z-index: 20; padding: 0 12px;">
-          <div style="width: 145px; height: 145px; border-radius: 50%; border: 3px solid #000000; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background-color: ${esc(cvData.photoBg)};">
+        <div style="display: flex; justify-content: center; margin-top: -20px; margin-bottom: 10px; z-index: 20; padding: 0 12px;">
+          <div style="width: 140px; height: 140px; border-radius: 50%; border: 4px solid #ffffff; box-shadow: 0 6px 14px rgba(15,23,42,0.22); overflow: hidden; background-color: ${esc(cvData.photoBg)};">
             <img src="${cvData.photo}" alt="${esc(cvData.fullName)}" style="width: 100%; height: 100%; object-fit: cover;">
           </div>
         </div>
 
-        <div style="flex: 1; background: #999999; border-bottom-right-radius: 40px; padding: 22px 20px 24px; display: flex; flex-direction: column; gap: 20px;">
-          <!-- KONTAK -->
+        <div style="flex: 1; background: #334155; color: #f8fafc; border-bottom-right-radius: 40px; padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 18px;">
           <div>
-            <h3 style="font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: underline; text-underline-offset: 3px; margin: 0 0 8px;">
+            <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #38bdf8; border-bottom: 1.5px solid rgba(56, 189, 248, 0.35); padding-bottom: 4px; margin: 0 0 8px;">
               KONTAK
             </h3>
-            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 7px; font-size: 11.8px; color: #f1f5f9;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-phone" style="width: 14px;"></i>
+                ${cvSvgPhone('#38bdf8', 12)}
                 <span style="word-break: break-all;">${esc(cvData.phone)}</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-envelope" style="width: 14px;"></i>
+                ${cvSvgMail('#38bdf8', 12)}
                 <span style="word-break: break-all;">${esc(cvData.email)}</span>
               </div>
               <div style="display: flex; align-items: flex-start; gap: 8px;">
-                <i class="fa-solid fa-location-dot" style="width: 14px; margin-top: 2px;"></i>
-                <span style="line-height: 1.3;">${esc(cvData.address)}</span>
+                <span style="margin-top: 2px;">${cvSvgPin('#38bdf8', 12)}</span>
+                <span style="line-height: 1.35;">${esc(cvData.address)}</span>
               </div>
             </div>
           </div>
 
-          <!-- PENDIDIKAN -->
           <div>
-            <h3 style="font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: underline; text-underline-offset: 3px; margin: 0 0 8px;">
+            <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #38bdf8; border-bottom: 1.5px solid rgba(56, 189, 248, 0.35); padding-bottom: 4px; margin: 0 0 8px;">
               PENDIDIKAN
             </h3>
-            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 11.8px;">
               ${getDisplayedEducations().map(edu => `
                 <div>
-                  <div style="font-weight: 800;">${esc(edu.period)}</div>
-                  <div style="text-transform: uppercase; font-weight: 600;">${esc(edu.school)}</div>
-                  ${edu.major ? `<div>${esc(edu.major)}</div>` : ''}
+                  <div style="font-weight: 800; color: #7dd3fc; font-size: 11px;">${esc(edu.period)}</div>
+                  <div style="text-transform: uppercase; font-weight: 700; color: #ffffff;">${esc(edu.school)}</div>
+                  ${edu.major ? `<div style="color: #cbd5e1; font-size: 11.2px;">${esc(edu.major)}</div>` : ''}
                 </div>
               `).join('')}
             </div>
           </div>
 
-          <!-- KEAHLIAN -->
           <div>
-            <h3 style="font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: underline; text-underline-offset: 3px; margin: 0 0 8px;">
+            <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #38bdf8; border-bottom: 1.5px solid rgba(56, 189, 248, 0.35); padding-bottom: 4px; margin: 0 0 8px;">
               KEAHLIAN
             </h3>
-            <ul style="list-style: disc; padding-left: 16px; margin: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
+            <ul style="list-style: disc; padding-left: 16px; margin: 0; display: flex; flex-direction: column; gap: 3px; font-size: 11.8px; color: #f1f5f9;">
               ${combinedSkills.map(sk => `<li>${esc(sk)}</li>`).join('')}
             </ul>
           </div>
@@ -776,35 +778,37 @@ function renderTemplate4() {
 
       <!-- Right Column -->
       <div class="cv-tpl-4-right">
-        <div style="margin-bottom: 22px;">
-          <h1 style="font-size: 28px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; color: #231815; margin: 0 0 4px; line-height: 1.15;">
+        <div style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2.5px solid #334155;">
+          <h1 style="font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.03em; color: #0f172a; margin: 0 0 4px; line-height: 1.15;">
             ${esc(cvData.fullName)}
           </h1>
-          <p style="font-size: 13.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #231815; font-weight: 600; margin: 0;">
+          <p style="font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #0284c7; font-weight: 800; margin: 0;">
             ${esc(cvData.jobTitle)}
           </p>
         </div>
 
         <div style="margin-bottom: 18px;">
-          <h2 style="font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: underline; text-underline-offset: 3px; margin: 0 0 8px;">
+          <h2 style="font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f172a; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 7px;">
             TENTANG SAYA
           </h2>
-          <p style="font-size: 12.5px; line-height: 1.55; text-align: justify; margin: 0;">
+          <p style="font-size: 12px; line-height: 1.52; text-align: justify; margin: 0; color: #1e293b;">
             ${esc(cvData.aboutMe)}
           </p>
         </div>
 
         <div>
-          <h2 style="font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: underline; text-underline-offset: 3px; margin: 0 0 10px;">
-            PENGALAMAN
+          <h2 style="font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #0f172a; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 10px;">
+            PENGALAMAN KERJA
           </h2>
-          <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
             ${getDisplayedExperiences().map(exp => `
-              <div style="font-size: 12.5px;">
-                <div style="font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">
-                  ${esc(exp.company || 'Nama Perusahaan')} | ${esc(exp.period)} | ${esc(exp.role)}
+              <div style="font-size: 12px; border-left: 2.5px solid #0284c7; padding-left: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                  <span style="font-weight: 900; text-transform: uppercase; color: #0f172a;">${esc(exp.company || 'Nama Perusahaan')}</span>
+                  <span style="font-weight: 700; font-size: 11px; color: #475569;">${esc(exp.period)}</span>
                 </div>
-                <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 3px; line-height: 1.45;">
+                <div style="font-weight: 700; color: #0284c7; font-size: 11.5px; margin-bottom: 3px;">${esc(exp.role)}</div>
+                <ul style="list-style: disc; padding-left: 17px; margin: 0; display: flex; flex-direction: column; gap: 2px; line-height: 1.44; color: #1e293b;">
                   ${cvToLines(exp.tasks).map(t => `<li>${esc(t)}</li>`).join('')}
                 </ul>
               </div>
@@ -816,94 +820,91 @@ function renderTemplate4() {
   `;
 }
 
-// TEMPLATE 5: Biodata Klasik Indonesia Border Hitam
+// TEMPLATE 5: Biodata Klasik Indonesia Border Resmi
 function renderTemplate5() {
   const softList = cvToLines(cvData.softSkills).map(cvToShortSkill);
   const hardList = cvToLines(cvData.hardSkills).map(cvToShortSkill);
   const allSkills = [...softList, ...hardList].slice(0, 8);
 
   const biodataRows = [
-    { label: 'Nama', value: cvData.fullName },
+    { label: 'Nama Lengkap', value: cvData.fullName },
     { label: 'Tempat, Tanggal Lahir', value: cvData.birthPlaceDate },
     { label: 'Jenis Kelamin', value: cvData.gender },
     { label: 'Agama', value: cvData.religion },
-    { label: 'Status', value: cvData.maritalStatus },
+    { label: 'Status Pernikahan', value: cvData.maritalStatus },
     { label: 'Kewarganegaraan', value: cvData.nationality },
-    { label: 'Tinggi Badan', value: cvData.height },
-    { label: 'Berat Badan', value: cvData.weight },
-    { label: 'Alamat', value: cvData.address },
-    { label: 'Handphone', value: cvData.phone },
-    { label: 'Email', value: cvData.email }
+    { label: 'Tinggi / Berat Badan', value: `${cvData.height || '-'} / ${cvData.weight || '-'}` },
+    { label: 'Alamat Domisili', value: cvData.address },
+    { label: 'Nomor Handphone', value: cvData.phone },
+    { label: 'Alamat Email', value: cvData.email }
   ];
 
   return `
     <div class="cv-tpl-5">
       <div class="cv-tpl-5-inner">
         <div>
-          <!-- Title & Photo -->
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 12px;">
-            <div style="flex: 1;">
-              <h1 style="font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 3.5px solid #000000; display: inline-block; padding-bottom: 2px; margin: 0 0 16px;">
-                CURRICULUM VITAE
-              </h1>
+          <div style="border-bottom: 3px solid #0f172a; padding-bottom: 8px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: baseline;">
+            <h1 style="font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #0f172a; margin: 0;">
+              CURRICULUM VITAE
+            </h1>
+            <span style="font-size: 11.5px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">${esc(cvData.jobTitle)}</span>
+          </div>
 
-              <h2 style="font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 14px;">
+            <div style="flex: 1;">
+              <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #0f172a; background: #f1f5f9; border-left: 4px solid #0f172a; padding: 4px 10px; margin: 0 0 8px;">
                 DATA PRIBADI
               </h2>
 
-              <table style="width: 100%; font-size: 13.5px; line-height: 1.35; border-collapse: collapse;">
+              <table style="width: 100%; font-size: 12.8px; line-height: 1.42; border-collapse: collapse;">
                 <tbody>
                   ${biodataRows.map(row => `
-                    <tr style="vertical-align: top;">
-                      <td style="padding: 1.5px 0; width: 170px; font-weight: 500;">${esc(row.label)}</td>
-                      <td style="padding: 1.5px 0; width: 14px;">:</td>
-                      <td style="padding: 1.5px 0;">${esc(row.value)}</td>
+                    <tr style="vertical-align: top; border-bottom: 1px dashed #e2e8f0;">
+                      <td style="padding: 2.5px 4px; width: 175px; font-weight: 600; color: #334155;">${esc(row.label)}</td>
+                      <td style="padding: 2.5px 4px; width: 12px; font-weight: 700;">:</td>
+                      <td style="padding: 2.5px 4px; font-weight: 600; color: #0f172a;">${esc(row.value)}</td>
                     </tr>
                   `).join('')}
                 </tbody>
               </table>
             </div>
 
-            <!-- Top Right Photo -->
-            <div style="width: 135px; height: 165px; overflow: hidden; border: 1px solid #737373; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1); background-color: ${esc(cvData.photoBg)};">
-              <img src="${cvData.photo}" alt="${esc(cvData.fullName)}" style="width: 100%; height: 100%; object-fit: cover;">
+            <div style="width: 126px; height: 162px; overflow: hidden; border: 2px solid #0f172a; padding: 2px; background: #ffffff; flex-shrink: 0; box-shadow: 0 3px 8px rgba(0,0,0,0.12);">
+              <img src="${cvData.photo}" alt="${esc(cvData.fullName)}" style="width: 100%; height: 100%; object-fit: cover; background-color: ${esc(cvData.photoBg)};">
             </div>
           </div>
 
-          <!-- PENDIDIKAN -->
-          <div style="margin: 14px 0 12px;">
-            <h2 style="font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 6px;">
-              PENDIDIKAN
+          <div style="margin: 12px 0;">
+            <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #0f172a; background: #f1f5f9; border-left: 4px solid #0f172a; padding: 4px 10px; margin: 0 0 7px;">
+              RIWAYAT PENDIDIKAN
             </h2>
-            <div style="max-width: 440px; display: flex; flex-direction: column; gap: 3px; font-size: 13.5px;">
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.8px;">
               ${[...getDisplayedEducations()].reverse().map(edu => `
-                <div style="display: grid; grid-template-columns: 1fr 1fr;">
-                  <span>${esc(edu.school)}</span>
-                  <span>${esc(edu.period)}</span>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 2px 6px; border-bottom: 1px dotted #e2e8f0;">
+                  <span style="font-weight: 700;">${esc(edu.school)}${edu.major ? ` — <span style="font-weight:500;color:#475569;">${esc(edu.major)}</span>` : ''}</span>
+                  <span style="font-weight: 700; color: #334155;">${esc(edu.period)}</span>
                 </div>
               `).join('')}
             </div>
           </div>
 
-          <!-- KEMAMPUAN -->
           <div style="margin-bottom: 12px;">
-            <h2 style="font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 6px;">
-              KEMAMPUAN
+            <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #0f172a; background: #f1f5f9; border-left: 4px solid #0f172a; padding: 4px 10px; margin: 0 0 7px;">
+              KEAHLIAN & KOMPETENSI
             </h2>
-            <ul style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; row-gap: 3px; list-style: disc; padding-left: 18px; font-size: 13.5px; max-width: 600px; margin: 0;">
+            <ul style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; row-gap: 3px; list-style: disc; padding-left: 22px; font-size: 12.8px; margin: 0;">
               ${allSkills.map(sk => `<li>${esc(sk)}</li>`).join('')}
             </ul>
           </div>
 
-          <!-- PENGALAMAN KERJA -->
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 6px;">
+            <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #0f172a; background: #f1f5f9; border-left: 4px solid #0f172a; padding: 4px 10px; margin: 0 0 7px;">
               PENGALAMAN KERJA
             </h2>
-            <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px;">
+            <ul style="list-style: disc; padding-left: 22px; margin: 0; display: flex; flex-direction: column; gap: 5px; font-size: 12.8px;">
               ${getDisplayedExperiences().map(exp => `
                 <li>
-                  <span style="font-weight: 700;">${esc(exp.company || 'Nama Perusahaan')}</span> | Sebagai ${esc(exp.role)} | ${esc(exp.period)}
+                  <span style="font-weight: 800;">${esc(exp.company || 'Nama Perusahaan')}</span> | Sebagai <strong>${esc(exp.role)}</strong> (${esc(exp.period)})
                 </li>
               `).join('')}
             </ul>
@@ -914,7 +915,7 @@ function renderTemplate5() {
   `;
 }
 
-// TEMPLATE 6: ATS Bar Abu-Abu & Nomor Urut
+// TEMPLATE 6: ATS Bar Korporat & Nomor Urut
 function renderTemplate6() {
   const softList = cvToLines(cvData.softSkills).map(cvToShortSkill);
   const hardList = cvToLines(cvData.hardSkills);
@@ -922,56 +923,56 @@ function renderTemplate6() {
 
   return `
     <div class="cv-tpl-6">
-      <!-- Header -->
-      <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 14px;">
-        <div style="width: 105px; height: 135px; overflow: hidden; flex-shrink: 0; border: 1px solid #d4d4d4; background-color: ${esc(cvData.photoBg)};">
+      <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #1e293b;">
+        <div style="width: 100px; height: 128px; overflow: hidden; flex-shrink: 0; border: 1.5px solid #cbd5e1; border-radius: 4px; background-color: ${esc(cvData.photoBg)};">
           <img src="${cvData.photo}" alt="${esc(cvData.fullName)}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
 
-        <div style="flex: 1; padding-top: 4px;">
-          <h1 style="font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; font-family: 'Inter', sans-serif; margin: 0 0 2px; line-height: 1.15;">
+        <div style="flex: 1;">
+          <h1 style="font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; font-family: 'Inter', sans-serif; color: #0f172a; margin: 0 0 3px; line-height: 1.15;">
             ${esc(cvData.fullName)}
           </h1>
-          <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #262626; margin: 0 0 8px; font-family: 'Times New Roman', serif;">
+          <p style="font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #334155; font-weight: 700; margin: 0 0 9px; font-family: 'Inter', sans-serif;">
             ${esc(cvData.jobTitle)}
           </p>
-          <div style="font-size: 11.5px; color: #171717; line-height: 1.45;">
-            <span>✆ ${esc(cvData.phone)}</span>
-            <span style="margin: 0 6px;">|</span>
-            <span style="text-decoration: underline; color: #1e40af;">✉ ${esc(cvData.email)}</span>
-            <span style="margin: 0 6px;">|</span>
-            <span>⌂ ${esc(cvData.address)}</span>
+          <div style="font-size: 11.2px; color: #1e293b; line-height: 1.45; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-family: 'Inter', sans-serif;">
+            <span style="display: inline-flex; align-items: center; gap: 5px;">${cvSvgPhone('#334155', 11)} ${esc(cvData.phone)}</span>
+            <span style="color: #94a3b8;">|</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px; color: #1d4ed8; font-weight: 600;">${cvSvgMail('#1d4ed8', 11)} ${esc(cvData.email)}</span>
+            <span style="color: #94a3b8;">|</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px;">${cvSvgPin('#334155', 11)} ${esc(cvData.address)}</span>
           </div>
         </div>
       </div>
 
-      <!-- TENTANG SAYA -->
       <div style="margin-bottom: 10px;">
         <div class="cv-tpl-6-bar">TENTANG SAYA</div>
-        <p style="font-size: 12px; line-height: 1.45; text-align: justify; margin: 0;">${esc(cvData.aboutMe)}</p>
+        <p style="font-size: 12px; line-height: 1.46; text-align: justify; margin: 0;">${esc(cvData.aboutMe)}</p>
       </div>
 
-      <!-- PENDIDIKAN -->
       <div style="margin-bottom: 10px;">
         <div class="cv-tpl-6-bar">PENDIDIKAN</div>
         <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
           ${getDisplayedEducations().map(edu => `
-            <div>
-              <div style="font-weight: 800;">${esc(edu.school)} | ${esc(edu.period)}</div>
-              ${(edu.major || edu.extra) ? `<div>${[edu.major, edu.extra].filter(Boolean).map(esc).join(' | ')}</div>` : ''}
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <div>
+                <span style="font-weight: 800;">${esc(edu.school)}</span>
+                ${(edu.major || edu.extra) ? ` — <span>${[edu.major, edu.extra].filter(Boolean).map(esc).join(' | ')}</span>` : ''}
+              </div>
+              <span style="font-weight: 700; font-size: 11.5px;">${esc(edu.period)}</span>
             </div>
           `).join('')}
         </div>
       </div>
 
-      <!-- PENGALAMAN KERJA -->
       <div style="margin-bottom: 10px;">
         <div class="cv-tpl-6-bar">PENGALAMAN KERJA</div>
-        <ol style="list-style: decimal; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+        <ol style="list-style: decimal; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 7px; font-size: 12px;">
           ${getDisplayedExperiences().map(exp => `
             <li style="padding-left: 2px;">
-              <div style="font-weight: 800; margin-bottom: 2px;">
-                ${esc(exp.company || 'Nama Perusahaan')} | ${esc(exp.role)} | <span style="font-weight: normal;">${esc(exp.period)}</span>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
+                <span style="font-weight: 800;">${esc(exp.company || 'Nama Perusahaan')} | ${esc(exp.role)}</span>
+                <span style="font-weight: 600; font-size: 11.5px;">${esc(exp.period)}</span>
               </div>
               <ul style="list-style: disc; padding-left: 16px; margin: 0; display: flex; flex-direction: column; gap: 2px; line-height: 1.4;">
                 ${cvToLines(exp.tasks).map(t => `<li>${esc(t)}</li>`).join('')}
@@ -981,7 +982,6 @@ function renderTemplate6() {
         </ol>
       </div>
 
-      <!-- SERTIFIKAT -->
       ${certList.length > 0 ? `
         <div style="margin-bottom: 10px;">
           <div class="cv-tpl-6-bar">SERTIFIKAT DAN PELATIHAN</div>
@@ -991,7 +991,6 @@ function renderTemplate6() {
         </div>
       ` : ''}
 
-      <!-- KEMAMPUAN -->
       <div>
         <div class="cv-tpl-6-bar">KEMAMPUAN</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 12px;">
@@ -1013,7 +1012,7 @@ function renderTemplate6() {
   `;
 }
 
-// TEMPLATE 7: ATS Murni Tanpa Foto - Rata Tengah
+// TEMPLATE 7: ATS Murni Tanpa Foto - Executive Center
 function renderTemplate7() {
   const softList = cvToLines(cvData.softSkills);
   const hardList = cvToLines(cvData.hardSkills);
@@ -1021,47 +1020,50 @@ function renderTemplate7() {
 
   return `
     <div class="cv-tpl-7">
-      <!-- Centered Header -->
-      <div style="text-align: center; margin-bottom: 14px; font-family: 'Inter', sans-serif;">
-        <h1 style="font-size: 25px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 4px;">
+      <div style="text-align: center; margin-bottom: 14px; font-family: 'Inter', sans-serif; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px;">
+        <h1 style="font-size: 25px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #0f172a; margin: 0 0 3px;">
           ${esc(cvData.fullName)}
         </h1>
-        <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: #171717; margin: 0 0 3px; font-weight: 600;">
+        <p style="font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #1e3a8a; margin: 0 0 6px; font-weight: 700;">
           ${esc(cvData.jobTitle)}
         </p>
-        <p style="font-size: 11.5px; color: #262626; margin: 0;">
-          ${esc(cvData.phone)} | ${esc(cvData.email)} | ${esc(cvData.address)}
-        </p>
+        <div style="font-size: 11.2px; color: #334155; display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: 10px;">
+          <span style="display: inline-flex; align-items: center; gap: 4px;">${cvSvgPhone('#1e3a8a', 11)} ${esc(cvData.phone)}</span>
+          <span style="color: #94a3b8;">|</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px;">${cvSvgMail('#1e3a8a', 11)} ${esc(cvData.email)}</span>
+          <span style="color: #94a3b8;">|</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px;">${cvSvgPin('#1e3a8a', 11)} ${esc(cvData.address)}</span>
+        </div>
       </div>
 
-      <!-- PROFIL SAYA -->
-      <div style="margin-bottom: 12px;">
-        <div class="cv-tpl-7-bar">PROFIL SAYA</div>
-        <p style="font-size: 12px; line-height: 1.45; text-align: justify; margin: 0;">${esc(cvData.aboutMe)}</p>
+      <div style="margin-bottom: 11px;">
+        <div class="cv-tpl-7-bar">PROFIL PROFESIONAL</div>
+        <p style="font-size: 12px; line-height: 1.46; text-align: justify; margin: 0;">${esc(cvData.aboutMe)}</p>
       </div>
 
-      <!-- PENDIDIKAN -->
-      <div style="margin-bottom: 12px;">
+      <div style="margin-bottom: 11px;">
         <div class="cv-tpl-7-bar">PENDIDIKAN</div>
         <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
           ${getDisplayedEducations().map(edu => `
-            <div>
-              <span style="font-weight: 800;">${esc(edu.school)}</span> | ${esc(edu.period)}
-              ${(edu.major || edu.extra) ? `<div>${[edu.major, edu.extra].filter(Boolean).map(esc).join(' | ')}</div>` : ''}
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <div>
+                <span style="font-weight: 800;">${esc(edu.school)}</span>
+                ${(edu.major || edu.extra) ? ` — <span>${[edu.major, edu.extra].filter(Boolean).map(esc).join(' | ')}</span>` : ''}
+              </div>
+              <span style="font-weight: 700; font-size: 11.5px;">${esc(edu.period)}</span>
             </div>
           `).join('')}
         </div>
       </div>
 
-      <!-- PENGALAMAN KERJA -->
-      <div style="margin-bottom: 12px;">
+      <div style="margin-bottom: 11px;">
         <div class="cv-tpl-7-bar">PENGALAMAN KERJA</div>
         <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
           ${getDisplayedExperiences().map(exp => `
             <div>
-              <div style="margin-bottom: 2px;">
-                <span style="font-weight: 800;">${esc(exp.company || 'Nama Perusahaan')}</span> |
-                <span style="font-weight: 800;">${esc(exp.role)}</span> | ${esc(exp.period)}
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
+                <span><span style="font-weight: 800;">${esc(exp.company || 'Nama Perusahaan')}</span> | <span style="font-weight: 700; color: #1e3a8a;">${esc(exp.role)}</span></span>
+                <span style="font-weight: 700; font-size: 11.5px;">${esc(exp.period)}</span>
               </div>
               <ul style="list-style: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 2px; line-height: 1.4; text-align: justify;">
                 ${cvToLines(exp.tasks).map(t => `<li>${esc(t)}</li>`).join('')}
@@ -1071,9 +1073,8 @@ function renderTemplate7() {
         </div>
       </div>
 
-      <!-- SERTIFIKAT -->
       ${certList.length > 0 ? `
-        <div style="margin-bottom: 12px;">
+        <div style="margin-bottom: 11px;">
           <div class="cv-tpl-7-bar">SERTIFIKAT DAN PELATIHAN</div>
           <ul style="list-style: disc; padding-left: 20px; margin: 0; font-size: 12px; display: flex; flex-direction: column; gap: 2px;">
             ${certList.map(c => `<li>${esc(c)}</li>`).join('')}
@@ -1081,19 +1082,18 @@ function renderTemplate7() {
         </div>
       ` : ''}
 
-      <!-- KEAHLIAN -->
       <div>
         <div class="cv-tpl-7-bar">KEAHLIAN</div>
-        <div style="font-size: 12px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div>
             <div style="font-weight: 800; text-transform: uppercase; margin-bottom: 2px;">SOFT SKILL</div>
-            <ul style="list-style: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 2px;">
+            <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 2px;">
               ${softList.slice(0, 5).map(s => `<li>${esc(s)}</li>`).join('')}
             </ul>
           </div>
           <div>
-            <div style="font-weight: 800; margin-bottom: 2px;">Hard Skill</div>
-            <ul style="list-style: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 2px;">
+            <div style="font-weight: 800; text-transform: uppercase; margin-bottom: 2px;">HARD SKILL</div>
+            <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 2px;">
               ${hardList.slice(0, 5).map(h => `<li>${esc(h)}</li>`).join('')}
             </ul>
           </div>
@@ -1103,7 +1103,7 @@ function renderTemplate7() {
   `;
 }
 
-// TEMPLATE 8: ATS Modern Garis Hitam & Foto Kiri (MATCHING SCREENSHOT)
+// TEMPLATE 8: ATS Garis Eksekutif & Foto Kiri
 function renderTemplate8() {
   const softList = cvToLines(cvData.softSkills);
   const hardList = cvToLines(cvData.hardSkills);
@@ -1111,59 +1111,57 @@ function renderTemplate8() {
 
   return `
     <div class="cv-tpl-8">
-      <!-- Header -->
       <div style="display: flex; gap: 16px; align-items: stretch; margin-bottom: 12px;">
-        <div style="width: 100px; height: 130px; overflow: hidden; flex-shrink: 0; border: 1px solid #d4d4d4; background-color: ${esc(cvData.photoBg)};">
+        <div style="width: 98px; height: 126px; overflow: hidden; flex-shrink: 0; border: 1.5px solid #cbd5e1; border-radius: 3px; background-color: ${esc(cvData.photoBg)};">
           <img src="${cvData.photo}" alt="${esc(cvData.fullName)}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
 
         <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
           <div style="padding-top: 2px; font-family: 'Inter', sans-serif;">
-            <h1 style="font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 2px; line-height: 1.15;">
+            <h1 style="font-size: 22.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; color: #0f172a; margin: 0 0 3px; line-height: 1.15;">
               ${esc(cvData.fullName)}
             </h1>
-            <p style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #262626; margin: 0; font-weight: 600;">
+            <p style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #1e3a8a; margin: 0; font-weight: 700;">
               ${esc(cvData.jobTitle)}
             </p>
           </div>
 
-          <!-- Contact bar at bottom of photo -->
-          <div style="border-bottom: 1.5px solid #000000; padding-bottom: 3px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 11.5px; gap: 6px;">
-            <span>✆ ${esc(cvData.phone)}</span>
-            <span style="color: #1e40af; text-decoration: underline;">✉ ${esc(cvData.email)}</span>
-            <span>⌂ ${esc(cvData.address)}</span>
+          <div style="border-top: 1px solid #cbd5e1; border-bottom: 2px solid #0f172a; padding: 4px 0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 11.2px; gap: 8px; font-family: 'Inter', sans-serif;">
+            <span style="display: inline-flex; align-items: center; gap: 5px;">${cvSvgPhone('#0f172a', 11)} ${esc(cvData.phone)}</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px; color: #1d4ed8; font-weight: 600;">${cvSvgMail('#1d4ed8', 11)} ${esc(cvData.email)}</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px;">${cvSvgPin('#0f172a', 11)} ${esc(cvData.address)}</span>
           </div>
         </div>
       </div>
 
-      <!-- TENTANG SAYA -->
       <div style="margin-bottom: 10px;">
         <div class="cv-tpl-8-bar">TENTANG SAYA</div>
         <p style="font-size: 12px; line-height: 1.45; text-align: justify; margin: 0;">${esc(cvData.aboutMe)}</p>
       </div>
 
-      <!-- PENDIDIKAN -->
       <div style="margin-bottom: 10px;">
         <div class="cv-tpl-8-bar">PENDIDIKAN</div>
         <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
           ${getDisplayedEducations().map(edu => `
-            <div>
-              <span style="font-weight: 800;">${esc(edu.school)}</span> | ${esc(edu.period)}
-              ${(edu.major || edu.extra) ? `<div>${[edu.major, edu.extra].filter(Boolean).map(esc).join(' | ')}</div>` : ''}
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <div>
+                <span style="font-weight: 800;">${esc(edu.school)}</span>
+                ${(edu.major || edu.extra) ? ` — <span>${[edu.major, edu.extra].filter(Boolean).map(esc).join(' | ')}</span>` : ''}
+              </div>
+              <span style="font-weight: 700; font-size: 11.5px;">${esc(edu.period)}</span>
             </div>
           `).join('')}
         </div>
       </div>
 
-      <!-- PENGALAMAN -->
       <div style="margin-bottom: 10px;">
-        <div class="cv-tpl-8-bar">PENGALAMAN</div>
+        <div class="cv-tpl-8-bar">PENGALAMAN KERJA</div>
         <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
           ${getDisplayedExperiences().map(exp => `
             <div>
-              <div style="margin-bottom: 2px;">
-                <span style="font-weight: 800;">${esc(exp.company || 'Nama Perusahaan')}</span> |
-                <span style="font-weight: 800;">${esc(exp.role)}</span> | ${esc(exp.period)}
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
+                <span><span style="font-weight: 800;">${esc(exp.company || 'Nama Perusahaan')}</span> | <span style="font-weight: 700;">${esc(exp.role)}</span></span>
+                <span style="font-weight: 700; font-size: 11.5px;">${esc(exp.period)}</span>
               </div>
               <ul style="list-style: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 1.5px; line-height: 1.4; text-align: justify;">
                 ${cvToLines(exp.tasks).map(t => `<li>${esc(t)}</li>`).join('')}
@@ -1173,7 +1171,6 @@ function renderTemplate8() {
         </div>
       </div>
 
-      <!-- SERTIFIKAT -->
       ${certList.length > 0 ? `
         <div style="margin-bottom: 10px;">
           <div class="cv-tpl-8-bar">SERTIFIKAT DAN PELATIHAN</div>
@@ -1183,19 +1180,18 @@ function renderTemplate8() {
         </div>
       ` : ''}
 
-      <!-- KEMAMPUAN -->
       <div>
         <div class="cv-tpl-8-bar">KEMAMPUAN</div>
-        <div style="font-size: 12px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div>
             <div style="font-weight: 800; text-transform: uppercase; margin-bottom: 2px;">SOFT SKILL</div>
-            <ul style="list-style: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 1.5px;">
+            <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 1.5px;">
               ${softList.slice(0, 5).map(s => `<li>${esc(s)}</li>`).join('')}
             </ul>
           </div>
           <div>
-            <div style="font-weight: 800; margin-bottom: 2px;">Hard Skill</div>
-            <ul style="list-style: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 1.5px;">
+            <div style="font-weight: 800; text-transform: uppercase; margin-bottom: 2px;">HARD SKILL</div>
+            <ul style="list-style: disc; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 1.5px;">
               ${hardList.slice(0, 5).map(h => `<li>${esc(h)}</li>`).join('')}
             </ul>
           </div>
@@ -1286,7 +1282,7 @@ function updateCvPreview() {
 
 function autoFitToOnePage() {
   // If user has excessive content, reduce tasks per job to top 4 or apply compact styling
-  showCvNotification('⚡ Format disesuaikan agar pas 1 halaman A4 tanpa terpotong.');
+  showCvNotification('Format disesuaikan agar pas 1 halaman A4 tanpa terpotong.');
   updateCvPreview();
 }
 

@@ -429,6 +429,16 @@ function setupSupabaseRealtimeSync() {
 let _lastKnownJobsVersion = '';
 let _liveJobsPollTimer = null;
 let _liveJobsBc = null;
+let _lastJobsSignature = '';
+
+function getJobsSignature(list) {
+  if (!Array.isArray(list)) return '';
+  return list.map(j => `${j.id}:${j.status || ''}:${j.updated_at || j.created_at || ''}:${j.is_featured ? 1 : 0}:${j.views_count || 0}`).join('|');
+}
+
+function isAnyUserModalOpen() {
+  return Boolean(document.querySelector('#job-detail-modal.active, #poster-lightbox.active'));
+}
 
 function setupLiveJobsAutoSync() {
   if (_liveJobsPollTimer) return;
@@ -441,13 +451,20 @@ function setupLiveJobsAutoSync() {
         const msg = ev && ev.data;
         if (!msg || msg.type !== 'jobs_updated') return;
         if (Array.isArray(msg.jobs) && msg.jobs.length > 0) {
-          rawAllJobs = msg.jobs.map(window.cleanJobData).filter(isJobPubliclyVisible);
-          try {
-            safeLocalSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
-            safeSessionSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
-          } catch (e) {}
-          updateTabCounters();
-          applyFiltersAndRender();
+          const nextJobs = msg.jobs.map(window.cleanJobData).filter(isJobPubliclyVisible);
+          const nextSig = getJobsSignature(nextJobs);
+          if (nextSig !== _lastJobsSignature) {
+            rawAllJobs = nextJobs;
+            _lastJobsSignature = nextSig;
+            try {
+              safeLocalSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
+              safeSessionSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
+            } catch (e) {}
+            if (!isAnyUserModalOpen()) {
+              updateTabCounters();
+              applyFiltersAndRender();
+            }
+          }
         }
         loadJobs({ silent: true, bypassCache: true });
       };
@@ -462,9 +479,16 @@ function setupLiveJobsAutoSync() {
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          rawAllJobs = parsed.map(window.cleanJobData).filter(isJobPubliclyVisible);
-          updateTabCounters();
-          applyFiltersAndRender();
+          const nextJobs = parsed.map(window.cleanJobData).filter(isJobPubliclyVisible);
+          const nextSig = getJobsSignature(nextJobs);
+          if (nextSig !== _lastJobsSignature) {
+            rawAllJobs = nextJobs;
+            _lastJobsSignature = nextSig;
+            if (!isAnyUserModalOpen()) {
+              updateTabCounters();
+              applyFiltersAndRender();
+            }
+          }
         }
       }
     } catch (err) {}
@@ -786,9 +810,6 @@ function setupEventListeners() {
       jobsGrid.classList.add('list-view');
     });
   }
-
-  setupModalDismiss('job-detail-modal');
-  setupModalDismiss('poster-lightbox');
 }
 
 // Setup Custom Interactive Dropdowns
@@ -1129,7 +1150,8 @@ function resetAllFilters() {
 
 function setupModalDismiss(modalId) {
   const modal = document.getElementById(modalId);
-  if (!modal) return;
+  if (!modal || modal._dismissBound) return;
+  modal._dismissBound = true;
   modal.addEventListener('click', (e) => {
     if (e.target === modal || e.target.closest('.modal-close-btn') || e.target.classList.contains('lightbox-close-btn')) {
       modal.classList.remove('active');
@@ -1172,6 +1194,7 @@ async function loadJobs(options = {}) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
             rawAllJobs = parsed.map(window.cleanJobData).filter(isJobPubliclyVisible);
+            _lastJobsSignature = getJobsSignature(rawAllJobs);
             updateTabCounters();
             applyFiltersAndRender();
             hadCached = true;
@@ -1261,15 +1284,21 @@ async function loadJobs(options = {}) {
     }
 
     if (freshJobs && Array.isArray(freshJobs) && freshJobs.length > 0) {
+      const nextSig = getJobsSignature(freshJobs);
+      const changed = nextSig !== _lastJobsSignature;
       rawAllJobs = freshJobs;
+      _lastJobsSignature = nextSig;
       try {
         safeLocalSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
         safeSessionSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
       } catch (e) {}
-      updateTabCounters();
-      applyFiltersAndRender();
+      if (!hadCached || (changed && (!silent || !isAnyUserModalOpen()))) {
+        updateTabCounters();
+        applyFiltersAndRender();
+      }
     } else if (!hadCached) {
       rawAllJobs = [];
+      _lastJobsSignature = '';
       updateTabCounters();
       applyFiltersAndRender();
     }
@@ -1733,12 +1762,13 @@ function generateCompanyBannerDataUrl(job) {
       ${displayTitle.length > 55 ? displayTitle.substring(0, 52) + '...' : displayTitle}
     </text>
     <line x1="40" y1="350" x2="760" y2="350" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
-    <g transform="translate(40, 376)">
-      <text x="0" y="12" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="12" font-weight="600" fill="rgba(255,255,255,0.7)">
-        🛡️ TERVERIFIKASI KERJAHUB PORTAL
+    <g transform="translate(40, 374)">
+      <path d="M7 1l6 2.5v4c0 3.7-2.6 7-6 8-3.4-1-6-4.3-6-8v-4L7 1z" fill="none" stroke="#38bdf8" stroke-width="1.6"/>
+      <text x="22" y="13" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="12" font-weight="600" fill="rgba(255,255,255,0.75)">
+        TERVERIFIKASI KERJAHUB PORTAL
       </text>
-      <text x="720" y="12" text-anchor="end" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="12" font-weight="600" fill="#34d399">
-        ✓ 100% BEBAS BIAYA SELEKSI
+      <text x="720" y="13" text-anchor="end" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="12" font-weight="600" fill="#34d399">
+        BEBAS BIAYA SELEKSI 100%
       </text>
     </g>
   </svg>`;
@@ -1810,6 +1840,7 @@ function getEffectiveJobPoster(job) {
 }
 
 function openJobPosterById(jobId) {
+  if (window.getSelection && window.getSelection().toString().trim().length > 0) return;
   const job = (rawAllJobs || []).find(j => Number(j.id) === Number(jobId)) || (window.rawAllJobs || []).find(j => Number(j.id) === Number(jobId));
   if (!job) return;
   const flyerList = typeof getJobFlyerImages === 'function' ? getJobFlyerImages(job).filter(src => isManualJobFlyer({ poster_image: src })) : [];
@@ -2254,6 +2285,7 @@ window.openLightboxSlide = function(jobId, slideIndex) {
 };
 
 async function openJobDetail(jobId) {
+  if (window.getSelection && window.getSelection().toString().trim().length > 0) return;
   let rawJob = rawAllJobs.find(j => Number(j.id) === Number(jobId));
   if (!rawJob && jobId) {
     try {
@@ -3137,7 +3169,8 @@ function setupCvMatcher() {
   }
 
   if (dropzone && fileInput) {
-    dropzone.addEventListener('click', () => {
+    dropzone.addEventListener('click', (e) => {
+      if (e.target === fileInput || e.target.closest('#btn-browse-cv')) return;
       fileInput.click();
     });
 

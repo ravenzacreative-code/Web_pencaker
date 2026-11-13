@@ -275,7 +275,10 @@ function setupCvMatcher() {
   }
 
   if (dropzone && fileInput) {
-    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('click', (e) => {
+      if (e.target === fileInput || e.target.closest('#btn-browse-cv')) return;
+      fileInput.click();
+    });
 
     ['dragenter', 'dragover'].forEach(name => {
       dropzone.addEventListener(name, (e) => {

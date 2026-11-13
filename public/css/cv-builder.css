@@ -908,25 +908,25 @@
    8 TEMPLATE SPECIFIC STYLES (CALIBRATED TO FIT 1 PAGE EXACTLY)
    ============================================================== */
 
-/* TEMPLATE 1: Coklat & Pita */
+/* TEMPLATE 1: Espresso & Pita Gold */
 .cv-tpl-1 {
   width: 210mm;
   height: 297mm;
   max-height: 297mm;
-  background: #f2f2f2;
+  background: #faf8f5;
   display: flex;
   position: relative;
   overflow: hidden;
-  color: #3c352e;
+  color: #2f261f;
   font-family: 'Inter', system-ui, sans-serif;
   box-sizing: border-box;
 }
 
 .cv-tpl-1-left {
-  width: 36%;
-  background: #362f28;
+  width: 35%;
+  background: #2f261f;
   color: #ffffff;
-  padding: 28px 20px;
+  padding: 26px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -937,8 +937,8 @@
 }
 
 .cv-tpl-1-right {
-  width: 64%;
-  padding: 32px 28px;
+  width: 65%;
+  padding: 28px 26px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -968,27 +968,27 @@
 }
 
 .cv-tpl-1-pill-hdr {
-  background: #f5f3f0;
-  color: #5c4938;
+  background: #fef3c7;
+  color: #2f261f;
   font-weight: 800;
   text-align: center;
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: 999px;
-  letter-spacing: 0.05em;
-  font-size: 0.78rem;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  letter-spacing: 0.07em;
+  font-size: 0.74rem;
+  margin-bottom: 9px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.16);
 }
 
-/* TEMPLATE 2: Boxed 2 Kolom Klasik */
+/* TEMPLATE 2: Boxed 2 Kolom Klasik Arsitektural */
 .cv-tpl-2 {
   width: 210mm;
   height: 297mm;
   max-height: 297mm;
   background: #ffffff;
-  padding: 16px;
+  padding: 14px;
   font-family: 'Inter', sans-serif;
-  color: #000000;
+  color: #0f172a;
   box-sizing: border-box;
   display: flex;
   overflow: hidden;
@@ -997,7 +997,7 @@
 .cv-tpl-2-inner {
   width: 100%;
   height: 100%;
-  border: 3px solid #000000;
+  border: 2.5px solid #0f172a;
   display: flex;
   box-sizing: border-box;
   overflow: hidden;
@@ -1005,8 +1005,8 @@
 
 .cv-tpl-2-left {
   width: 34%;
-  background: #ececec;
-  border-right: 2.5px solid #000000;
+  background: #f1f5f9;
+  border-right: 2px solid #0f172a;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -1016,7 +1016,7 @@
 .cv-tpl-2-right {
   width: 66%;
   background: #ffffff;
-  padding: 22px;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -1030,30 +1030,30 @@
   height: 297mm;
   max-height: 297mm;
   background: #ffffff;
-  padding: 26px 32px;
+  padding: 24px 30px;
   font-family: 'Inter', sans-serif;
-  color: #000000;
+  color: #0f172a;
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
 }
 
-/* TEMPLATE 4: Sidebar Abu-Abu Melengkung */
+/* TEMPLATE 4: Sidebar Lengkung Slate Kontras */
 .cv-tpl-4 {
   width: 210mm;
   height: 297mm;
   max-height: 297mm;
-  background: #e6e6e6;
+  background: #f8fafc;
   display: flex;
   position: relative;
   overflow: hidden;
   font-family: 'Inter', sans-serif;
-  color: #1f1916;
+  color: #0f172a;
   box-sizing: border-box;
 }
 
 .cv-tpl-4-left {
-  width: 37%;
+  width: 36%;
   padding: 14px 0;
   display: flex;
   flex-direction: column;
@@ -1064,8 +1064,8 @@
 }
 
 .cv-tpl-4-right {
-  width: 63%;
-  padding: 32px 30px 24px 24px;
+  width: 64%;
+  padding: 30px 28px 24px 24px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -1079,9 +1079,9 @@
   height: 297mm;
   max-height: 297mm;
   background: #ffffff;
-  padding: 16px;
+  padding: 14px;
   font-family: 'Inter', sans-serif;
-  color: #000000;
+  color: #0f172a;
   box-sizing: border-box;
   display: flex;
   overflow: hidden;
@@ -1090,8 +1090,10 @@
 .cv-tpl-5-inner {
   width: 100%;
   height: 100%;
-  border: 3px solid #000000;
-  padding: 22px;
+  border: 2.5px solid #0f172a;
+  outline: 1px solid #cbd5e1;
+  outline-offset: -6px;
+  padding: 20px 22px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1100,29 +1102,31 @@
   overflow: hidden;
 }
 
-/* TEMPLATE 6: ATS Bar Abu-Abu */
+/* TEMPLATE 6: ATS Bar Abu-Abu Eksekutif */
 .cv-tpl-6 {
   width: 210mm;
   height: 297mm;
   max-height: 297mm;
   background: #ffffff;
-  padding: 24px 34px;
-  font-family: 'Times New Roman', Times, serif;
-  color: #000000;
+  padding: 22px 32px;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0f172a;
   box-sizing: border-box;
   overflow: hidden;
 }
 
 .cv-tpl-6-bar {
-  background: #bdbdbd;
-  border-top: 1px solid #525252;
-  border-bottom: 1px solid #525252;
-  padding: 2px 8px;
+  background: #e2e8f0;
+  border-top: 1.5px solid #1e293b;
+  border-bottom: 1px solid #94a3b8;
+  border-left: 4px solid #1e293b;
+  padding: 3px 9px;
   font-family: 'Inter', sans-serif;
   font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: #0f172a;
   margin-bottom: 6px;
 }
 
@@ -1132,36 +1136,37 @@
   height: 297mm;
   max-height: 297mm;
   background: #ffffff;
-  padding: 26px 36px;
-  font-family: 'Times New Roman', Times, serif;
-  color: #000000;
+  padding: 24px 34px;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0f172a;
   box-sizing: border-box;
   overflow: hidden;
 }
 
 .cv-tpl-7-bar {
-  border-top: 1.5px solid #000000;
-  border-bottom: 1.5px solid #000000;
-  padding: 2px 0;
+  border-top: 1.5px solid #1e3a8a;
+  border-bottom: 1.5px solid #1e3a8a;
+  background: #f8fafc;
+  padding: 2.5px 0;
   text-align: center;
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1e3a5f;
+  color: #1e3a8a;
   margin-bottom: 6px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
-/* TEMPLATE 8: ATS Modern Garis Hitam & Foto Kiri */
+/* TEMPLATE 8: ATS Modern Garis Tegas & Foto Kiri */
 .cv-tpl-8 {
   width: 210mm;
   height: 297mm;
   max-height: 297mm;
   background: #ffffff;
-  padding: 24px 34px;
-  font-family: 'Times New Roman', Times, serif;
-  color: #000000;
+  padding: 22px 32px;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0f172a;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -1169,10 +1174,12 @@
 .cv-tpl-8-bar {
   font-family: 'Inter', sans-serif;
   font-weight: 800;
-  font-size: 13px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  border-bottom: 1.5px solid #000000;
-  padding-bottom: 2px;
+  color: #0f172a;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 2.5px;
   margin-bottom: 6px;
 }
 

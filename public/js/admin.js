@@ -39,7 +39,7 @@ const DEFAULT_SUPABASE_URL = "https://nptmawuukuysqzqakwej.supabase.co";
 const DEFAULT_SUPABASE_KEY = "sb_publishable_CeLmp_Pj-sgJ_vIrShAj2A__rzAQIYT";
 const ALTERNATE_SUPABASE_KEY = "sb_publishable_vhr-CPf4EI0fy2Xsl1uBPg_RxF7UwWT";
 const DEFAULT_ADMIN_PASSWORD = "admin_supersecret_portal_2026";
-const defaultPoster = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80"><rect width="80" height="80" fill="#1e293b"/><text x="40" y="48" font-family="sans-serif" font-size="28" text-anchor="middle" fill="#6366f1">💼</text></svg>');
+const defaultPoster = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80"><rect width="80" height="80" rx="14" fill="#1e293b"/><rect x="22" y="30" width="36" height="26" rx="4" fill="none" stroke="#38bdf8" stroke-width="3"/><path d="M32 30v-4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v4" fill="none" stroke="#38bdf8" stroke-width="3"/><path d="M22 40h36" stroke="#818cf8" stroke-width="2.5"/></svg>');
 let isLoadingAdminJobs = false;
 
 function getKnownCorporateCareerUrl(compName) {
@@ -904,7 +904,7 @@ function renderManualFlyerGallery() {
       <div class="manual-flyer-card" title="Slide #${idx + 1}${isPrimary ? ' (Cover Utama)' : ''}">
         <img src="${imgSrc}" alt="Flyer ${idx + 1}">
         <span class="manual-flyer-badge ${isPrimary ? 'primary' : ''}">
-          ${isPrimary ? '★ Slide 1' : `#${idx + 1}`}
+          ${isPrimary ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:3px;" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Slide 1' : `#${idx + 1}`}
         </span>
         <button type="button" class="manual-flyer-delete-btn" onclick="removeManualFlyer(${idx}, event)" title="Hapus gambar ini">
           <i class="fa-solid fa-xmark"></i>
@@ -2326,12 +2326,13 @@ function generateCompanyBannerDataUrl(job) {
       ${displayTitle.length > 55 ? displayTitle.substring(0, 52) + '...' : displayTitle}
     </text>
     <line x1="40" y1="350" x2="760" y2="350" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
-    <g transform="translate(40, 376)">
-      <text x="0" y="12" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="12" font-weight="600" fill="rgba(255,255,255,0.7)">
-        🛡️ TERVERIFIKASI KERJAHUB PORTAL
+    <g transform="translate(40, 374)">
+      <path d="M7 1l6 2.5v4c0 3.7-2.6 7-6 8-3.4-1-6-4.3-6-8v-4L7 1z" fill="none" stroke="#38bdf8" stroke-width="1.6"/>
+      <text x="22" y="13" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="12" font-weight="600" fill="rgba(255,255,255,0.75)">
+        TERVERIFIKASI KERJAHUB PORTAL
       </text>
-      <text x="720" y="12" text-anchor="end" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="12" font-weight="600" fill="#34d399">
-        ✓ 100% BEBAS BIAYA SELEKSI
+      <text x="720" y="13" text-anchor="end" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="12" font-weight="600" fill="#34d399">
+        100% BEBAS BIAYA SELEKSI
       </text>
     </g>
   </svg>`;
@@ -4433,7 +4434,7 @@ async function populateOfficialVacanciesFromSystem(keyword = 'lowongan', isBackg
   filterAndRenderOfficialJobs();
 
   if (isBackgroundAutoload && newArrivalsCount > 0) {
-    showAutoloadToast(`⚡ ${newArrivalsCount} Lowongan baru terbit di web berhasil dimuat otomatis!`);
+    showAutoloadToast(`${newArrivalsCount} Lowongan baru terbit di web berhasil dimuat otomatis.`);
   }
 }
 
@@ -4494,11 +4495,11 @@ function stopAdminAutoloadEngine(persist = true) {
 function toggleAutoloadEngine() {
   if (isAutoloadActive) {
     stopAdminAutoloadEngine(true);
-    showAutoloadToast('⏸️ Autoload telah DIMATIKAN. Tidak akan memuat otomatis.');
+    showAutoloadToast('Autoload telah DINONAKTIFKAN. Sinkronisasi otomatis dijeda.');
   } else {
     startAdminAutoloadEngine(true);
     triggerManualWebSync();
-    showAutoloadToast('⚡ Autoload DIAKTIFKAN. Update lowongan baru setiap 30 detik.');
+    showAutoloadToast('Autoload DIAKTIFKAN. Memantau pembaruan lowongan setiap 30 detik.');
   }
 }
 
@@ -5009,7 +5010,8 @@ function renderOfficialJobsGrid() {
             </button>
           ` : `
             <button type="button" class="btn-gas-publish-action" id="btn-gas-${idx}" onclick="generateAndPublishOfficialJob(${idx})" title="Generate poster flyer otomatis dan langsung terbitkan ke portal KerjaHub">
-              <i class="fa-solid fa-bolt"></i> ⚡ Generate Poster & Terbitkan (Gas!)
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Generate Poster & Terbitkan (Gas!)
             </button>
           `}
 
@@ -5053,7 +5055,7 @@ ${job.hashtag || '#LokerResmi #InfoLowongan'} @KerjaHubOfficial`;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => {
-      showAutoloadToast(`📋 Caption postingan ${plat} berhasil disalin ke clipboard!`);
+      showAutoloadToast(`Caption postingan ${plat} berhasil disalin ke clipboard.`);
     }).catch(() => {
       prompt('Salin teks caption berikut:', text);
     });
@@ -5115,7 +5117,7 @@ window.publishJobDataDirectly = function(job) {
       body: formData
     }).then(({ ok, data }) => {
       if (ok) {
-        alert(`⚡ Lowongan "${job.title}" (${job.company_name}) berhasil diterbitkan ke portal KerjaHub!`);
+        alert(`Lowongan "${job.title}" (${job.company_name}) berhasil diterbitkan ke portal KerjaHub.`);
         loadAdminJobs(true);
       } else {
         alert('Gagal menerbitkan: ' + (data?.message || 'Error server'));
@@ -5274,7 +5276,7 @@ window.bulkPublishAllOfficialJobs = async function() {
     return;
   }
 
-  if (!confirm(`⚡ GAS SEMUA LOKER?\n\nAda ${unpublished.length} lowongan resmi 2026 yang belum terbit.\n\nSistem akan mengenerate poster flyer dan menerbitkan semuanya langsung ke Portal KerjaHub sekaligus. Lanjutkan?`)) {
+  if (!confirm(`GAS SEMUA LOKER?\n\nAda ${unpublished.length} lowongan resmi 2026 yang belum terbit.\n\nSistem akan mengenerate poster flyer dan menerbitkan semuanya langsung ke Portal KerjaHub sekaligus. Lanjutkan?`)) {
     return;
   }
 
@@ -5363,7 +5365,7 @@ window.bulkPublishAllOfficialJobs = async function() {
     bulkBtn.innerHTML = origText;
   }
 
-  alert(`⚡ GAS SELESAI!\n\nBerhasil mengenerate poster & menerbitkan ${countSuccess} lowongan resmi baru ke portal KerjaHub!`);
+  alert(`GAS SELESAI!\n\nBerhasil mengenerate poster & menerbitkan ${countSuccess} lowongan resmi baru ke portal KerjaHub.`);
 };
 
 // -------------------------------------------------------------
@@ -5418,7 +5420,7 @@ window.applyJobTemplateToForm = function(templateId) {
     if (dropzonePrompt) dropzonePrompt.style.display = 'none';
   }
 
-  alert(`⚡ Template "${job.title}" (${job.company_name}) diterapkan!\n\nSeluruh data formulir dan gambar poster flyer otomatis terisi. Klik "Unggah & Terbitkan Sekarang" untuk mempublikasikan.`);
+  alert(`Template "${job.title}" (${job.company_name}) diterapkan.\n\nSeluruh data formulir dan gambar poster flyer otomatis terisi. Klik "Unggah & Terbitkan Sekarang" untuk mempublikasikan.`);
 };
 
 // -------------------------------------------------------------
@@ -6035,7 +6037,7 @@ window.populateStudioThemeSelect = function() {
 
   select.innerHTML = flyerThemes.map(t => {
     const isSelected = String(activeFlyerThemeId) === String(t.id);
-    return `<option value="${t.id}" ${isSelected ? 'selected' : ''}>🖼️ ${escTheme(t.name)}</option>`;
+    return `<option value="${t.id}" ${isSelected ? 'selected' : ''}>Tema: ${escTheme(t.name)}</option>`;
   }).join('');
 
   const activeTheme = flyerThemes.find(x => String(x.id) === String(activeFlyerThemeId)) || flyerThemes[0];
@@ -7024,7 +7026,7 @@ function renderPosterCanvas() {
     ctx.fillStyle = '#1d4ed8';
     ctx.font = '800 18px "Plus Jakarta Sans", Arial, sans-serif';
     const deadlineVal = (deadline || 'Pendaftaran Dibuka (Segera Apply)').trim();
-    ctx.fillText(`📅 BATAS WAKTU: ${deadlineVal}`, deadPillX + 14, deadPillY + 25);
+    ctx.fillText(`BATAS WAKTU: ${deadlineVal}`, deadPillX + 14, deadPillY + 25);
 
     // 2. CARA MELAMAR (CUSTOM TEXT WITH AUTO WORD-WRAP)
     const applyHeaderY = deadPillY + deadPillH + 24;
@@ -7107,7 +7109,7 @@ function renderPosterCanvas() {
     // Anti-fraud Notice below QR (perfectly centered on qrCenterX and bounded within inner card)
     ctx.fillStyle = '#0f172a';
     ctx.font = '800 21px "Plus Jakarta Sans", Arial, sans-serif';
-    ctx.fillText('⚠️ Hati-hati penipuan', qrCenterX, 1256);
+    ctx.fillText('Hati-hati penipuan', qrCenterX, 1256);
 
     ctx.fillStyle = '#334155';
     ctx.font = '600 17.5px "Plus Jakarta Sans", Arial, sans-serif';
@@ -7246,8 +7248,9 @@ function renderPosterCanvas() {
         if (curY > 720) return;
         ctx.textAlign = 'left';
         ctx.fillStyle = p.primary;
+        ctx.fillRect(60, curY - 19, 6, 22);
         ctx.font = '800 24px "Plus Jakarta Sans", Arial, sans-serif';
-        ctx.fillText(`📌 ${sec.title}`, 60, curY);
+        ctx.fillText(sec.title, 76, curY);
         curY += 32;
 
         sec.items.slice(0, 3).forEach(it => {
@@ -7293,7 +7296,7 @@ function renderPosterCanvas() {
     ctx.fillStyle = p.accentOrange;
     ctx.font = '800 18px "Plus Jakarta Sans", Arial, sans-serif';
     const deadlineVal = (deadline || 'Pendaftaran Dibuka (Segera Apply)').trim();
-    ctx.fillText(`📅 BATAS WAKTU: ${deadlineVal}`, deadPillX + 14, deadPillY + 24);
+    ctx.fillText(`BATAS WAKTU: ${deadlineVal}`, deadPillX + 14, deadPillY + 24);
 
     // 2. CARA MELAMAR (CUSTOM TEXT)
     const applyHeaderY = deadPillY + deadPillH + 24;
@@ -7345,7 +7348,7 @@ function renderPosterCanvas() {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#fbbf24';
     ctx.font = '800 24px "Plus Jakarta Sans", Arial, sans-serif';
-    ctx.fillText('⚠️ Waspada penipuan. Rekrutmen ini tidak dipungut biaya apapun.', width / 2, footY + 46);
+    ctx.fillText('Waspada penipuan. Rekrutmen ini tidak dipungut biaya apapun.', width / 2, footY + 46);
   }
 
   // Synchronize current canvas to current active slide thumbnail
@@ -8154,7 +8157,7 @@ async function fetchLiveMedsosPostings() {
       // Sort strictly by newest pubTimestamp descending
       OFFICIAL_VACANCIES_DB.sort((a, b) => (b.pubTimestamp || 0) - (a.pubTimestamp || 0));
 
-      alert(`⚡ Berhasil menemukan ${liveJobs.length} postingan loker asli yang benar-benar dibagikan di website! Klik tombol "Buka Postingan Asli Web ↗" untuk langsung masuk ke halaman postingannya.`);
+      alert(`Berhasil menemukan ${liveJobs.length} postingan loker asli yang benar-benar dibagikan di website. Klik tombol "Buka Postingan Asli Web" untuk langsung masuk ke halaman postingannya.`);
       filterAndRenderOfficialJobs();
       document.getElementById('scout-results-area')?.scrollIntoView({ behavior: 'smooth' });
     } else {

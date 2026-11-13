@@ -16,7 +16,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/style.css?v=20261113_03">
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
   <script src="./vendor/supabase/supabase.min.js"></script>
   <!-- PDF.js (Self-Hosted Local Vendor Asset) -->
@@ -137,12 +137,19 @@
   <!-- NAVBAR -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="./" class="brand-logo" id="brand-logo-link">
-        <div class="brand-icon">
-          <i class="fa-solid fa-briefcase"></i>
-        </div>
-        <span>KerjaHub<span class="brand-tag">PORTAL</span></span>
-      </a>
+      <div class="brand-lockup">
+        <a href="./" class="brand-logo" id="brand-logo-link">
+          <div class="brand-icon">
+            <i class="fa-solid fa-briefcase"></i>
+          </div>
+          <span>KerjaHub<span class="brand-tag">PORTAL</span></span>
+        </a>
+        <span class="brand-credit-divider" aria-hidden="true"></span>
+        <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-top-credit" title="Powered by Daysheet.id">
+          <span class="daysheet-by">by</span>
+          <img src="./uploads/daysheet_logo.png" alt="Daysheet.id" class="daysheet-top-logo">
+        </a>
+      </div>
 
       <ul class="nav-links">
         <li><a href="./#lowongan" class="nav-link"><i class="fa-solid fa-arrow-left"></i> Kembali ke Lowongan</a></li>
@@ -344,8 +351,11 @@
         </ul>
       </div>
       <div class="footer-bottom">
-        &copy; 2026 KerjaHub - Portal Berbagi Poster Lowongan Kerja Resmi. | Copyright by <strong>Daysheet.id</strong>
+        &copy; 2026 KerjaHub - Portal Berbagi Poster Lowongan Kerja Resmi. | Copyright by <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-footer-link">Daysheet.id</a>
       </div>
+    </div>
+  </footer>
+
   <!-- FLOATING WHATSAPP CV ORDER BUTTON -->
   <div class="floating-wa-cv-container">
     <a href="javascript:void(0)" class="floating-wa-cv-btn" id="btn-floating-pesan-cv" onclick="openCvOrderWhatsApp()" title="Pesan Layanan Pembuatan CV ATS via WhatsApp">
@@ -360,6 +370,6 @@
     </a>
   </div>
 
-  <script src="./js/cek-cv.js?v=20261113_02"></script>
+  <script src="./js/cek-cv.js?v=20261113_03" defer></script>
 </body>
 </html>
