@@ -551,8 +551,9 @@ function generateGoogleDorkQuery({ kata_kunci = '', lokasi = '', platforms = [],
 let adminJobs = [];
 let currentSelectedFileBase64 = '';
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await initSupabaseClient();
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Supabase immediately (non-blocking) so auth & jobs load at 0ms
+  initSupabaseClient();
   setupAuth();
   setupNavigation();
   setupPosterDropzone();
@@ -615,9 +616,9 @@ function setupAuth() {
 
   const storedToken = safeSessionGet('kerja_admin_token');
   if (storedToken) {
-    if (storedToken.startsWith('cf_token_')) {
-      unlockDashboard();
-    } else {
+    // Optimistically unlock dashboard immediately (0ms), verify token in background
+    unlockDashboard();
+    if (!storedToken.startsWith('cf_token_')) {
       safeFetchJson(getApiEndpoint('/api/admin/verify'), {
         method: 'POST',
         headers: {
@@ -625,19 +626,12 @@ function setupAuth() {
           'Authorization': `Bearer ${storedToken}`
         },
         body: JSON.stringify({ token: storedToken })
-      }).then(({ ok, data }) => {
-        if (ok && data && data.success && data.valid) {
-          unlockDashboard();
-        } else if (data && data.valid === false) {
+      }).then(({ data }) => {
+        if (data && data.valid === false) {
           safeSessionRemove('kerja_admin_token');
           showLoginScreen();
-        } else {
-          // If server is offline or returned 404, retain dashboard access if token was previously issued
-          unlockDashboard();
         }
-      }).catch(() => {
-        unlockDashboard();
-      });
+      }).catch(() => {});
     }
   } else {
     showLoginScreen();
@@ -6037,7 +6031,9 @@ window.handleStudioCoverUpload = async function(event) {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => setTimeout(() => window.loadFlyerThemes(), 600));
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof window.loadFlyerThemes === 'function') window.loadFlyerThemes();
+});
 
 window.openStudioFromFormWithTheme = function() {
   if (typeof window.generatePosterFromUploadForm === 'function') {

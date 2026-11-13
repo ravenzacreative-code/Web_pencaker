@@ -209,6 +209,49 @@ function normalizeJobPayload(body, isCreate = true) {
     return payload;
 }
 
+const EDGE_CACHE_PATHS = [
+    '/api/jobs',
+    '/api/jobs?status=published',
+    '/api/jobs?status=all',
+    '/api/master-data',
+    '/api/company-images',
+    '/api/flyer-themes',
+    '/api/settings',
+    '/api/config'
+];
+
+async function withEdgeCache(c, ttlSeconds, fetcher) {
+    const cache = typeof caches !== 'undefined' ? caches.default : null;
+    const reqUrl = new URL(c.req.url);
+    const bypass = reqUrl.searchParams.has('_t') || (c.req.header('cache-control') || '').includes('no-cache');
+    const cacheKey = new Request(reqUrl.toString(), { method: 'GET' });
+
+    if (cache && !bypass) {
+        const hit = await cache.match(cacheKey);
+        if (hit) {
+            return hit;
+        }
+    }
+
+    const payload = await fetcher();
+    const res = c.json(payload, 200, {
+        'Cache-Control': `public, max-age=${ttlSeconds}, s-maxage=${ttlSeconds}, stale-while-revalidate=${ttlSeconds * 4}`
+    });
+
+    if (cache && !bypass) {
+        c.executionCtx?.waitUntil(cache.put(cacheKey, res.clone()));
+    }
+    return res;
+}
+
+function purgeEdgeCaches(c) {
+    const cache = typeof caches !== 'undefined' ? caches.default : null;
+    if (!cache) return;
+    const origin = new URL(c.req.url).origin;
+    const tasks = EDGE_CACHE_PATHS.map(p => cache.delete(new Request(origin + p, { method: 'GET' })).catch(() => false));
+    c.executionCtx?.waitUntil(Promise.all(tasks));
+}
+
 // ==========================================
 // 1. HEALTH & CONFIG
 // ==========================================
@@ -222,12 +265,16 @@ app.get('/api/health', (c) => {
 
 app.get('/api/config', async (c) => {
     try {
-        const { url, publicKey } = getSupabaseConfig(c.env);
-        const settings = await getSettings(c.env);
-        return c.json({
-            supabaseUrl: url,
-            supabaseKey: publicKey,
-            whatsappNumber: settings.whatsapp_number || '6281234567890'
+        return await withEdgeCache(c, 60, async () => {
+            const { url, publicKey } = getSupabaseConfig(c.env);
+            const settings = await getSettings(c.env);
+            return {
+                supabaseUrl: url,
+                supabaseKey: publicKey,
+                whatsappNumber: settings.whatsapp_number || '6281234567890',
+                cv_whatsapp: settings.cv_whatsapp || settings.whatsapp_number || '',
+                cv_order_message: settings.cv_order_message || ''
+            };
         });
     } catch (err) {
         return c.json({ error: err.message }, 500);
@@ -239,8 +286,7 @@ app.get('/api/config', async (c) => {
 // ==========================================
 app.get('/api/settings', async (c) => {
     try {
-        const settings = await getSettings(c.env);
-        return c.json(settings);
+        return await withEdgeCache(c, 60, () => getSettings(c.env));
     } catch (err) {
         return c.json({ error: err.message }, 500);
     }
@@ -250,6 +296,7 @@ app.post('/api/settings', requireAdminAuth, async (c) => {
     try {
         const body = await c.req.json();
         await saveSettings(c.env, body);
+        purgeEdgeCaches(c);
         return c.json({ success: true, message: 'Pengaturan berhasil disimpan!' });
     } catch (err) {
         return c.json({ error: err.message }, 500);
@@ -282,9 +329,9 @@ app.post('/api/admin/verify', async (c) => {
     const token = extractBearerToken(c);
     const payload = await verifyAdminToken(token, c.env);
     if (payload) {
-        return c.json({ valid: true, expiresAt: payload.exp });
+        return c.json({ success: true, valid: true, expiresAt: payload.exp });
     }
-    return c.json({ valid: false }, 401);
+    return c.json({ success: false, valid: false }, 401);
 });
 
 app.post('/api/admin/logout', (c) => {
@@ -296,8 +343,10 @@ app.post('/api/admin/logout', (c) => {
 // ==========================================
 app.get('/api/company-images', async (c) => {
     try {
-        const images = await getCompanyImages(c.env);
-        return c.json(images);
+        return await withEdgeCache(c, 300, async () => {
+            const images = await getCompanyImages(c.env);
+            return { success: true, data: images };
+        });
     } catch (err) {
         return c.json({ error: err.message }, 500);
     }
@@ -358,10 +407,17 @@ app.get('/api/jobs', async (c) => {
         const location = c.req.query('location') || 'all';
         const education = c.req.query('education') || 'all';
         const search = c.req.query('search') || '';
-        const jobs = await getJobs(c.env, { status, category, location, education, search });
-        return c.json(jobs);
+
+        // Trigger scheduled-job publishing asynchronously without blocking response latency
+        c.executionCtx?.waitUntil(checkAndPublishScheduledJobs(c.env));
+
+        const ttl = (category === 'all' && location === 'all' && education === 'all' && !search) ? 20 : 10;
+        return await withEdgeCache(c, ttl, async () => {
+            const jobs = await getJobs(c.env, { status, category, location, education, search });
+            return { success: true, data: jobs };
+        });
     } catch (err) {
-        return c.json({ error: err.message }, 500);
+        return c.json({ success: false, error: err.message }, 500);
     }
 });
 
@@ -369,7 +425,7 @@ app.get('/api/jobs/:id', async (c) => {
     try {
         const job = await getJobById(c.env, c.req.param('id'));
         if (!job) return c.json({ error: 'Lowongan tidak ditemukan' }, 404);
-        return c.json(job);
+        return c.json({ success: true, data: job, ...job });
     } catch (err) {
         return c.json({ error: err.message }, 500);
     }
@@ -385,9 +441,12 @@ app.post('/api/jobs', requireAdminAuth, async (c) => {
         }
 
         const created = await addJob(c.env, payload);
+        purgeEdgeCaches(c);
         return c.json({
+            success: true,
             id: created?.id,
             status: created?.status || payload.status,
+            data: created,
             job: created,
             message: 'Lowongan berhasil ditambahkan!'
         }, 201);
@@ -399,6 +458,7 @@ app.post('/api/jobs', requireAdminAuth, async (c) => {
 app.post('/api/jobs/:id/publish-now', requireAdminAuth, async (c) => {
     try {
         const updated = await toggleStatus(c.env, c.req.param('id'), 'published');
+        purgeEdgeCaches(c);
         return c.json({ success: true, job: updated, message: 'Lowongan berhasil dipublikasikan sekarang!' });
     } catch (err) {
         return c.json({ error: err.message }, 500);
@@ -422,7 +482,8 @@ app.put('/api/jobs/:id', requireAdminAuth, async (c) => {
         }
 
         const updated = await updateJob(c.env, id, payload);
-        return c.json({ success: true, job: updated, message: 'Lowongan berhasil diperbarui!' });
+        purgeEdgeCaches(c);
+        return c.json({ success: true, data: updated, job: updated, message: 'Lowongan berhasil diperbarui!' });
     } catch (err) {
         return c.json({ error: err.message }, err.status || 500);
     }
@@ -434,8 +495,9 @@ app.delete('/api/jobs/:id', requireAdminAuth, async (c) => {
         const existing = await getJobById(c.env, id);
 
         await deleteJob(c.env, id);
+        purgeEdgeCaches(c);
 
-        // Clean up R2 files attached to this job
+        // Clean up R2 / Storage files attached to this job
         if (existing) {
             const urlsToDelete = [
                 existing.cover_image,
@@ -460,6 +522,7 @@ app.patch('/api/jobs/:id/status', requireAdminAuth, async (c) => {
             return c.json({ error: 'Status tidak valid!' }, 400);
         }
         const updated = await toggleStatus(c.env, c.req.param('id'), status);
+        purgeEdgeCaches(c);
         return c.json({ success: true, job: updated, message: `Status diubah ke ${status}` });
     } catch (err) {
         return c.json({ error: err.message }, 500);
@@ -480,8 +543,10 @@ app.get('/api/admin/stats', requireAdminAuth, async (c) => {
 // ==========================================
 app.get('/api/master-data', async (c) => {
     try {
-        const data = await getMasterData(c.env);
-        return c.json(data);
+        return await withEdgeCache(c, 120, async () => {
+            const data = await getMasterData(c.env);
+            return { success: true, data };
+        });
     } catch (err) {
         return c.json({ error: err.message }, 500);
     }
@@ -494,6 +559,7 @@ app.post('/api/master-data', requireAdminAuth, async (c) => {
         const name = String(body?.name || '').trim();
         if (!type || !name) return c.json({ error: 'Type dan Name wajib diisi' }, 400);
         const updated = await addMasterDataItem(c.env, type, name);
+        purgeEdgeCaches(c);
         return c.json({ success: true, data: updated });
     } catch (err) {
         return c.json({ error: err.message }, 500);
@@ -507,6 +573,7 @@ app.delete('/api/master-data', requireAdminAuth, async (c) => {
         const name = String(body?.name || '').trim();
         if (!type || !name) return c.json({ error: 'Type dan Name wajib diisi' }, 400);
         const updated = await deleteMasterDataItem(c.env, type, name);
+        purgeEdgeCaches(c);
         return c.json({ success: true, data: updated });
     } catch (err) {
         return c.json({ error: err.message }, 500);
@@ -516,6 +583,7 @@ app.delete('/api/master-data', requireAdminAuth, async (c) => {
 app.post('/api/master-data/reset', requireAdminAuth, async (c) => {
     try {
         const data = await resetMasterData(c.env);
+        purgeEdgeCaches(c);
         return c.json({ success: true, data });
     } catch (err) {
         return c.json({ error: err.message }, 500);
@@ -527,8 +595,10 @@ app.post('/api/master-data/reset', requireAdminAuth, async (c) => {
 // ==========================================
 app.get('/api/flyer-themes', async (c) => {
     try {
-        const themes = await getFlyerThemes(c.env);
-        return c.json(themes);
+        return await withEdgeCache(c, 60, async () => {
+            const themes = await getFlyerThemes(c.env);
+            return { success: true, data: themes };
+        });
     } catch (err) {
         return c.json({ error: err.message }, 500);
     }
@@ -577,6 +647,7 @@ app.post('/api/flyer-themes', requireAdminAuth, async (c) => {
             created_at: new Date().toISOString()
         };
         const themes = await addFlyerTheme(c.env, newTheme);
+        purgeEdgeCaches(c);
         return c.json({ success: true, data: themes[0] || newTheme, themes });
     } catch (err) {
         return c.json({ error: err.message }, err.status || 500);
@@ -589,6 +660,7 @@ app.delete('/api/flyer-themes/:id', requireAdminAuth, async (c) => {
         const current = await getFlyerThemes(c.env);
         const target = current.find(t => String(t.id) === String(id));
         const themes = await deleteFlyerTheme(c.env, id);
+        purgeEdgeCaches(c);
 
         if (target && typeof target.url === 'string' && target.url.startsWith('/uploads/')) {
             await deleteUploadFromR2(c.env, target.url).catch(() => false);

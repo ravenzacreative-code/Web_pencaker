@@ -170,13 +170,11 @@ export async function checkAndPublishScheduledJobs(env) {
 }
 
 export async function getJobs(env, { status = 'all', category = 'all', location = 'all', education = 'all', search = '' } = {}) {
-    await checkAndPublishScheduledJobs(env);
-
     const statusFilter = status && status !== 'all'
         ? `status=eq.${encodeURIComponent(status)}`
         : 'status=not.in.(system_settings,system_master_data,system_flyer_themes,system_company_images,system_uploaded_file)';
 
-    const params = [statusFilter, 'order=created_at.desc'];
+    const params = [statusFilter, 'order=is_featured.desc,id.desc'];
     if (category && category !== 'all') params.push(`category=eq.${encodeURIComponent(category)}`);
     if (location && location !== 'all') params.push(`location=ilike.*${encodeURIComponent(location)}*`);
 

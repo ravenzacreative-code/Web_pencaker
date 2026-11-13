@@ -405,15 +405,17 @@ function setupSupabaseRealtimeSync() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
-  await initSupabaseClient();
-  loadCompanyImagesCache();
+  initSupabaseClient();
   setupEventListeners();
   setupCustomDropdowns();
   setupModalDismiss('job-detail-modal');
   setupModalDismiss('poster-lightbox');
   setupCvMatcher();
-  loadMasterDataFilters();
-  await loadJobs();
+  await Promise.all([
+    loadCompanyImagesCache(),
+    loadMasterDataFilters(),
+    loadJobs()
+  ]);
   setupSupabaseRealtimeSync();
 });
 
