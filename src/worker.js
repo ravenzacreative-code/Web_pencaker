@@ -134,6 +134,72 @@ async function parseJobRequestBody(c) {
     return await c.req.json();
 }
 
+function parseStructuredListField(val) {
+    if (val === undefined) return undefined;
+    if (val === null || val === '') return [];
+
+    const splitSingleString = (str) => {
+        const raw = String(str || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+        if (!raw) return [];
+
+        const cleanLine = (line) => line
+            .replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-*]+/, '')
+            .replace(/^\d{1,2}[\.\)]\s+/, '')
+            .trim();
+
+        let parts = [];
+        if (raw.includes('\n')) {
+            parts = raw.split(/\n+/).map(cleanLine).filter(Boolean);
+        } else if (/[•▪▫◦●■□✓✔➤➢►▶]/.test(raw)) {
+            parts = raw.split(/\s*[•▪▫◦●■□✓✔➤➢►▶]+\s*/).map(cleanLine).filter(Boolean);
+        } else if (raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').includes(';')) {
+            parts = raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').split(/\s*;\s*/).map(s => cleanLine(s.replace(/\x00/g, ';'))).filter(Boolean);
+        } else if (/(?:^|\s)\d{1,2}[\.\)]\s+\S/.test(raw) && (raw.match(/(?:^|\s)\d{1,2}[\.\)]\s+/g) || []).length >= 2) {
+            parts = raw.split(/\s+(?=\d{1,2}[\.\)]\s+)/).map(cleanLine).filter(Boolean);
+        } else {
+            parts = [cleanLine(raw)].filter(Boolean);
+        }
+
+        const out = [];
+        const gluedRe = /(?<=[a-z0-9\)%]|SMA|SMK|WNI|S1|D3|TAHUN|AKTIF|ROHANI|JASMANI|MENIKAH|SEDERAJAT|WANITA|PRIA)(?=(?:Pendidikan|Lulusan|Usia|Umur|Tinggi|Berat|Sehat|Tidak|Belum|Bukan|Bersedia|Memiliki|Warga|WNI|Minimal|Maksimal|Berpenampilan|Siap|Mampu|Menguasai|Pengalaman|Diutamakan|Fresh|Domisili|Penempatan|Pria|Wanita|Laki|Perempuan|MEMILIKI|TIDAK|BERSEDIA|SEHAT|USIA|TINGGI|PENDIDIKAN|MINIMAL|MAKSIMAL)\b)/g;
+        const collapsedRe = /(?<=[a-zA-Z0-9\)%])\s+(?=(?:Pendidikan\s+(?:min|Min|SMA|SMK|D3|S1)|Lulusan\s+(?:SMA|SMK|D3|S1|min)|Usia\s+(?:min|max|Min|Max|\d)|Umur\s+(?:min|max|\d)|Tinggi\s+[bB]adan|Berat\s+[bB]adan|Sehat\s+(?:[Jj]asmani|[Ff]isik|[Rr]ohani)|Tidak\s+(?:[Bb]uta|[Bb]erkacamata|[Bb]ertato|[Ss]edang|[Pp]ernah|[Mm]erokok|[Mm]emiliki)|Bersedia\s+(?:[Bb]ekerja|[Dd]itempatkan|[Ss]hift|[Ll]embur|[Mm]engikuti)|Memiliki\s+(?:[Pp]engalaman|SIM|KTP|SKCK|NPWP|[Ss]ertifikat|[Kk]emampuan)|Menguasai\s+(?:Microsoft|Ms\.|Excel|Word|[Bb]ahasa|[Kk]omputer)|Diutamakan\s+(?:[Yy]ang|[Mm]emiliki|[Bb]erpengalaman|[Dd]omisili)|Berpenampilan\s+[Mm]enarik|Fresh\s+[Gg]raduate))/g;
+
+        for (const p of parts) {
+            const gluedSplit = p.replace(gluedRe, '\n').split('\n');
+            for (const seg of gluedSplit) {
+                const expanded = seg.length > 48 ? seg.replace(collapsedRe, '\n') : seg;
+                expanded.split('\n').map(cleanLine).filter(Boolean).forEach(item => out.push(item));
+            }
+        }
+        return out;
+    };
+
+    let arr = val;
+    if (typeof val === 'string') {
+        const trimmed = val.trim();
+        if (trimmed.startsWith('[')) {
+            try {
+                arr = JSON.parse(trimmed);
+            } catch {
+                return splitSingleString(trimmed);
+            }
+        } else {
+            return splitSingleString(trimmed);
+        }
+    }
+
+    if (Array.isArray(arr)) {
+        const result = [];
+        for (const item of arr) {
+            if (item === null || item === undefined) continue;
+            splitSingleString(item).forEach(s => result.push(s));
+        }
+        return result;
+    }
+
+    return splitSingleString(arr);
+}
+
 function normalizeJobPayload(body, isCreate = true) {
     let status = body.status || (isCreate ? 'published' : undefined);
     let scheduled_at = body.scheduled_at || null;
@@ -158,13 +224,21 @@ function normalizeJobPayload(body, isCreate = true) {
     }
 
     let coverImage = body.cover_image;
+    let posterImage = body.poster_image;
     if (!coverImage && Array.isArray(flyerImages) && flyerImages.length > 0) {
         coverImage = flyerImages[0];
+    }
+    if (!posterImage && Array.isArray(flyerImages) && flyerImages.length > 0) {
+        posterImage = flyerImages[0];
     }
 
     const companyName = body.company_name !== undefined
         ? String(body.company_name).trim()
         : (body.company !== undefined ? String(body.company).trim() : undefined);
+
+    const reqList = body.requirements !== undefined ? parseStructuredListField(body.requirements) : (isCreate ? [] : undefined);
+    const respList = body.responsibilities !== undefined ? parseStructuredListField(body.responsibilities) : (isCreate ? [] : undefined);
+    const benList = body.benefits !== undefined ? parseStructuredListField(body.benefits) : (isCreate ? [] : undefined);
 
     const payload = {
         title: body.title !== undefined ? String(body.title).trim() : undefined,
@@ -175,9 +249,9 @@ function normalizeJobPayload(body, isCreate = true) {
         experience_level: body.experience_level !== undefined ? body.experience_level : body.experience,
         category: body.category,
         description: body.description,
-        requirements: body.requirements,
-        responsibilities: body.responsibilities,
-        benefits: body.benefits,
+        requirements: reqList,
+        responsibilities: respList,
+        benefits: benList,
         contact_type: body.contact_type,
         contact_value: body.contact_value,
         deadline: body.deadline,
@@ -189,7 +263,7 @@ function normalizeJobPayload(body, isCreate = true) {
         source_label: body.source_label,
         apply_info: body.apply_info,
         cover_image: coverImage,
-        poster_image: body.poster_image,
+        poster_image: posterImage,
         flyer_images: flyerImages,
         status,
         scheduled_at
@@ -201,8 +275,9 @@ function normalizeJobPayload(body, isCreate = true) {
         payload.experience_level = payload.experience_level || 'Fresh Graduate';
         payload.category = payload.category || 'Manufaktur & Pabrik';
         payload.description = payload.description || '';
-        payload.requirements = payload.requirements || '';
-        payload.benefits = payload.benefits || '';
+        payload.requirements = Array.isArray(payload.requirements) ? payload.requirements : [];
+        payload.responsibilities = Array.isArray(payload.responsibilities) ? payload.responsibilities : [];
+        payload.benefits = Array.isArray(payload.benefits) ? payload.benefits : [];
         payload.cover_image = payload.cover_image || '';
         payload.poster_image = payload.poster_image || '';
         payload.flyer_images = payload.flyer_images || [];
@@ -214,6 +289,7 @@ function normalizeJobPayload(body, isCreate = true) {
 const EDGE_CACHE_PATHS = [
     '/api/jobs',
     '/api/jobs?status=published',
+    '/api/jobs?status=active',
     '/api/jobs?status=all',
     '/api/master-data',
     '/api/company-images',

@@ -264,21 +264,28 @@ export async function getJobs(env, { status = 'all', category = 'all', location 
 
     if (education && education !== 'all') {
         const eduQ = education.trim().toLowerCase();
-        jobs = jobs.filter(j =>
-            (j.requirements && j.requirements.toLowerCase().includes(eduQ)) ||
-            (j.description && j.description.toLowerCase().includes(eduQ))
-        );
+        jobs = jobs.filter(j => {
+            const reqText = Array.isArray(j.requirements)
+                ? j.requirements.join(' ').toLowerCase()
+                : String(j.requirements || '').toLowerCase();
+            return reqText.includes(eduQ) ||
+                (j.description && String(j.description).toLowerCase().includes(eduQ));
+        });
     }
 
     if (search && search.trim()) {
         const q = search.trim().toLowerCase();
-        jobs = jobs.filter(j =>
-            (j.title && j.title.toLowerCase().includes(q)) ||
-            (j.company_name && j.company_name.toLowerCase().includes(q)) ||
-            (j.company && j.company.toLowerCase().includes(q)) ||
-            (j.location && j.location.toLowerCase().includes(q)) ||
-            (j.description && j.description.toLowerCase().includes(q))
-        );
+        jobs = jobs.filter(j => {
+            const reqText = Array.isArray(j.requirements)
+                ? j.requirements.join(' ').toLowerCase()
+                : String(j.requirements || '').toLowerCase();
+            return (j.title && String(j.title).toLowerCase().includes(q)) ||
+                (j.company_name && String(j.company_name).toLowerCase().includes(q)) ||
+                (j.company && String(j.company).toLowerCase().includes(q)) ||
+                (j.location && String(j.location).toLowerCase().includes(q)) ||
+                (j.description && String(j.description).toLowerCase().includes(q)) ||
+                reqText.includes(q);
+        });
     }
 
     return jobs;
@@ -402,12 +409,13 @@ export async function getStats(env) {
     );
     const jobs = Array.isArray(rows) ? rows : [];
     const total = jobs.length;
-    const published = jobs.filter(j => j.status === 'published').length;
+    const isLiveStatus = (s) => s === 'published' || s === 'active';
+    const published = jobs.filter(j => isLiveStatus(j.status)).length;
     const drafts = jobs.filter(j => j.status === 'draft').length;
     const scheduled = jobs.filter(j => j.status === 'scheduled').length;
 
     const categoryMap = {};
-    jobs.filter(j => j.status === 'published').forEach(j => {
+    jobs.filter(j => isLiveStatus(j.status)).forEach(j => {
         if (j.category) categoryMap[j.category] = (categoryMap[j.category] || 0) + 1;
     });
     const categories = Object.entries(categoryMap)

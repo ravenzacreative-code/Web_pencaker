@@ -7,6 +7,45 @@
 let allJobs = [];
 let analyzedSkills = [];
 
+function parseCvJobList(val) {
+  if (!val) return [];
+  const splitSingle = (str) => {
+    const raw = String(str || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+    if (!raw) return [];
+    const cleanLine = (line) => line.replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-*]+/, '').replace(/^\d{1,2}[\.\)]\s+/, '').trim();
+    let parts = [];
+    if (raw.includes('\n')) parts = raw.split(/\n+/).map(cleanLine).filter(Boolean);
+    else if (/[•▪▫◦●■□✓✔➤➢►▶]/.test(raw)) parts = raw.split(/\s*[•▪▫◦●■□✓✔➤➢►▶]+\s*/).map(cleanLine).filter(Boolean);
+    else if (raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').includes(';')) parts = raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').split(/\s*;\s*/).map(s => cleanLine(s.replace(/\x00/g, ';'))).filter(Boolean);
+    else parts = [cleanLine(raw)].filter(Boolean);
+
+    const out = [];
+    const gluedRe = /(?<=[a-z0-9\)%]|SMA|SMK|WNI|S1|D3|TAHUN|AKTIF|ROHANI|JASMANI|MENIKAH|SEDERAJAT|WANITA|PRIA)(?=(?:Pendidikan|Lulusan|Usia|Umur|Tinggi|Berat|Sehat|Tidak|Belum|Bukan|Bersedia|Memiliki|Warga|WNI|Minimal|Maksimal|Berpenampilan|Siap|Mampu|Menguasai|Pengalaman|Diutamakan|Fresh|Domisili|Penempatan|Pria|Wanita|Laki|Perempuan|MEMILIKI|TIDAK|BERSEDIA|SEHAT|USIA|TINGGI|PENDIDIKAN|MINIMAL|MAKSIMAL)\b)/g;
+    const collapsedRe = /(?<=[a-zA-Z0-9\)%])\s+(?=(?:Pendidikan\s+(?:min|Min|SMA|SMK|D3|S1)|Lulusan\s+(?:SMA|SMK|D3|S1|min)|Usia\s+(?:min|max|Min|Max|\d)|Umur\s+(?:min|max|\d)|Tinggi\s+[bB]adan|Berat\s+[bB]adan|Sehat\s+(?:[Jj]asmani|[Ff]isik|[Rr]ohani)|Tidak\s+(?:[Bb]uta|[Bb]erkacamata|[Bb]ertato|[Ss]edang|[Pp]ernah|[Mm]erokok|[Mm]emiliki)|Bersedia\s+(?:[Bb]ekerja|[Dd]itempatkan|[Ss]hift|[Ll]embur|[Mm]engikuti)|Memiliki\s+(?:[Pp]engalaman|SIM|KTP|SKCK|NPWP|[Ss]ertifikat|[Kk]emampuan)|Menguasai\s+(?:Microsoft|Ms\.|Excel|Word|[Bb]ahasa|[Kk]omputer)|Diutamakan\s+(?:[Yy]ang|[Mm]emiliki|[Bb]erpengalaman|[Dd]omisili)|Berpenampilan\s+[Mm]enarik|Fresh\s+[Gg]raduate))/g;
+    for (const p of parts) {
+      const gluedSplit = p.replace(gluedRe, '\n').split('\n');
+      for (const seg of gluedSplit) {
+        const expanded = seg.length > 48 ? seg.replace(collapsedRe, '\n') : seg;
+        expanded.split('\n').map(cleanLine).filter(Boolean).forEach(item => out.push(item));
+      }
+    }
+    return out;
+  };
+  let arr = val;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('[')) {
+      try { arr = JSON.parse(trimmed); } catch { return splitSingle(trimmed); }
+    } else return splitSingle(trimmed);
+  }
+  if (Array.isArray(arr)) {
+    const res = [];
+    for (const item of arr) { if (item !== null && item !== undefined) splitSingle(item).forEach(s => res.push(s)); }
+    return res;
+  }
+  return splitSingle(arr);
+}
+
 // Curated Multilingual Skill & Role Dictionary across Industries
 const SKILL_KEYWORDS_DICT = [
   // Teknologi, Software & IT
@@ -237,7 +276,7 @@ async function loadAllJobs() {
       const { ok, data: json } = await safeFetchJson(getApiEndpoint('/api/jobs'));
       if (ok && json && json.success && Array.isArray(json.data)) {
         const normalizer = typeof window.cleanJobData === 'function' ? window.cleanJobData : (j => j);
-        allJobs = json.data.map(normalizer).filter(j => j.status === 'active' || !j.status);
+        allJobs = json.data.map(normalizer).filter(j => j.status === 'active' || j.status === 'published' || !j.status);
       }
     } catch (err) {
       console.warn('API jobs fetch warning in cek-cv:', err);
@@ -452,17 +491,16 @@ async function runCvAnalysis(rawText, sourceName) {
     }
   }
 
-  // STRICT SCORING: Evaluate only active jobs against the CV keywords
-  const activeJobsList = allJobs.filter(j => j.status === 'active' || !j.status);
+  // STRICT SCORING: Evaluate only active/published jobs against the CV keywords
+  const activeJobsList = allJobs.filter(j => j.status === 'active' || j.status === 'published' || !j.status);
   const matchedJobs = [];
 
   for (const job of activeJobsList) {
     const titleLower = (job.title || '').toLowerCase();
     const catLower = (job.category || '').toLowerCase();
     const descLower = (job.description || '').toLowerCase();
-    const parseList = (val) => Array.isArray(val) ? val : (typeof val === 'string' && val.startsWith('[') ? JSON.parse(val || '[]') : [val || '']);
-    const reqsText = parseList(job.requirements).join(' ').toLowerCase();
-    const respsText = parseList(job.responsibilities).join(' ').toLowerCase();
+    const reqsText = parseCvJobList(job.requirements).join(' ').toLowerCase();
+    const respsText = parseCvJobList(job.responsibilities).join(' ').toLowerCase();
 
     const jobFullText = [titleLower, catLower, descLower, reqsText, respsText].join(' ');
 
@@ -653,7 +691,7 @@ function renderMatchedJobs(jobs) {
       <div class="job-card" data-id="${job.id}">
         <!-- Foto Sampul Kartu / Poster Preview with Lightbox trigger -->
         <div class="job-poster-preview" onclick="openJobDetailModal(${job.id})" title="Klik untuk melihat postingan lengkap: ${escapeHtml(job.title)}">
-          <img src="${coverSrc}" alt="${escapeHtml(job.title)}" loading="lazy" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
+          <img src="${coverSrc}" alt="${escapeHtml(job.title)}" loading="lazy" decoding="async" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
           <div class="badge-featured" style="background: ${grad};" title="Persentase kesesuaian AI">
             <i class="fa-solid fa-bolt"></i> ${job.matchScore}% ${badgeLabel}
           </div>
@@ -836,10 +874,9 @@ window.openJobDetailModal = function(id) {
   const safeTitle = (job.title || '').replace(/'/g, "\\'");
   const safeCompany = (job.company_name || '').replace(/'/g, "\\'");
 
-  const parseList = (val) => Array.isArray(val) ? val : (typeof val === 'string' && val.startsWith('[') ? JSON.parse(val || '[]') : [val || '']);
-  const reqs = parseList(job.requirements).filter(r => r && String(r).trim());
-  const resps = parseList(job.responsibilities).filter(r => r && String(r).trim());
-  const benefits = parseList(job.benefits).filter(b => b && String(b).trim());
+  const reqs = parseCvJobList(job.requirements).filter(r => r && String(r).trim());
+  const resps = parseCvJobList(job.responsibilities).filter(r => r && String(r).trim());
+  const benefits = parseCvJobList(job.benefits).filter(b => b && String(b).trim());
 
   // Clean candidate application message template without KerjaHub
   const waTemplate = `Halo Bapak/Ibu HRD ${job.company_name},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${job.title}.\n\nBersama pesan ini, saya siap melampirkan berkas CV dan Portofolio terbaru saya sebagai bahan pertimbangan.\n\nMohon informasi mengenai tahapan proses seleksi selanjutnya. Terima kasih banyak atas perhatian dan kesempatannya.`;

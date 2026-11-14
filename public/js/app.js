@@ -8,6 +8,64 @@ let sbClient = null;
 let currentSupabaseUrl = '';
 let currentSupabaseKey = '';
 
+function parseStructuredList(val) {
+  if (!val) return [];
+  const splitSingle = (str) => {
+    const raw = String(str || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+    if (!raw) return [];
+    const cleanLine = (line) => line
+      .replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-*]+/, '')
+      .replace(/^\d{1,2}[\.\)]\s+/, '')
+      .trim();
+
+    let parts = [];
+    if (raw.includes('\n')) {
+      parts = raw.split(/\n+/).map(cleanLine).filter(Boolean);
+    } else if (/[•▪▫◦●■□✓✔➤➢►▶]/.test(raw)) {
+      parts = raw.split(/\s*[•▪▫◦●■□✓✔➤➢►▶]+\s*/).map(cleanLine).filter(Boolean);
+    } else if (raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').includes(';')) {
+      parts = raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').split(/\s*;\s*/).map(s => cleanLine(s.replace(/\x00/g, ';'))).filter(Boolean);
+    } else if (/(?:^|\s)\d{1,2}[\.\)]\s+\S/.test(raw) && (raw.match(/(?:^|\s)\d{1,2}[\.\)]\s+/g) || []).length >= 2) {
+      parts = raw.split(/\s+(?=\d{1,2}[\.\)]\s+)/).map(cleanLine).filter(Boolean);
+    } else {
+      parts = [cleanLine(raw)].filter(Boolean);
+    }
+
+    const out = [];
+    const gluedRe = /(?<=[a-z0-9\)%]|SMA|SMK|WNI|S1|D3|TAHUN|AKTIF|ROHANI|JASMANI|MENIKAH|SEDERAJAT|WANITA|PRIA)(?=(?:Pendidikan|Lulusan|Usia|Umur|Tinggi|Berat|Sehat|Tidak|Belum|Bukan|Bersedia|Memiliki|Warga|WNI|Minimal|Maksimal|Berpenampilan|Siap|Mampu|Menguasai|Pengalaman|Diutamakan|Fresh|Domisili|Penempatan|Pria|Wanita|Laki|Perempuan|MEMILIKI|TIDAK|BERSEDIA|SEHAT|USIA|TINGGI|PENDIDIKAN|MINIMAL|MAKSIMAL)\b)/g;
+    const collapsedRe = /(?<=[a-zA-Z0-9\)%])\s+(?=(?:Pendidikan\s+(?:min|Min|SMA|SMK|D3|S1)|Lulusan\s+(?:SMA|SMK|D3|S1|min)|Usia\s+(?:min|max|Min|Max|\d)|Umur\s+(?:min|max|\d)|Tinggi\s+[bB]adan|Berat\s+[bB]adan|Sehat\s+(?:[Jj]asmani|[Ff]isik|[Rr]ohani)|Tidak\s+(?:[Bb]uta|[Bb]erkacamata|[Bb]ertato|[Ss]edang|[Pp]ernah|[Mm]erokok|[Mm]emiliki)|Bersedia\s+(?:[Bb]ekerja|[Dd]itempatkan|[Ss]hift|[Ll]embur|[Mm]engikuti)|Memiliki\s+(?:[Pp]engalaman|SIM|KTP|SKCK|NPWP|[Ss]ertifikat|[Kk]emampuan)|Menguasai\s+(?:Microsoft|Ms\.|Excel|Word|[Bb]ahasa|[Kk]omputer)|Diutamakan\s+(?:[Yy]ang|[Mm]emiliki|[Bb]erpengalaman|[Dd]omisili)|Berpenampilan\s+[Mm]enarik|Fresh\s+[Gg]raduate))/g;
+
+    for (const p of parts) {
+      const gluedSplit = p.replace(gluedRe, '\n').split('\n');
+      for (const seg of gluedSplit) {
+        const expanded = seg.length > 48 ? seg.replace(collapsedRe, '\n') : seg;
+        expanded.split('\n').map(cleanLine).filter(Boolean).forEach(item => out.push(item));
+      }
+    }
+    return out;
+  };
+
+  let arr = val;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('[')) {
+      try { arr = JSON.parse(trimmed); } catch { return splitSingle(trimmed); }
+    } else {
+      return splitSingle(trimmed);
+    }
+  }
+  if (Array.isArray(arr)) {
+    const res = [];
+    for (const item of arr) {
+      if (item === null || item === undefined) continue;
+      splitSingle(item).forEach(s => res.push(s));
+    }
+    return res;
+  }
+  return splitSingle(arr);
+}
+if (typeof window !== 'undefined') window.parseStructuredList = parseStructuredList;
+
 // SAFE STORAGE HELPER (Anti Tracking Prevention block & Private Browsing safe)
 const _appMemoryStore = { local: {}, session: {} };
 function safeLocalGet(key) {
@@ -176,7 +234,7 @@ window.cleanJobData = function(job) {
   }
 
   // 5. Clean Responsibilities
-  let resps = Array.isArray(copy.responsibilities) ? [...copy.responsibilities] : (typeof copy.responsibilities === 'string' && copy.responsibilities.startsWith('[') ? JSON.parse(copy.responsibilities || '[]') : []);
+  let resps = parseStructuredList(copy.responsibilities);
   resps = resps.map(r => {
     let cleanR = String(r || '');
     if (/Menjalankan tugas utama posisi/i.test(cleanR)) {
@@ -185,7 +243,7 @@ window.cleanJobData = function(job) {
     cleanR = cleanR.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
     cleanR = cleanR.replace(/\s+/g, ' ').trim();
     return cleanR;
-  }).filter(r => r.length > 5);
+  }).filter(r => r.length >= 2);
 
   if ((resps.length <= 2 || isMessyTitle) && resps.length < 4) {
     if (/administrasi|admin/i.test(cleanTitle) && !resps.some(r => r.includes('administrasi dokumen'))) {
@@ -200,21 +258,26 @@ window.cleanJobData = function(job) {
     }
   }
 
-  // 6. Clean Requirements
-  let reqs = Array.isArray(copy.requirements) ? [...copy.requirements] : (typeof copy.requirements === 'string' && copy.requirements.startsWith('[') ? JSON.parse(copy.requirements || '[]') : []);
+  // 6. Clean Requirements & Benefits
+  let reqs = parseStructuredList(copy.requirements);
   reqs = reqs.map(r => {
-    let cleanReq = String(r || '').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
+    let cleanReq = String(r || '').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').replace(/\s+/g, ' ').trim();
     if (/pendidikan sesuai kualifikasi/i.test(cleanReq) && eduVal) {
       cleanReq = `Kualifikasi jenjang pendidikan: ${eduVal}.`;
     }
     return cleanReq;
-  }).filter(r => r.length > 5);
+  }).filter(r => r.length >= 2);
+
+  let bens = parseStructuredList(copy.benefits)
+    .map(b => String(b || '').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').replace(/\s+/g, ' ').trim())
+    .filter(b => b.length >= 2);
 
   copy.title = cleanTitle || rawTitle;
   copy.company_name = comp;
   copy.description = cleanDesc;
   copy.responsibilities = resps;
   copy.requirements = reqs;
+  copy.benefits = bens;
   copy._clean_status = statusVal;
   copy._clean_education = eduVal;
 
@@ -1734,9 +1797,6 @@ function generateCompanyBannerDataUrl(job) {
       <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
         <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
       </pattern>
-      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.45"/>
-      </filter>
     </defs>
     <rect width="800" height="420" fill="url(#bgGrad)"/>
     <rect width="800" height="420" fill="url(#grid)"/>
@@ -1752,10 +1812,11 @@ function generateCompanyBannerDataUrl(job) {
       <text x="100" y="19" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="11" font-weight="700" fill="${palette.textAccent}">${displayCat}</text>
     </g>
     <g transform="translate(400, 160)" text-anchor="middle">
-      <circle cx="0" cy="0" r="42" fill="url(#badgeGrad)" stroke="${palette.accent}" stroke-width="2.5" filter="url(#shadow)"/>
+      <circle cx="0" cy="4" r="45" fill="rgba(0,0,0,0.22)"/>
+      <circle cx="0" cy="0" r="42" fill="url(#badgeGrad)" stroke="${palette.accent}" stroke-width="2.5"/>
       <text x="0" y="12" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="32" font-weight="800" fill="#ffffff">${initial}</text>
     </g>
-    <text x="400" y="248" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="${compFontSize}" font-weight="800" fill="#ffffff" filter="url(#shadow)">
+    <text x="400" y="248" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="${compFontSize}" font-weight="800" fill="#ffffff">
       ${displayComp}
     </text>
     <text x="400" y="286" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="15" font-weight="600" fill="${palette.textAccent}">
@@ -1895,7 +1956,7 @@ function renderJobs(jobs) {
 
         <!-- Foto Sampul Kartu / Poster Preview with Lightbox trigger -->
         <div class="job-poster-preview" onclick="${isLocked ? `showLockedNotice('${safeTitle}')` : `openJobPosterById(${job.id})`}">
-          <img src="${coverSrc}" alt="${escapeHtml(job.title)}" loading="lazy" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
+          <img src="${coverSrc}" alt="${escapeHtml(job.title)}" loading="lazy" decoding="async" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
           ${isLocked ? '<div class="badge-locked-overlay"><i class="fa-solid fa-lock"></i> TELAH DITUTUP (EXPIRED)</div>' : ''}
           ${job.is_featured && !isLocked ? '<div class="badge-featured"><i class="fa-solid fa-star"></i> Unggulan</div>' : ''}
           ${hasFlyers && !isLocked ? `<div class="badge-card-flyer"><i class="fa-regular fa-image"></i> ${flyerList.length > 1 ? flyerList.length + ' Flyer' : 'Flyer Loker'}</div>` : ''}
@@ -2328,9 +2389,9 @@ async function openJobDetail(jobId) {
   const contacts = extractJobContacts(job);
   const contactBtnHtml = renderContactButton(job);
 
-  const reqs = Array.isArray(job.requirements) ? job.requirements : (typeof job.requirements === 'string' && job.requirements.startsWith('[') ? JSON.parse(job.requirements || '[]') : []);
-  const resps = Array.isArray(job.responsibilities) ? job.responsibilities : (typeof job.responsibilities === 'string' && job.responsibilities.startsWith('[') ? JSON.parse(job.responsibilities || '[]') : []);
-  const bens = Array.isArray(job.benefits) ? job.benefits : (typeof job.benefits === 'string' && job.benefits.startsWith('[') ? JSON.parse(job.benefits || '[]') : []);
+  const reqs = parseStructuredList(job.requirements);
+  const resps = parseStructuredList(job.responsibilities);
+  const bens = parseStructuredList(job.benefits);
 
   // Pre-formatted intro template for job seekers
   const waTemplate = `Halo Bapak/Ibu HRD ${job.company_name},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${job.title}.\n\nBersama pesan ini, saya siap melampirkan berkas CV dan Portofolio terbaru saya sebagai bahan pertimbangan.\n\nMohon informasi mengenai tahapan proses seleksi selanjutnya. Terima kasih banyak atas perhatian dan kesempatannya.`;

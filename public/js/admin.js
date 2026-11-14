@@ -42,6 +42,82 @@ const DEFAULT_ADMIN_PASSWORD = "admin_supersecret_portal_2026";
 const defaultPoster = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80"><rect width="80" height="80" rx="14" fill="#1e293b"/><rect x="22" y="30" width="36" height="26" rx="4" fill="none" stroke="#38bdf8" stroke-width="3"/><path d="M32 30v-4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v4" fill="none" stroke="#38bdf8" stroke-width="3"/><path d="M22 40h36" stroke="#818cf8" stroke-width="2.5"/></svg>');
 let isLoadingAdminJobs = false;
 
+function parseStructuredList(val) {
+  if (!val) return [];
+  const splitSingle = (str) => {
+    const raw = String(str || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+    if (!raw) return [];
+    const cleanLine = (line) => line
+      .replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-*]+/, '')
+      .replace(/^\d{1,2}[\.\)]\s+/, '')
+      .trim();
+
+    let parts = [];
+    if (raw.includes('\n')) {
+      parts = raw.split(/\n+/).map(cleanLine).filter(Boolean);
+    } else if (/[•▪▫◦●■□✓✔➤➢►▶]/.test(raw)) {
+      parts = raw.split(/\s*[•▪▫◦●■□✓✔➤➢►▶]+\s*/).map(cleanLine).filter(Boolean);
+    } else if (raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').includes(';')) {
+      parts = raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').split(/\s*;\s*/).map(s => cleanLine(s.replace(/\x00/g, ';'))).filter(Boolean);
+    } else if (/(?:^|\s)\d{1,2}[\.\)]\s+\S/.test(raw) && (raw.match(/(?:^|\s)\d{1,2}[\.\)]\s+/g) || []).length >= 2) {
+      parts = raw.split(/\s+(?=\d{1,2}[\.\)]\s+)/).map(cleanLine).filter(Boolean);
+    } else {
+      parts = [cleanLine(raw)].filter(Boolean);
+    }
+
+    const out = [];
+    const gluedRe = /(?<=[a-z0-9\)%]|SMA|SMK|WNI|S1|D3|TAHUN|AKTIF|ROHANI|JASMANI|MENIKAH|SEDERAJAT|WANITA|PRIA)(?=(?:Pendidikan|Lulusan|Usia|Umur|Tinggi|Berat|Sehat|Tidak|Belum|Bukan|Bersedia|Memiliki|Warga|WNI|Minimal|Maksimal|Berpenampilan|Siap|Mampu|Menguasai|Pengalaman|Diutamakan|Fresh|Domisili|Penempatan|Pria|Wanita|Laki|Perempuan|MEMILIKI|TIDAK|BERSEDIA|SEHAT|USIA|TINGGI|PENDIDIKAN|MINIMAL|MAKSIMAL)\b)/g;
+    const collapsedRe = /(?<=[a-zA-Z0-9\)%])\s+(?=(?:Pendidikan\s+(?:min|Min|SMA|SMK|D3|S1)|Lulusan\s+(?:SMA|SMK|D3|S1|min)|Usia\s+(?:min|max|Min|Max|\d)|Umur\s+(?:min|max|\d)|Tinggi\s+[bB]adan|Berat\s+[bB]adan|Sehat\s+(?:[Jj]asmani|[Ff]isik|[Rr]ohani)|Tidak\s+(?:[Bb]uta|[Bb]erkacamata|[Bb]ertato|[Ss]edang|[Pp]ernah|[Mm]erokok|[Mm]emiliki)|Bersedia\s+(?:[Bb]ekerja|[Dd]itempatkan|[Ss]hift|[Ll]embur|[Mm]engikuti)|Memiliki\s+(?:[Pp]engalaman|SIM|KTP|SKCK|NPWP|[Ss]ertifikat|[Kk]emampuan)|Menguasai\s+(?:Microsoft|Ms\.|Excel|Word|[Bb]ahasa|[Kk]omputer)|Diutamakan\s+(?:[Yy]ang|[Mm]emiliki|[Bb]erpengalaman|[Dd]omisili)|Berpenampilan\s+[Mm]enarik|Fresh\s+[Gg]raduate))/g;
+
+    for (const p of parts) {
+      const gluedSplit = p.replace(gluedRe, '\n').split('\n');
+      for (const seg of gluedSplit) {
+        const expanded = seg.length > 48 ? seg.replace(collapsedRe, '\n') : seg;
+        expanded.split('\n').map(cleanLine).filter(Boolean).forEach(item => out.push(item));
+      }
+    }
+    return out;
+  };
+
+  let arr = val;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('[')) {
+      try { arr = JSON.parse(trimmed); } catch { return splitSingle(trimmed); }
+    } else {
+      return splitSingle(trimmed);
+    }
+  }
+  if (Array.isArray(arr)) {
+    const res = [];
+    for (const item of arr) {
+      if (item === null || item === undefined) continue;
+      splitSingle(item).forEach(s => res.push(s));
+    }
+    return res;
+  }
+  return splitSingle(arr);
+}
+if (typeof window !== 'undefined') window.parseStructuredList = parseStructuredList;
+
+function buildApplyInfoText(companyName, email, whatsapp, website, title) {
+  const parts = [];
+  if (email && String(email).trim()) {
+    parts.push(`Kirim berkas CV & lamaran lengkap ke email:\n${String(email).trim()}\nSubjek : Lamaran Kerja - ${title || companyName || 'Posisi Terkait'}`);
+  }
+  if (whatsapp && String(whatsapp).trim()) {
+    parts.push(`Hubungi / kirim lamaran via WhatsApp HRD: ${String(whatsapp).trim()}`);
+  }
+  const cleanWeb = String(website || '').trim();
+  if (cleanWeb && cleanWeb !== '#' && !cleanWeb.startsWith('./') && !cleanWeb.includes('localhost') && !cleanWeb.includes('127.0.0.1')) {
+    parts.push(`Daftar resmi melalui portal website:\n${cleanWeb}`);
+  }
+  if (parts.length > 0) return parts.join('\n');
+  return companyName
+    ? `Kirim CV/Lamaran melalui portal resmi atau scan QR Code untuk info kontak ${companyName}.`
+    : 'Kirim CV/Lamaran melalui portal resmi atau scan QR Code di samping.';
+}
+
 function getKnownCorporateCareerUrl(compName) {
   const c = String(compName || '').toLowerCase().trim();
   if (c.includes('bsi') || c.includes('syariah indonesia')) return 'https://rekrutmen.bankbsi.co.id';
@@ -1298,8 +1374,8 @@ window.addDynamicItemRow = function(containerId, category, counterId, initialVal
   if (!container) return null;
 
   const currentRows = container.querySelectorAll('.dm-item-row');
-  if (currentRows.length >= 10) {
-    alert('Maksimal 10 poin telah tercapai untuk kategori ini.');
+  if (currentRows.length >= 15) {
+    alert('Maksimal 15 poin telah tercapai untuk kategori ini.');
     return null;
   }
 
@@ -1326,13 +1402,38 @@ window.addDynamicItemRow = function(containerId, category, counterId, initialVal
     </button>
   `;
 
-  // Enter key in input adds next row if under 10
+  // Paste handler: split multi-line / bulleted / pasted-paragraph text into separate points automatically
   const inputEl = row.querySelector('.dm-item-input');
+  inputEl.addEventListener('paste', (e) => {
+    const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+    if (!pasted) return;
+    const parsed = parseStructuredList(pasted);
+    if (parsed.length > 1) {
+      e.preventDefault();
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const inputs = Array.from(container.querySelectorAll('.dm-item-input'));
+      const curIdx = Math.max(0, inputs.indexOf(inputEl));
+      const existing = inputs.map(inp => inp.value.trim());
+      const merged = [
+        ...existing.slice(0, curIdx),
+        ...parsed,
+        ...existing.slice(curIdx + 1)
+      ].filter(Boolean);
+      if (typeof window.setDynamicListValues === 'function') {
+        window.setDynamicListValues(containerId, merged, category, counterId);
+      } else {
+        inputEl.value = parsed.join(' | ');
+        if (typeof window.syncDynamicItems === 'function') window.syncDynamicItems(containerId);
+      }
+    }
+  });
+  // Enter key in input adds next row if under 15
   inputEl.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const rows = container.querySelectorAll('.dm-item-row');
-      if (rows.length < 10) {
+      if (rows.length < 15) {
         window.addDynamicItemRow(containerId, category, counterId, '', true);
       }
     }
@@ -1436,23 +1537,10 @@ window.setDynamicListValues = function(containerId, itemsArray, category, counte
 
   container.innerHTML = '';
 
-  let list = [];
-  if (Array.isArray(itemsArray)) {
-    list = itemsArray.map(s => String(s || '').trim()).filter(Boolean);
-  } else if (typeof itemsArray === 'string' && itemsArray.trim()) {
-    if (itemsArray.trim().startsWith('[') && itemsArray.trim().endsWith(']')) {
-      try {
-        const parsed = JSON.parse(itemsArray);
-        if (Array.isArray(parsed)) list = parsed.map(s => String(s || '').trim()).filter(Boolean);
-      } catch (e) {}
-    }
-    if (list.length === 0) {
-      list = itemsArray.split(/\r?\n/).map(s => s.replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean);
-    }
-  }
+  const list = parseStructuredList(itemsArray);
 
-  // Cap at 10 items
-  const capped = list.slice(0, 10);
+  // Cap at 15 items
+  const capped = list.slice(0, 15);
 
   if (capped.length > 0) {
     capped.forEach(item => {
@@ -1639,7 +1727,7 @@ function setupJobFormSubmit() {
       ? [...manualUploadedFlyers]
       : (primaryFlyer ? [primaryFlyer] : []);
 
-    const customApplyInfo = (currentPosterJobData && currentPosterJobData.apply_info) || '';
+    const customApplyInfo = ((currentPosterJobData && currentPosterJobData.apply_info) || '').trim() || buildApplyInfoText(company, email, whatsapp, website, title);
     const customDeadlineDisplay = (currentPosterJobData && currentPosterJobData.deadline) || form.querySelector('[name="deadline"]')?.value || '';
 
     const contactsObj = {
@@ -1655,11 +1743,16 @@ function setupJobFormSubmit() {
     const submitBtn = form.querySelector('button[type="submit"]');
     const origText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan ke Supabase Cloud...';
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menerbitkan ke Portal User...';
 
-    const reqValues = window.getDynamicListValues('upload-req-items');
-    const respValues = window.getDynamicListValues('upload-resp-items');
-    const benValues = window.getDynamicListValues('upload-ben-items');
+    const reqValues = parseStructuredList(window.getDynamicListValues('upload-req-items'));
+    const respValues = parseStructuredList(window.getDynamicListValues('upload-resp-items'));
+    const benValues = parseStructuredList(window.getDynamicListValues('upload-ben-items'));
+
+    const effectiveCover = (typeof currentCoverMode !== 'undefined' && currentCoverMode === 'upload' && currentManualCoverBase64)
+      ? currentManualCoverBase64
+      : (currentManualCoverBase64 || primaryFlyer || '');
+    const effectivePoster = primaryFlyer || effectiveCover || '';
 
     const publishMode = form.querySelector('input[name="publish_mode"]:checked')?.value || 'now';
     let scheduledAtVal = null;
@@ -1705,13 +1798,14 @@ function setupJobFormSubmit() {
       is_featured: form.querySelector('[name="is_featured"]').checked,
       status: jobStatus,
       scheduled_at: scheduledAtVal || null,
-      cover_image: currentManualCoverBase64 || '',
-      poster_image: primaryFlyer,
+      cover_image: effectiveCover,
+      poster_image: effectivePoster,
       flyer_images: allFlyers,
       views_count: 0
     };
 
     let saved = false;
+    let createdRecord = null;
 
     // Single source of truth: Send to backend /api/jobs (which inserts once to Supabase via server .env & syncs local backup)
     try {
@@ -1721,11 +1815,13 @@ function setupJobFormSubmit() {
       formData.set('whatsapp', whatsapp);
       formData.set('email', email);
       formData.set('website_url', website);
-      formData.set('cover_image', currentManualCoverBase64 || '');
+      formData.set('apply_info', customApplyInfo);
+      formData.set('cover_image', effectiveCover);
+      formData.set('poster_image', effectivePoster);
       formData.set('flyer_images', JSON.stringify(allFlyers));
-      formData.set('requirements', reqValues.join('\n'));
-      formData.set('responsibilities', respValues.join('\n'));
-      formData.set('benefits', benValues.join('\n'));
+      formData.set('requirements', JSON.stringify(reqValues));
+      formData.set('responsibilities', JSON.stringify(respValues));
+      formData.set('benefits', JSON.stringify(benValues));
       formData.set('status', jobStatus);
       formData.set('scheduled_at', scheduledAtVal || '');
 
@@ -1739,6 +1835,7 @@ function setupJobFormSubmit() {
         const json = await res.json().catch(() => ({}));
         if (json.success !== false) {
           saved = true;
+          createdRecord = json.data || json.job || (json.id ? { ...cleanPayload, id: json.id } : null);
         }
       }
     } catch (err) {
@@ -1748,9 +1845,15 @@ function setupJobFormSubmit() {
     // Fallback: ONLY execute client-side direct insert if backend was offline or failed
     if (!saved && sbClient) {
       try {
-        const { error } = await sbClient.from('jobs').insert([prepareJobPayloadForSupabase(cleanPayload)]);
+        const { data: insertedRows, error } = await sbClient
+          .from('jobs')
+          .insert([prepareJobPayloadForSupabase(cleanPayload)])
+          .select('id,title,company_name,category,job_type,location,salary_display,experience_level,description,requirements,responsibilities,benefits,contact_type,contact_value,deadline,status,is_featured,views_count,created_at,updated_at,whatsapp,email,website_url,apply_info,scheduled_at');
         if (!error) {
           saved = true;
+          if (Array.isArray(insertedRows) && insertedRows[0]) {
+            createdRecord = insertedRows[0];
+          }
         } else {
           console.warn('Supabase fallback insert warning:', error.message);
         }
@@ -1763,20 +1866,47 @@ function setupJobFormSubmit() {
     submitBtn.innerHTML = origText;
 
     if (saved) {
+      const createdId = createdRecord?.id || '';
+      const lightCreated = {
+        ...(createdRecord || cleanPayload),
+        requirements: reqValues,
+        responsibilities: respValues,
+        benefits: benValues,
+        apply_info: customApplyInfo,
+        created_at: createdRecord?.created_at || new Date().toISOString()
+      };
+      delete lightCreated.flyer_images;
+      if (createdId && typeof lightCreated.poster_image === 'string' && lightCreated.poster_image.startsWith('data:')) {
+        lightCreated.poster_image = `/api/jobs/${createdId}/image/poster?v=${Date.now()}`;
+      }
+      if (createdId && typeof lightCreated.cover_image === 'string' && lightCreated.cover_image.startsWith('data:')) {
+        lightCreated.cover_image = `/api/jobs/${createdId}/image/cover?v=${Date.now()}`;
+      }
+
+      if (typeof adminJobs !== 'undefined' && Array.isArray(adminJobs)) {
+        adminJobs = [lightCreated, ...adminJobs.filter(j => String(j.id) !== String(lightCreated.id))];
+        try { localStorage.removeItem('kerja_public_jobs_cache'); } catch (e) {}
+        if (typeof broadcastPublicJobsSync === 'function') broadcastPublicJobsSync(adminJobs);
+        if (typeof renderAdminJobsTable === 'function') renderAdminJobsTable();
+        if (typeof renderDashboardStats === 'function') renderDashboardStats(adminJobs);
+        if (typeof mergeDbJobsToOfficialScout === 'function') mergeDbJobsToOfficialScout();
+      }
+
+      const publicJobUrl = createdId ? `./?job=${encodeURIComponent(createdId)}` : './';
       if (jobStatus === 'scheduled') {
         showAdminAttractivePopup({
           title: 'Lowongan Dijadwalkan!',
-          message: `Lowongan "${title}" (${company}) telah dijadwalkan dan akan otomatis terbit ke publik pada ${formatScheduleDisplay(scheduledAtVal)}.`,
+          message: `Lowongan "${title}" (${company}) telah dijadwalkan dan akan otomatis terbit ke Portal User pada ${formatScheduleDisplay(scheduledAtVal)}.`,
           type: 'scheduled',
           confirmText: 'Bagus, Selesai'
         });
       } else {
         showAdminAttractivePopup({
-          title: 'Berhasil Dipublikasikan!',
-          message: `Poster lowongan "${title}" (${company}) dan saluran kontak telah tersimpan & tayang ke publik.`,
+          title: 'Tayang di Portal User!',
+          message: `Poster lowongan "${title}" (${company}), poin kualifikasi, dan info kontak kini aktif dan tersinkron ke Portal User.`,
           type: 'success',
-          confirmText: 'Lihat Lowongan di Web',
-          actionUrl: './'
+          confirmText: 'Buka di Portal User',
+          actionUrl: publicJobUrl
         });
       }
       form.reset();
@@ -2301,9 +2431,6 @@ function generateCompanyBannerDataUrl(job) {
       <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
         <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
       </pattern>
-      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.45"/>
-      </filter>
     </defs>
     <rect width="800" height="420" fill="url(#bgGrad)"/>
     <rect width="800" height="420" fill="url(#grid)"/>
@@ -2319,10 +2446,11 @@ function generateCompanyBannerDataUrl(job) {
       <text x="100" y="19" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="11" font-weight="700" fill="${palette.textAccent}">${displayCat}</text>
     </g>
     <g transform="translate(400, 160)" text-anchor="middle">
-      <circle cx="0" cy="0" r="42" fill="url(#badgeGrad)" stroke="${palette.accent}" stroke-width="2.5" filter="url(#shadow)"/>
+      <circle cx="0" cy="4" r="45" fill="rgba(0,0,0,0.22)"/>
+      <circle cx="0" cy="0" r="42" fill="url(#badgeGrad)" stroke="${palette.accent}" stroke-width="2.5"/>
       <text x="0" y="12" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="32" font-weight="800" fill="#ffffff">${initial}</text>
     </g>
-    <text x="400" y="248" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="${compFontSize}" font-weight="800" fill="#ffffff" filter="url(#shadow)">
+    <text x="400" y="248" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="${compFontSize}" font-weight="800" fill="#ffffff">
       ${displayComp}
     </text>
     <text x="400" y="286" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="15" font-weight="600" fill="${palette.textAccent}">
@@ -2559,7 +2687,7 @@ function renderAdminJobsTable() {
       <tr class="admin-job-row" onclick="handleAdminRowClick(event, ${job.id})">
         <td>
           <div class="job-cell">
-            <img src="${posterSrc}" alt="Poster" class="job-cell-poster" onerror="window.handleAdminPosterError && window.handleAdminPosterError(this, ${job.id});" onclick="openEditJobModal(${job.id}); event.stopPropagation();" title="Klik untuk Edit Lowongan">
+            <img src="${posterSrc}" alt="Poster" class="job-cell-poster" loading="lazy" decoding="async" onerror="window.handleAdminPosterError && window.handleAdminPosterError(this, ${job.id});" onclick="openEditJobModal(${job.id}); event.stopPropagation();" title="Klik untuk Edit Lowongan">
             <div class="job-cell-info">
               <div class="job-cell-title" onclick="openEditJobModal(${job.id}); event.stopPropagation();" title="Klik untuk Edit Lowongan">
                 ${escapeHtml(job.title)}
@@ -3000,20 +3128,9 @@ window.openEditJobModal = function(jobId) {
 
   form.querySelector('[name="description"]').value = job.description || '';
 
-  const parseToList = (v) => {
-    if (Array.isArray(v)) return v;
-    if (typeof v === 'string') {
-      if (v.trim().startsWith('[') && v.trim().endsWith(']')) {
-        try { const p = JSON.parse(v); if (Array.isArray(p)) return p; } catch(e){}
-      }
-      return v.split(/\r?\n/).map(s => s.replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean);
-    }
-    return [];
-  };
-
-  window.setDynamicListValues('edit-resp-items', parseToList(job.responsibilities), 'responsibilities', 'edit-resp-counter');
-  window.setDynamicListValues('edit-req-items', parseToList(job.requirements), 'requirements', 'edit-req-counter');
-  window.setDynamicListValues('edit-ben-items', parseToList(job.benefits), 'benefits', 'edit-ben-counter');
+  window.setDynamicListValues('edit-resp-items', parseStructuredList(job.responsibilities), 'responsibilities', 'edit-resp-counter');
+  window.setDynamicListValues('edit-req-items', parseStructuredList(job.requirements), 'requirements', 'edit-req-counter');
+  window.setDynamicListValues('edit-ben-items', parseStructuredList(job.benefits), 'benefits', 'edit-ben-counter');
 
   modal.classList.add('active');
 };
@@ -3164,9 +3281,12 @@ function setupEditFormSubmit() {
       if (currentEditFlyers.length > 0) {
         formData.set('poster_image', currentEditFlyers[0]);
       }
-      formData.set('requirements', reqValues.join('\n'));
-      formData.set('responsibilities', respValues.join('\n'));
-      formData.set('benefits', benValues.join('\n'));
+      const cleanEditReqs = parseStructuredList(reqValues);
+      const cleanEditResps = parseStructuredList(respValues);
+      const cleanEditBens = parseStructuredList(benValues);
+      formData.set('requirements', JSON.stringify(cleanEditReqs));
+      formData.set('responsibilities', JSON.stringify(cleanEditResps));
+      formData.set('benefits', JSON.stringify(cleanEditBens));
 
       const token = sessionStorage.getItem('kerja_admin_token') || '';
       const res = await fetch(getApiEndpoint(`/api/jobs/${jobId}`), {
@@ -3194,6 +3314,7 @@ function setupEditFormSubmit() {
     submitBtn.disabled = false;
     submitBtn.innerHTML = origText;
     closeEditModal();
+    try { localStorage.removeItem('kerja_public_jobs_cache'); } catch (e) {}
     loadAdminJobs(true);
     showAdminAttractivePopup({
       title: finalStatus === 'scheduled' ? 'Lowongan Dijadwalkan!' : 'Perubahan Tersimpan!',
@@ -3351,7 +3472,14 @@ function syncAdminJobsToOfficialDb() {
         education_label: 'Semua Pendidikan',
         experience_level: dbJob.experience_level || 'Semua Pengalaman',
         salary_display: dbJob.salary_display || 'Kompetitif',
-        deadline: dbJob.deadline || 'Aktif di Portal',
+        deadline: (() => {
+          try {
+            const c = typeof dbJob.contact_value === 'string' ? JSON.parse(dbJob.contact_value || '{}') : (dbJob.contact_value || {});
+            return c.deadline_display || dbJob.deadline || 'Pendaftaran Dibuka (Segera Apply)';
+          } catch (e) {
+            return dbJob.deadline || 'Pendaftaran Dibuka (Segera Apply)';
+          }
+        })(),
         pubDate: dbJob.created_at || '',
         pubTimestamp: dbCreated,
         timeAgo: 'Diposting di Portal',
@@ -3361,17 +3489,48 @@ function syncAdminJobsToOfficialDb() {
         platform_icon: 'fa-solid fa-building-circle-check',
         platform_class: 'official',
         official_url: dbJob.website_url || './?job=' + dbJob.id,
-        contact_type: 'link',
-        contact_value: JSON.stringify({ whatsapp: dbJob.whatsapp || '', email: dbJob.email || '', website: dbJob.website_url || '' }),
-        anti_fraud_notice: `PT ${dbJob.company_name} tidak memungut biaya apapun dalam proses rekrutmen.`,
+        contact_type: dbJob.contact_type || 'link',
+        contact_value: JSON.stringify((() => {
+          try {
+            const c = typeof dbJob.contact_value === 'string' ? JSON.parse(dbJob.contact_value || '{}') : (dbJob.contact_value || {});
+            return {
+              whatsapp: dbJob.whatsapp || c.whatsapp || '',
+              email: dbJob.email || c.email || '',
+              website: dbJob.website_url || c.website || '',
+              apply_info: dbJob.apply_info || c.apply_info || '',
+              deadline_display: dbJob.deadline || c.deadline_display || ''
+            };
+          } catch (e) {
+            return { whatsapp: dbJob.whatsapp || '', email: dbJob.email || '', website: dbJob.website_url || '' };
+          }
+        })()),
+        anti_fraud_notice: `${dbJob.company_name} tidak memungut biaya apapun dalam proses rekrutmen.`,
         description: dbJob.description || 'Lowongan resmi dari database sistem KerjaHub.',
-        requirements: Array.isArray(dbJob.requirements) ? dbJob.requirements : [dbJob.requirements || 'Kualifikasi sesuai arahan perusahaan'],
-        responsibilities: Array.isArray(dbJob.responsibilities) ? dbJob.responsibilities : [dbJob.responsibilities || 'Tanggung jawab sesuai posisi'],
-        benefits: Array.isArray(dbJob.benefits) ? dbJob.benefits : ['BPJS & Tunjangan Standar'],
+        requirements: (() => {
+          const parsed = parseStructuredList(dbJob.requirements);
+          return parsed.length > 0 ? parsed : ['Kualifikasi sesuai arahan perusahaan'];
+        })(),
+        responsibilities: (() => {
+          const parsed = parseStructuredList(dbJob.responsibilities);
+          return parsed.length > 0 ? parsed : ['Tanggung jawab sesuai posisi'];
+        })(),
+        benefits: (() => {
+          const parsed = parseStructuredList(dbJob.benefits);
+          return parsed.length > 0 ? parsed : ['BPJS & Tunjangan Standar'];
+        })(),
         theme: 'modern',
         mascot: (dbJob.title || '').toLowerCase().includes('operator') ? 'factory' : 'corporate',
         verified_badge: 'Database Resmi',
-        apply_info: 'Lamaran langsung ke sistem KerjaHub.',
+        apply_info: (() => {
+          try {
+            const c = typeof dbJob.contact_value === 'string' ? JSON.parse(dbJob.contact_value || '{}') : (dbJob.contact_value || {});
+            const explicitInfo = (dbJob.apply_info || c.apply_info || '').trim();
+            if (explicitInfo) return explicitInfo;
+            return buildApplyInfoText(dbJob.company_name, dbJob.email || c.email, dbJob.whatsapp || c.whatsapp, dbJob.website_url || c.website, dbJob.title);
+          } catch (e) {
+            return (dbJob.apply_info || '').trim() || buildApplyInfoText(dbJob.company_name, dbJob.email, dbJob.whatsapp, dbJob.website_url, dbJob.title);
+          }
+        })(),
         hashtag: '#KerjaHub #LokerResmi'
       });
     }
@@ -5195,24 +5354,9 @@ function generateFlyerPosterDataUrl(jobData) {
   if (qrInp) qrInp.value = flyerQr;
   if (hashInp) hashInp.value = jobData.hashtag || `@KerjaHubOfficial #LowonganKerja`;
 
-  const parseList = (val) => {
-    if (!val) return [];
-    if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
-    if (typeof val === 'string') {
-      if (val.trim().startsWith('[')) {
-        try {
-          const parsed = JSON.parse(val);
-          if (Array.isArray(parsed)) return parsed.map(s => String(s).trim()).filter(Boolean);
-        } catch (e) {}
-      }
-      return val.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-    }
-    return [];
-  };
-
-  const respList = parseList(jobData.responsibilities);
-  const reqList = parseList(jobData.requirements);
-  const benList = parseList(jobData.benefits);
+  const respList = parseStructuredList(jobData.responsibilities);
+  const reqList = parseStructuredList(jobData.requirements);
+  const benList = parseStructuredList(jobData.benefits);
 
   window.setDynamicListValues('poster-resp-items', respList, 'responsibilities', 'poster-resp-counter');
   window.setDynamicListValues('poster-req-items', reqList, 'requirements', 'poster-req-counter');
@@ -5415,6 +5559,10 @@ window.applyJobTemplateToForm = function(templateId) {
   const posterDataUrl = generateFlyerPosterDataUrl(job);
   if (posterDataUrl) {
     currentSelectedFileBase64 = posterDataUrl;
+    if (typeof manualUploadedFlyers !== 'undefined' && Array.isArray(manualUploadedFlyers)) {
+      manualUploadedFlyers = [posterDataUrl];
+      if (typeof window.renderManualFlyerGallery === 'function') window.renderManualFlyerGallery();
+    }
     const preview = document.getElementById('poster-preview');
     const previewImg = document.getElementById('poster-preview-img');
     const dropzonePrompt = document.getElementById('dropzone-prompt');
@@ -6484,24 +6632,9 @@ function openPosterStudio(jobData, isPublishIntent = false) {
     }
   }
 
-  const parseList = (val) => {
-    if (!val) return [];
-    if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
-    if (typeof val === 'string') {
-      if (val.trim().startsWith('[')) {
-        try {
-          const parsed = JSON.parse(val);
-          if (Array.isArray(parsed)) return parsed.map(s => String(s).trim()).filter(Boolean);
-        } catch (e) {}
-      }
-      return val.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-    }
-    return [];
-  };
-
-  const respList = parseList(jobData.responsibilities);
-  let reqList = parseList(jobData.requirements);
-  const benList = parseList(jobData.benefits);
+  const respList = parseStructuredList(jobData.responsibilities);
+  let reqList = parseStructuredList(jobData.requirements);
+  const benList = parseStructuredList(jobData.benefits);
 
   if (reqList.length === 0 && respList.length === 0) {
     reqList = [
@@ -6954,52 +7087,48 @@ function renderPosterCanvas() {
     ctx.font = '800 28px "Plus Jakarta Sans", Arial, sans-serif';
     ctx.fillText('Kualifikasi', 56, kualY);
 
-    const activeList = (requirements && requirements.length > 0)
-      ? requirements
-      : (responsibilities && responsibilities.length > 0 ? responsibilities : [
+    const parsedReqs = parseStructuredList(requirements);
+    const parsedResps = parseStructuredList(responsibilities);
+    const activeList = (parsedReqs.length > 0)
+      ? parsedReqs
+      : (parsedResps.length > 0 ? parsedResps : [
           'Pendidikan minimal SMA/SMK sederajat',
           'Freshgraduate dipersilahkan apply',
           'Teliti, disiplin dan bertanggung jawab terhadap pekerjaan',
           'Bersedia bekerja shifting',
           'Memahami K3 dan 5R',
-          'Bersedia ditempatkan di Cisarua, Kab Bogor'
+          'Bersedia ditempatkan sesuai kebutuhan operasional'
         ]);
 
-    let curItemY = kualY + 38;
-    const maxKualW = (drawMascotOnCustom && hasMascot) ? 540 : 960;
-    const itemFontSize = activeList.length > 6 ? 19 : 21;
-    const itemLineH = activeList.length > 6 ? 29 : 33;
-    ctx.font = `600 ${itemFontSize}px "Plus Jakarta Sans", Arial, sans-serif`;
-
-    activeList.slice(0, 7).forEach((item) => {
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(68, curItemY - 6, 4.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      const words = String(item).split(' ');
-      let line = '';
-      for (let n = 0; n < words.length; n++) {
-        const test = line + words[n] + ' ';
-        if (ctx.measureText(test).width > maxKualW && n > 0) {
-          ctx.fillText(line.trim(), 84, curItemY);
-          line = words[n] + ' ';
-          curItemY += itemLineH;
-        } else {
-          line = test;
-        }
-      }
-      if (line.trim()) {
-        ctx.fillText(line.trim(), 84, curItemY);
-        curItemY += itemLineH + 6;
-      }
-    });
-
-    // 7. BOTTOM-LEFT APPLICATION CARD (3D BLUE DROP SHADOW - SYMMETRICAL 56PX MARGIN)
+    // 7. BOTTOM-LEFT APPLICATION CARD COORDINATES (for collision-free auto-fit)
     const appBoxX = 56;
     const appBoxY = 770;
     const appBoxW = 610;
     const appBoxH = 230;
+
+    let curItemY = kualY + 38;
+    const maxKualW = (drawMascotOnCustom && hasMascot) ? 550 : 930;
+    const maxItemBaselineY = appBoxY - 22;
+    const bulletFit = fitCanvasBulletList(ctx, activeList.slice(0, 10), maxKualW, maxItemBaselineY - curItemY, [21, 19.5, 18.5, 17.5, 16.5, 15.5, 14.5], '600');
+
+    ctx.font = `600 ${bulletFit.fontSize}px "Plus Jakarta Sans", Arial, sans-serif`;
+    const dotRadius = Math.max(3.6, bulletFit.fontSize * 0.21);
+    const dotOffsetY = Math.round(bulletFit.fontSize * 0.32);
+
+    for (const itemObj of bulletFit.items) {
+      if (curItemY > maxItemBaselineY) break;
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(68, curItemY - dotOffsetY, dotRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      for (let li = 0; li < itemObj.lines.length; li++) {
+        if (curItemY > maxItemBaselineY) break;
+        ctx.fillText(itemObj.lines[li], 86, curItemY);
+        curItemY += bulletFit.lineH;
+      }
+      curItemY += bulletFit.itemGap;
+    }
 
     // Solid blue 3D offset shadow underneath
     ctx.fillStyle = '#0052cc';
@@ -7027,11 +7156,17 @@ function renderPosterCanvas() {
 
     ctx.textAlign = 'left';
     ctx.fillStyle = '#1d4ed8';
-    ctx.font = '800 18px "Plus Jakarta Sans", Arial, sans-serif';
     const deadlineVal = (deadline || 'Pendaftaran Dibuka (Segera Apply)').trim();
-    ctx.fillText(`BATAS WAKTU: ${deadlineVal}`, deadPillX + 14, deadPillY + 25);
+    const deadText = `BATAS WAKTU: ${deadlineVal}`;
+    let deadFs = 18;
+    while (deadFs > 13.5) {
+      ctx.font = `800 ${deadFs}px "Plus Jakarta Sans", Arial, sans-serif`;
+      if (ctx.measureText(deadText).width <= deadPillW - 28) break;
+      deadFs -= 1;
+    }
+    ctx.fillText(deadText, deadPillX + 14, deadPillY + 25);
 
-    // 2. CARA MELAMAR (CUSTOM TEXT WITH AUTO WORD-WRAP)
+    // 2. CARA MELAMAR (CUSTOM TEXT WITH AUTO-FIT & LINE-BREAK PRESERVATION)
     const applyHeaderY = deadPillY + deadPillH + 24;
     ctx.fillStyle = '#0f172a';
     ctx.font = '800 17px "Plus Jakarta Sans", Arial, sans-serif';
@@ -7042,23 +7177,26 @@ function renderPosterCanvas() {
 
     const customApplyText = (applyInfo || (company ? `Kirim CV/Lamaran melalui tautan resmi ${company} atau scan QR Code di samping.` : 'Kirim CV/Lamaran melalui tautan pendaftaran resmi atau scan QR Code di samping.')).trim();
 
-    const textLen = customApplyText.length;
-    let applyFontSize = 18;
+    let applyFontSize = 18.5;
     let applyLineH = 25;
-    if (textLen > 180) {
-      applyFontSize = 15;
-      applyLineH = 20;
-    } else if (textLen > 110) {
-      applyFontSize = 16.5;
-      applyLineH = 22.5;
-    } else if (textLen <= 65) {
-      applyFontSize = 19;
-      applyLineH = 26;
+    const availApplyH = (appBoxY + appBoxH - 12) - (applyHeaderY + 14);
+    for (const candidateFs of [18.5, 17, 16, 15, 14, 13]) {
+      const candidateLh = Math.round(candidateFs * 1.35);
+      ctx.font = `600 ${candidateFs}px "Plus Jakarta Sans", Arial, sans-serif`;
+      const wrappedParagraphs = customApplyText.split(/\r?\n/).flatMap(p => p.trim() ? measureCanvasWrappedLines(ctx, p.trim(), appBoxW - 36) : []);
+      if (wrappedParagraphs.length * candidateLh <= availApplyH) {
+        applyFontSize = candidateFs;
+        applyLineH = candidateLh;
+        break;
+      }
+      applyFontSize = candidateFs;
+      applyLineH = candidateLh;
     }
 
     ctx.font = `600 ${applyFontSize}px "Plus Jakarta Sans", Arial, sans-serif`;
     ctx.fillStyle = '#334155';
-    wrapCanvasText(ctx, customApplyText, appBoxX + 18, applyHeaderY + applyLineH + 6, appBoxW - 36, applyLineH, 4);
+    const maxApplyLines = Math.max(3, Math.floor(availApplyH / applyLineH));
+    wrapCanvasText(ctx, customApplyText, appBoxX + 18, applyHeaderY + applyLineH + 6, appBoxW - 36, applyLineH, maxApplyLines);
 
     // 8. BOTTOM-LEFT FOOTER (TIKTOK & HASHTAG - SYMMETRICAL 56PX MARGIN)
     const footLeftX = 56;
@@ -7235,40 +7373,74 @@ function renderPosterCanvas() {
       }
     }
 
+    const stdResp = parseStructuredList(responsibilities);
+    const stdReq = parseStructuredList(requirements);
+    const stdBen = parseStructuredList(benefits);
     const activeSections = [];
-    if (responsibilities && responsibilities.length > 0) activeSections.push({ title: 'Tanggung Jawab', items: responsibilities });
-    if (requirements && requirements.length > 0) activeSections.push({ title: 'Kualifikasi', items: requirements });
-    if (benefits && benefits.length > 0) activeSections.push({ title: 'Benefit', items: benefits });
+    if (stdResp.length > 0) activeSections.push({ title: 'Tanggung Jawab', items: stdResp });
+    if (stdReq.length > 0) activeSections.push({ title: 'Kualifikasi', items: stdReq });
+    if (stdBen.length > 0) activeSections.push({ title: 'Benefit', items: stdBen });
 
     let curY = badgeY + badgeH + 34;
+    const maxStdY = 736;
+    const maxStdW = hasMascot ? 545 : 930;
+
     if (activeSections.length === 0) {
       ctx.textAlign = 'left';
       ctx.fillStyle = '#94a3b8';
       ctx.font = 'italic 600 22px "Plus Jakarta Sans", Arial, sans-serif';
       ctx.fillText('• Kualifikasi & tanggung jawab tertera sesuai data resmi.', 60, curY + 30);
     } else {
+      const perSecCap = activeSections.length === 1 ? 8 : (activeSections.length === 2 ? 4 : 3);
+      let chosenFs = 19;
+      for (const fs of [19.5, 18, 16.5, 15]) {
+        const lh = Math.round(fs * 1.42);
+        const gap = Math.max(4, Math.round(fs * 0.3));
+        ctx.font = `600 ${fs}px "Plus Jakarta Sans", Arial, sans-serif`;
+        let simY = curY;
+        for (const sec of activeSections) {
+          simY += 32;
+          for (const it of sec.items.slice(0, perSecCap)) {
+            const lines = measureCanvasWrappedLines(ctx, it, maxStdW);
+            simY += lines.length * lh + gap;
+          }
+          simY += 10;
+        }
+        chosenFs = fs;
+        if (simY <= maxStdY) break;
+      }
+
+      const stdLh = Math.round(chosenFs * 1.42);
+      const stdGap = Math.max(4, Math.round(chosenFs * 0.3));
+      const stdDotR = Math.max(3.5, chosenFs * 0.21);
+
       activeSections.forEach(sec => {
-        if (curY > 720) return;
+        if (curY > maxStdY - 24) return;
         ctx.textAlign = 'left';
         ctx.fillStyle = p.primary;
         ctx.fillRect(60, curY - 19, 6, 22);
-        ctx.font = '800 24px "Plus Jakarta Sans", Arial, sans-serif';
+        ctx.font = '800 23px "Plus Jakarta Sans", Arial, sans-serif';
         ctx.fillText(sec.title, 76, curY);
-        curY += 32;
+        curY += 30;
 
-        sec.items.slice(0, 3).forEach(it => {
-          if (curY > 720) return;
+        ctx.font = `600 ${chosenFs}px "Plus Jakarta Sans", Arial, sans-serif`;
+        for (const it of sec.items.slice(0, perSecCap)) {
+          if (curY > maxStdY) break;
+          const lines = measureCanvasWrappedLines(ctx, it, maxStdW);
           ctx.fillStyle = p.primary;
           ctx.beginPath();
-          ctx.arc(68, curY - 7, 4, 0, Math.PI * 2);
+          ctx.arc(68, curY - Math.round(chosenFs * 0.32), stdDotR, 0, Math.PI * 2);
           ctx.fill();
 
           ctx.fillStyle = '#334155';
-          ctx.font = '600 20px "Plus Jakarta Sans", Arial, sans-serif';
-          ctx.fillText(String(it).substring(0, 44), 84, curY);
-          curY += 32;
-        });
-        curY += 10;
+          for (const line of lines) {
+            if (curY > maxStdY) break;
+            ctx.fillText(line, 86, curY);
+            curY += stdLh;
+          }
+          curY += stdGap;
+        }
+        curY += 8;
       });
     }
 
@@ -7421,6 +7593,41 @@ function drawScannableQrCode(ctx, url, x, y, size, withBrackets = false) {
 }
 
 // Helper: wrap text into canvas with multi-line paragraph & word-wrap support
+function measureCanvasWrappedLines(ctx, text, maxWidth) {
+  const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+  const lines = [];
+  let line = '';
+  for (let i = 0; i < words.length; i++) {
+    const test = line ? `${line} ${words[i]}` : words[i];
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = words[i];
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function fitCanvasBulletList(ctx, items, maxWidth, availBaselineSpan, sizeCandidates = [21, 19.5, 18.5, 17.5, 16.5, 15.5, 14.5], weight = '600') {
+  const cleanItems = (items || []).map(s => String(s || '').trim()).filter(Boolean);
+  let fallback = null;
+  for (const fs of sizeCandidates) {
+    const lineH = Math.round(fs * 1.44);
+    const itemGap = Math.max(5, Math.round(fs * 0.34));
+    ctx.font = `${weight} ${fs}px "Plus Jakarta Sans", Arial, sans-serif`;
+    const rendered = cleanItems.map(item => ({ lines: measureCanvasWrappedLines(ctx, item, maxWidth) }));
+    const totalLines = rendered.reduce((sum, r) => sum + r.lines.length, 0);
+    const totalAdvance = totalLines * lineH + Math.max(0, rendered.length - 1) * itemGap;
+    const neededSpan = Math.max(0, totalAdvance - lineH);
+    fallback = { fontSize: fs, lineH, itemGap, items: rendered };
+    if (neededSpan <= availBaselineSpan) return fallback;
+  }
+  return fallback || { fontSize: 15, lineH: 22, itemGap: 5, items: [] };
+}
+
 function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 5) {
   if (!text) return y;
   const paragraphs = String(text).split(/\r?\n/);
