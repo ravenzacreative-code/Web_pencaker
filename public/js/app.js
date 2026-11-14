@@ -2591,11 +2591,11 @@ async function openJobDetail(jobId) {
             </div>
 
             ${contacts.apply_info ? `
-              <div class="info-item" style="flex-direction: column; align-items: flex-start; background: #eff6ff; padding: 10px 12px; border-radius: 8px; border: 1.5px solid #bfdbfe; margin-top: 6px; margin-bottom: 8px;">
-                <div class="info-label" style="color: #1d4ed8; font-weight: 800; font-size: 0.76rem; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+              <div class="info-item apply-guide-box">
+                <div class="info-label">
                   <i class="fa-solid fa-paper-plane"></i> Petunjuk Cara Melamar
                 </div>
-                <div class="info-val" style="color: #1e293b; font-size: 0.82rem; line-height: 1.45; white-space: pre-line; font-weight: 600;">${escapeHtml(contacts.apply_info)}</div>
+                <div class="info-val">${escapeHtml(contacts.apply_info)}</div>
               </div>
             ` : ''}
 
@@ -2645,11 +2645,11 @@ async function openJobDetail(jobId) {
 
           <!-- Share Section -->
           <div class="share-box">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
-              <i class="fa-solid fa-share-nodes"></i> Bagikan Info Lowongan Ini:
+            <div class="share-box-title">
+              <i class="fa-solid fa-share-nodes"></i> Bagikan Info Lowongan Ini
             </div>
             <div class="share-btns">
-              <button type="button" class="share-btn share-wa" onclick="shareWhatsApp('${safeTitle}', '${safeCompany}')" title="Bagikan ke WhatsApp">
+              <button type="button" class="share-btn share-wa" onclick="shareWhatsApp('${safeTitle}', '${safeCompany}', ${job.id})" title="Bagikan ke WhatsApp">
                 <i class="fa-brands fa-whatsapp"></i> WhatsApp
               </button>
               <button type="button" class="share-btn share-copy" onclick="copyJobLink(${job.id})" title="Salin Tautan">
@@ -3126,17 +3126,23 @@ window.copyToClipboard = function(text, successMsg) {
 };
 
 // Sharing helpers
-function shareWhatsApp(title, company) {
-  const url = window.location.href;
+function shareWhatsApp(title, company, id) {
+  const url = id ? (window.location.origin + window.location.pathname + `?job=${id}`) : window.location.href;
   const text = encodeURIComponent(`*INFORMASI LOWONGAN KERJA RESMI*\n\nPosisi: *${title}*\nPerusahaan: *${company || '-'}*\n\nLihat poster dan kontak perekrut resmi di:\n${url}`);
-  window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank', 'noopener,noreferrer');
 }
 
 function copyJobLink(id) {
   const url = window.location.origin + window.location.pathname + `?job=${id}`;
-  navigator.clipboard.writeText(url).then(() => {
-    showToast('info', 'Tautan info lowongan berhasil disalin ke clipboard.');
-  });
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('info', 'Tautan info lowongan berhasil disalin ke clipboard.');
+    }).catch(() => {
+      window.prompt('Salin tautan lowongan ini:', url);
+    });
+  } else {
+    window.prompt('Salin tautan lowongan ini:', url);
+  }
 }
 
 function formatTimeAgo(dateString) {

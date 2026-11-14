@@ -1889,7 +1889,6 @@ function setupJobFormSubmit() {
         if (typeof broadcastPublicJobsSync === 'function') broadcastPublicJobsSync(adminJobs);
         if (typeof renderAdminJobsTable === 'function') renderAdminJobsTable();
         if (typeof renderDashboardStats === 'function') renderDashboardStats(adminJobs);
-        if (typeof mergeDbJobsToOfficialScout === 'function') mergeDbJobsToOfficialScout();
       }
 
       const publicJobUrl = createdId ? `./?job=${encodeURIComponent(createdId)}` : './';
@@ -2877,8 +2876,6 @@ async function loadAdminJobs(forceRefresh = false) {
 
     renderAdminJobsTable();
     renderDashboardStats(adminJobs);
-    syncAdminJobsToOfficialDb();
-    filterAndRenderOfficialJobs();
   } catch (err) {
     console.error('loadAdminJobs error:', err);
     if (tbody && (!adminJobs || adminJobs.length === 0)) {
@@ -3441,100 +3438,13 @@ function detectCompanySector(comp, title, category) {
 }
 
 function syncAdminJobsToOfficialDb() {
-  if (!Array.isArray(adminJobs) || adminJobs.length === 0) return;
-  adminJobs.forEach(dbJob => {
-    if (!dbJob || (dbJob.status && dbJob.status.startsWith('system_'))) return;
-    const exists = OFFICIAL_VACANCIES_DB.some(o => 
-      o.id === 'db_' + dbJob.id ||
-      (o.title && dbJob.title && o.title.toLowerCase().trim() === dbJob.title.toLowerCase().trim() && (o.company_name || '').toLowerCase().trim() === (dbJob.company_name || '').toLowerCase().trim())
-    );
-    if (!exists) {
-      const dbCreated = dbJob.created_at ? new Date(dbJob.created_at).getTime() : Date.now();
-      const detectedSector = detectCompanySector(dbJob.company_name, dbJob.title, dbJob.category);
-      let sectorLabel = 'Manufaktur & Otomotif';
-      if (detectedSector === 'bumn') sectorLabel = 'BUMN & Perbankan';
-      else if (detectedSector === 'fmcg') sectorLabel = 'FMCG & Konsumsi';
-      else if (detectedSector === 'tech') sectorLabel = 'Teknologi & Digital';
-
-      OFFICIAL_VACANCIES_DB.push({
-        id: 'db_' + dbJob.id,
-        title: dbJob.title,
-        company_name: dbJob.company_name,
-        brand_logo_text: (dbJob.company_name || 'CO').slice(0, 3).toUpperCase(),
-        brand_banner: dbJob.poster_image || '',
-        sector: detectedSector,
-        sector_label: sectorLabel,
-        category: dbJob.category || 'Operasional',
-        role_department: dbJob.job_type || 'Full Time',
-        job_type: dbJob.job_type || 'Full Time',
-        location: dbJob.location || 'Indonesia',
-        education_level: 'all',
-        education_label: 'Semua Pendidikan',
-        experience_level: dbJob.experience_level || 'Semua Pengalaman',
-        salary_display: dbJob.salary_display || 'Kompetitif',
-        deadline: (() => {
-          try {
-            const c = typeof dbJob.contact_value === 'string' ? JSON.parse(dbJob.contact_value || '{}') : (dbJob.contact_value || {});
-            return c.deadline_display || dbJob.deadline || 'Pendaftaran Dibuka (Segera Apply)';
-          } catch (e) {
-            return dbJob.deadline || 'Pendaftaran Dibuka (Segera Apply)';
-          }
-        })(),
-        pubDate: dbJob.created_at || '',
-        pubTimestamp: dbCreated,
-        timeAgo: 'Diposting di Portal',
-        isFresh: dbCreated > (Date.now() - 24 * 60 * 60 * 1000),
-        platform: 'official',
-        platform_label: 'Database Resmi Portal',
-        platform_icon: 'fa-solid fa-building-circle-check',
-        platform_class: 'official',
-        official_url: dbJob.website_url || './?job=' + dbJob.id,
-        contact_type: dbJob.contact_type || 'link',
-        contact_value: JSON.stringify((() => {
-          try {
-            const c = typeof dbJob.contact_value === 'string' ? JSON.parse(dbJob.contact_value || '{}') : (dbJob.contact_value || {});
-            return {
-              whatsapp: dbJob.whatsapp || c.whatsapp || '',
-              email: dbJob.email || c.email || '',
-              website: dbJob.website_url || c.website || '',
-              apply_info: dbJob.apply_info || c.apply_info || '',
-              deadline_display: dbJob.deadline || c.deadline_display || ''
-            };
-          } catch (e) {
-            return { whatsapp: dbJob.whatsapp || '', email: dbJob.email || '', website: dbJob.website_url || '' };
-          }
-        })()),
-        anti_fraud_notice: `${dbJob.company_name} tidak memungut biaya apapun dalam proses rekrutmen.`,
-        description: dbJob.description || 'Lowongan resmi dari database sistem KerjaHub.',
-        requirements: (() => {
-          const parsed = parseStructuredList(dbJob.requirements);
-          return parsed.length > 0 ? parsed : ['Kualifikasi sesuai arahan perusahaan'];
-        })(),
-        responsibilities: (() => {
-          const parsed = parseStructuredList(dbJob.responsibilities);
-          return parsed.length > 0 ? parsed : ['Tanggung jawab sesuai posisi'];
-        })(),
-        benefits: (() => {
-          const parsed = parseStructuredList(dbJob.benefits);
-          return parsed.length > 0 ? parsed : ['BPJS & Tunjangan Standar'];
-        })(),
-        theme: 'modern',
-        mascot: (dbJob.title || '').toLowerCase().includes('operator') ? 'factory' : 'corporate',
-        verified_badge: 'Database Resmi',
-        apply_info: (() => {
-          try {
-            const c = typeof dbJob.contact_value === 'string' ? JSON.parse(dbJob.contact_value || '{}') : (dbJob.contact_value || {});
-            const explicitInfo = (dbJob.apply_info || c.apply_info || '').trim();
-            if (explicitInfo) return explicitInfo;
-            return buildApplyInfoText(dbJob.company_name, dbJob.email || c.email, dbJob.whatsapp || c.whatsapp, dbJob.website_url || c.website, dbJob.title);
-          } catch (e) {
-            return (dbJob.apply_info || '').trim() || buildApplyInfoText(dbJob.company_name, dbJob.email, dbJob.whatsapp, dbJob.website_url, dbJob.title);
-          }
-        })(),
-        hashtag: '#KerjaHub #LokerResmi'
-      });
-    }
-  });
+  // Loker yang diunggah manual/portal hanya tampil di Portal User & Daftar Lowongan, tidak dicampur ke Scout Loker Asli Web.
+  OFFICIAL_VACANCIES_DB = (OFFICIAL_VACANCIES_DB || []).filter(o =>
+    o &&
+    !String(o.id || '').startsWith('db_') &&
+    o.platform !== 'official' &&
+    o.platform_label !== 'Database Resmi Portal'
+  );
 }
 
 function setupSupabaseRealtimeSync() {
@@ -4469,18 +4379,7 @@ async function populateOfficialVacanciesFromSystem(keyword = 'lowongan', isBackg
     `;
   }
 
-  // 1. Ensure DB jobs from adminJobs or session cache are merged
-  if (!Array.isArray(adminJobs) || adminJobs.length === 0) {
-    try {
-      const cached = safeSessionGet('kerja_admin_jobs_cache');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          adminJobs = parsed.filter(j => j && (!j.status || !j.status.startsWith('system_')));
-        }
-      }
-    } catch (e) {}
-  }
+  // Keep Scout Loker Asli Web free of manual portal jobs
   syncAdminJobsToOfficialDb();
 
   // Guarantee seed data exists for the selected platform immediately (Zero empty state!)
@@ -4576,18 +4475,8 @@ async function populateOfficialVacanciesFromSystem(keyword = 'lowongan', isBackg
     console.warn('Live jobs fetch warning in admin:', e);
   }
 
-  // 3. Fallback: If OFFICIAL_VACANCIES_DB is still empty and sbClient is available, fetch Supabase jobs directly
-  if (OFFICIAL_VACANCIES_DB.length === 0 && sbClient) {
-    try {
-      const { data: directJobs } = await sbClient.from('jobs').select('*').limit(30);
-      if (Array.isArray(directJobs) && directJobs.length > 0) {
-        adminJobs = directJobs.filter(j => j && (!j.status || !j.status.startsWith('system_')));
-        syncAdminJobsToOfficialDb();
-      }
-    } catch (e) {}
-  }
-
-  // 4. Sort strictly by newest pubTimestamp descending (Freshest jobs always at top!)
+  // 3. Sort strictly by newest pubTimestamp descending (Freshest jobs always at top!)
+  syncAdminJobsToOfficialDb();
   OFFICIAL_VACANCIES_DB.sort((a, b) => (b.pubTimestamp || 0) - (a.pubTimestamp || 0));
 
   lastAutoloadTime = new Date();
@@ -4940,6 +4829,9 @@ function filterAndRenderOfficialJobs() {
   }
 
   currentOfficialFilteredJobs = OFFICIAL_VACANCIES_DB.filter(rawJob => {
+    if (!rawJob || String(rawJob.id || '').startsWith('db_') || rawJob.platform === 'official' || rawJob.platform_label === 'Database Resmi Portal') {
+      return false;
+    }
     const job = refineAndScoreScoutJob(rawJob);
     if (!job) return false;
 
