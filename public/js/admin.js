@@ -8,6 +8,32 @@ let currentSupabaseKey = '';
 
 // SAFE STORAGE HELPER (Prevents Tracking Prevention exceptions in Edge/Safari/Brave & iframe)
 const _adminMemoryStore = { session: {}, local: {} };
+function safeLocalGet(key) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(key);
+    }
+  } catch (e) {}
+  return _adminMemoryStore.local[key] || null;
+}
+function safeLocalSet(key, value) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(key, value);
+      return;
+    }
+  } catch (e) {}
+  _adminMemoryStore.local[key] = String(value);
+}
+function safeLocalRemove(key) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key);
+      return;
+    }
+  } catch (e) {}
+  delete _adminMemoryStore.local[key];
+}
 function safeSessionGet(key) {
   try {
     if (typeof window !== 'undefined' && window.sessionStorage) {
@@ -1885,7 +1911,8 @@ function setupJobFormSubmit() {
 
       if (typeof adminJobs !== 'undefined' && Array.isArray(adminJobs)) {
         adminJobs = [lightCreated, ...adminJobs.filter(j => String(j.id) !== String(lightCreated.id))];
-        try { localStorage.removeItem('kerja_public_jobs_cache'); } catch (e) {}
+        safeLocalSet('kerja_admin_jobs_cache_v3', JSON.stringify(adminJobs));
+        safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
         if (typeof broadcastPublicJobsSync === 'function') broadcastPublicJobsSync(adminJobs);
         if (typeof renderAdminJobsTable === 'function') renderAdminJobsTable();
         if (typeof renderDashboardStats === 'function') renderDashboardStats(adminJobs);
@@ -2199,7 +2226,7 @@ function renderDashboardStats(jobsList) {
     if (j.status === 'expired' || j.status === 'closed') return false;
     if (j.status === 'scheduled') return false;
     if (j.scheduled_at && new Date(j.scheduled_at) > now) return false;
-    return j.status === 'active';
+    return j.status === 'active' || j.status === 'published';
   });
 
   const closedJobs = realJobs.filter(j => j.status === 'closed' || j.status === 'expired');
@@ -2831,13 +2858,13 @@ async function loadAdminJobs(forceRefresh = false) {
         if (!forceRefresh && window.__initialAdminJobsPrefetch) {
           const pre = await window.__initialAdminJobsPrefetch;
           window.__initialAdminJobsPrefetch = null;
-          if (pre && pre.success && Array.isArray(pre.data) && pre.data.length > 0) {
+          if (pre && pre.success && Array.isArray(pre.data)) {
             return pre.data;
           }
         }
         const endpoint = forceRefresh ? `/api/jobs?status=all&_t=${Date.now()}` : '/api/jobs?status=all';
         const { ok, data } = await safeFetchJson(getApiEndpoint(endpoint));
-        if (ok && data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (ok && data && data.success && Array.isArray(data.data)) {
           return data.data;
         }
       } catch (e) {}
@@ -2849,6 +2876,9 @@ async function loadAdminJobs(forceRefresh = false) {
       const fetchJobs = () => sbClient
         .from('jobs')
         .select(LIGHT_JOB_COLS)
+        .neq('status', 'system_settings')
+        .neq('status', 'system_master_data')
+        .neq('status', 'system_flyer_themes')
         .neq('status', 'system_company_images')
         .neq('status', 'system_uploaded_file')
         .order('id', { ascending: false });
@@ -2863,18 +2893,18 @@ async function loadAdminJobs(forceRefresh = false) {
           res = await Promise.race([fetchJobs(), timeoutPromise]);
         }
       }
-      if (res && !res.error && Array.isArray(res.data) && res.data.length > 0) {
+      if (res && !res.error && Array.isArray(res.data)) {
         return res.data;
       }
       return null;
     };
 
     jobs = await fetchLocalApi();
-    if (!jobs) {
+    if (jobs === null) {
       jobs = await fetchSupabaseFallback().catch(() => null);
     }
 
-    if (jobs && Array.isArray(jobs) && jobs.length > 0) {
+    if (Array.isArray(jobs)) {
       adminJobs = sortJobsNewestFirst(jobs.filter(j => j && (!j.status || !j.status.startsWith('system_'))));
       try {
         safeLocalSet('kerja_admin_jobs_cache_v3', JSON.stringify(adminJobs));
@@ -2939,6 +2969,7 @@ window.toggleJobLock = async function(jobId, newStatus) {
 
   if (updated) {
     try {
+      safeLocalSet('kerja_admin_jobs_cache_v3', JSON.stringify(adminJobs));
       safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
       broadcastPublicJobsSync(adminJobs);
     } catch (e) {}
@@ -3038,6 +3069,7 @@ window.deleteJob = async function(jobId, title) {
 
   if (deleted) {
     try {
+      safeLocalSet('kerja_admin_jobs_cache_v3', JSON.stringify(adminJobs));
       safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
       broadcastPublicJobsSync(adminJobs);
     } catch (e) {}
@@ -7822,6 +7854,7 @@ window.publishJobFromStudio = async function() {
       if (idx >= 0) {
         adminJobs[idx] = { ...adminJobs[idx], ...payload };
         try {
+          safeLocalSet('kerja_admin_jobs_cache_v3', JSON.stringify(adminJobs));
           safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
           broadcastPublicJobsSync(adminJobs);
         } catch (e) {}

@@ -85,6 +85,15 @@ function safeLocalSet(key, value) {
   } catch (e) {}
   _appMemoryStore.local[key] = String(value);
 }
+function safeLocalRemove(key) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key);
+      return;
+    }
+  } catch (e) {}
+  delete _appMemoryStore.local[key];
+}
 function safeSessionGet(key) {
   try {
     if (typeof window !== 'undefined' && window.sessionStorage) {
@@ -513,7 +522,7 @@ function setupLiveJobsAutoSync() {
       _liveJobsBc.onmessage = (ev) => {
         const msg = ev && ev.data;
         if (!msg || msg.type !== 'jobs_updated') return;
-        if (Array.isArray(msg.jobs) && msg.jobs.length > 0) {
+        if (Array.isArray(msg.jobs)) {
           const nextJobs = msg.jobs.map(window.cleanJobData).filter(isJobPubliclyVisible);
           const nextSig = getJobsSignature(nextJobs);
           if (nextSig !== _lastJobsSignature) {
@@ -539,9 +548,9 @@ function setupLiveJobsAutoSync() {
     if (!e || (e.key !== 'kerjahub_jobs_sync_ts' && e.key !== 'kerja_public_jobs_cache')) return;
     try {
       const cached = safeLocalGet('kerja_public_jobs_cache');
-      if (cached) {
+      if (cached !== null && cached !== undefined) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           const nextJobs = parsed.map(window.cleanJobData).filter(isJobPubliclyVisible);
           const nextSig = getJobsSignature(nextJobs);
           if (nextSig !== _lastJobsSignature) {
@@ -1282,13 +1291,13 @@ async function loadJobs(options = {}) {
         if (!bypassCache && window.__initialJobsPrefetch) {
           const pre = await window.__initialJobsPrefetch;
           window.__initialJobsPrefetch = null;
-          if (pre && pre.success && Array.isArray(pre.data) && pre.data.length > 0) {
+          if (pre && pre.success && Array.isArray(pre.data)) {
             return pre.data.map(window.cleanJobData).filter(isJobPubliclyVisible);
           }
         }
         const endpoint = bypassCache ? `/api/jobs?_t=${Date.now()}` : '/api/jobs';
         const { ok, data: json } = await safeFetchJson(getApiEndpoint(endpoint));
-        if (ok && json && json.success && Array.isArray(json.data) && json.data.length > 0) {
+        if (ok && json && json.success && Array.isArray(json.data)) {
           return json.data.map(window.cleanJobData).filter(isJobPubliclyVisible);
         }
       } catch (e) {}
@@ -1329,7 +1338,7 @@ async function loadJobs(options = {}) {
           }
         }
 
-        if (res && !res.timeout && !res.error && Array.isArray(res.data) && res.data.length > 0) {
+        if (res && !res.timeout && !res.error && Array.isArray(res.data)) {
           return res.data.map((row) => {
             row.poster_image = row.poster_image || `/api/jobs/${row.id}/image/poster`;
             return window.cleanJobData(row);
@@ -1341,11 +1350,11 @@ async function loadJobs(options = {}) {
 
     // Prioritize lightweight Edge-Cached /api/jobs (avoids 16+ MB Supabase 500 timeout), fallback to lightweight Supabase only if needed
     let freshJobs = await fetchLocalApi();
-    if (!freshJobs) {
+    if (freshJobs === null) {
       freshJobs = await fetchSupabase();
     }
 
-    if (freshJobs && Array.isArray(freshJobs) && freshJobs.length > 0) {
+    if (Array.isArray(freshJobs)) {
       const nextSig = getJobsSignature(freshJobs);
       const changed = nextSig !== _lastJobsSignature;
       rawAllJobs = freshJobs;
@@ -2136,6 +2145,22 @@ window.searchBySkill = function(event, skill) {
 function showEmptyState() {
   const container = document.getElementById('jobs-container');
   if (!container) return;
+
+  const totalVisibleInPortal = (rawAllJobs || []).filter(isJobPubliclyVisible).length;
+  if (totalVisibleInPortal === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="fa-solid fa-briefcase" style="color: var(--primary);"></i>
+        </div>
+        <h3 class="empty-title">Belum Ada Lowongan Tersedia</h3>
+        <p class="empty-desc">
+          Saat ini belum ada lowongan kerja yang dipublikasikan di portal. Silakan periksa kembali secara berkala untuk info rekrutmen terbaru.
+        </p>
+      </div>
+    `;
+    return;
+  }
 
   container.innerHTML = `
     <div class="empty-state">
