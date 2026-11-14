@@ -2573,18 +2573,29 @@ function populateAdminJobsCategoryDropdown(jobs) {
 // -------------------------------------------------------------
 // RENDER ADMIN JOBS TABLE (WITH LIVE SEARCH, FILTER & LOCK SYSTEM)
 // -------------------------------------------------------------
+function sortJobsNewestFirst(list) {
+  return [...(list || [])].sort((a, b) => {
+    const idB = Number(b && b.id) || 0;
+    const idA = Number(a && a.id) || 0;
+    if (idB !== idA) return idB - idA;
+    return new Date((b && b.created_at) || 0).getTime() - new Date((a && a.created_at) || 0).getTime();
+  });
+}
+
 function renderAdminJobsTable() {
   const tbody = document.getElementById('admin-jobs-tbody');
   if (!tbody) return;
 
-  const validJobs = (adminJobs || []).filter(j => j && (!j.status || !j.status.startsWith('system_')));
+  const validJobs = sortJobsNewestFirst(
+    (adminJobs || []).filter(j => j && (!j.status || !j.status.startsWith('system_')))
+  );
   populateAdminJobsCategoryDropdown(validJobs);
 
   let filteredJobs = validJobs;
 
   // 1. Status Filter
   if (adminJobsStatusFilter === 'active') {
-    filteredJobs = filteredJobs.filter(j => j.status === 'active');
+    filteredJobs = filteredJobs.filter(j => j.status === 'active' || j.status === 'published');
   } else if (adminJobsStatusFilter === 'scheduled') {
     filteredJobs = filteredJobs.filter(j => j.status === 'scheduled');
   } else if (adminJobsStatusFilter === 'expired') {
@@ -2864,7 +2875,7 @@ async function loadAdminJobs(forceRefresh = false) {
     }
 
     if (jobs && Array.isArray(jobs) && jobs.length > 0) {
-      adminJobs = jobs.filter(j => j && (!j.status || !j.status.startsWith('system_')));
+      adminJobs = sortJobsNewestFirst(jobs.filter(j => j && (!j.status || !j.status.startsWith('system_'))));
       try {
         safeLocalSet('kerja_admin_jobs_cache_v3', JSON.stringify(adminJobs));
         safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));

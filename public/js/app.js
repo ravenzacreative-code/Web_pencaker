@@ -1313,7 +1313,6 @@ async function loadJobs(options = {}) {
           .neq('status', 'system_flyer_themes')
           .neq('status', 'system_company_images')
           .neq('status', 'system_uploaded_file')
-          .order('is_featured', { ascending: false })
           .order('id', { ascending: false });
 
         const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 4000));
@@ -1512,16 +1511,16 @@ function applyFiltersAndRender() {
       return Number(b.id) - Number(a.id);
     });
   } else if (activeFilters.sort === 'views') {
-    list.sort((a, b) => (b.views_count || 0) - (a.views_count || 0));
+    list.sort((a, b) => ((b.views_count || 0) - (a.views_count || 0)) || ((Number(b.id) || 0) - (Number(a.id) || 0)));
   } else if (activeFilters.sort === 'featured') {
-    list.sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
+    list.sort((a, b) => ((b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0)) || ((Number(b.id) || 0) - (Number(a.id) || 0)));
   } else {
-    // Newest
+    // Newest: postingan terbaru selalu di urutan paling atas
     list.sort((a, b) => {
-      if ((b.is_featured ? 1 : 0) !== (a.is_featured ? 1 : 0)) {
-        return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
-      }
-      return Number(b.id) - Number(a.id);
+      const idB = Number(b.id) || 0;
+      const idA = Number(a.id) || 0;
+      if (idB !== idA) return idB - idA;
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     });
   }
 
