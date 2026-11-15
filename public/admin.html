@@ -14,8 +14,8 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/admin.css?v=20261115_02">
-  <link rel="stylesheet" href="./css/cv-builder.css?v=20261115_02">
+  <link rel="stylesheet" href="./css/admin.css?v=20261115_03">
+  <link rel="stylesheet" href="./css/cv-builder.css?v=20261115_03">
   <!-- Start Admin Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialAdminJobsPrefetch = fetch('/api/jobs?status=all').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
@@ -909,11 +909,14 @@
                   <div class="form-group full-width">
                     <label class="form-label">Keterangan / Ringkasan Posisi <span class="req">*</span></label>
                     <textarea name="description" class="form-textarea" rows="4"
-                      placeholder="Tuliskan gambaran pekerjaan, visi tim, dan poin utama peran yang dicari..."
+                      placeholder="Tuliskan gambaran pekerjaan atau copy-paste daftar poin (awali baris dengan tanda - untuk memisahkan setiap poin baru)..."
                       required></textarea>
+                    <div class="dm-bulk-hint" style="margin-top: 6px;">
+                      <i class="fa-solid fa-wand-magic-sparkles"></i> Tips: Awali baris dengan <code>-</code> untuk poin baru; baris lanjutannya otomatis digabung rapi.
+                    </div>
                   </div>
 
-                  <!-- 3 KOLOM DINAMIS: TANGGUNG JAWAB, KUALIFIKASI, BENEFIT (MAKS 10 DENGAN TOMBOL +) -->
+                  <!-- 3 KOLOM COPY-PASTE LANGSUNG: TANGGUNG JAWAB, KUALIFIKASI, BENEFIT (KHUSUS BUAT MANUAL) -->
                   <div class="dynamic-columns-grid">
                     <!-- KOLOM 1: TANGGUNG JAWAB -->
                     <div class="dynamic-manager-card" data-category="responsibilities" id="upload-resp-card">
@@ -926,15 +929,14 @@
                           </div>
                         </div>
                         <div class="dm-header-right">
-                          <span class="dm-counter-badge" id="upload-resp-counter">0/10</span>
-                          <button type="button" class="btn-dm-add" id="upload-resp-add-btn"
-                            onclick="addDynamicItemRow('upload-resp-items', 'responsibilities', 'upload-resp-counter')">
-                            <i class="fa-solid fa-plus"></i> Tambah
-                          </button>
+                          <span class="dm-counter-badge" id="upload-resp-counter">0 poin</span>
                         </div>
                       </div>
-                      <div class="dm-items-container" id="upload-resp-items" data-max="10"></div>
-                      <textarea name="responsibilities" style="display:none;"></textarea>
+                      <div class="dm-bulk-hint">
+                        <i class="fa-solid fa-circle-info"></i> Copy-paste semua poin sekaligus. Awali tiap poin baru dengan tanda <code>-</code>
+                      </div>
+                      <textarea name="responsibilities" id="upload-resp-textarea" class="form-textarea dm-bulk-textarea" rows="6"
+                        placeholder="-Melakukan proses praloading terhadap part yang dibutuhkan&#10;-Melakukan proses loading sesuai jadwal&#10;-Memastikan area kerja tetap bersih dan rapi"></textarea>
                     </div>
 
                     <!-- KOLOM 2: KUALIFIKASI -->
@@ -948,15 +950,14 @@
                           </div>
                         </div>
                         <div class="dm-header-right">
-                          <span class="dm-counter-badge" id="upload-req-counter">0/10</span>
-                          <button type="button" class="btn-dm-add" id="upload-req-add-btn"
-                            onclick="addDynamicItemRow('upload-req-items', 'requirements', 'upload-req-counter')">
-                            <i class="fa-solid fa-plus"></i> Tambah
-                          </button>
+                          <span class="dm-counter-badge" id="upload-req-counter">0 poin</span>
                         </div>
                       </div>
-                      <div class="dm-items-container" id="upload-req-items" data-max="10"></div>
-                      <textarea name="requirements" style="display:none;"></textarea>
+                      <div class="dm-bulk-hint">
+                        <i class="fa-solid fa-circle-info"></i> Copy-paste semua poin sekaligus. Awali tiap poin baru dengan tanda <code>-</code>
+                      </div>
+                      <textarea name="requirements" id="upload-req-textarea" class="form-textarea dm-bulk-textarea" rows="6"
+                        placeholder="-Pria / Wanita, usia maksimal 28 tahun&#10;-Pendidikan minimal SMA/SMK sederajat&#10;-Sehat jasmani dan rohani, siap bekerja shift"></textarea>
                     </div>
 
                     <!-- KOLOM 3: BENEFIT & FASILITAS -->
@@ -970,15 +971,14 @@
                           </div>
                         </div>
                         <div class="dm-header-right">
-                          <span class="dm-counter-badge" id="upload-ben-counter">0/10</span>
-                          <button type="button" class="btn-dm-add" id="upload-ben-add-btn"
-                            onclick="addDynamicItemRow('upload-ben-items', 'benefits', 'upload-ben-counter')">
-                            <i class="fa-solid fa-plus"></i> Tambah
-                          </button>
+                          <span class="dm-counter-badge" id="upload-ben-counter">0 poin</span>
                         </div>
                       </div>
-                      <div class="dm-items-container" id="upload-ben-items" data-max="10"></div>
-                      <textarea name="benefits" style="display:none;"></textarea>
+                      <div class="dm-bulk-hint">
+                        <i class="fa-solid fa-circle-info"></i> Copy-paste semua poin sekaligus. Awali tiap poin baru dengan tanda <code>-</code>
+                      </div>
+                      <textarea name="benefits" id="upload-ben-textarea" class="form-textarea dm-bulk-textarea" rows="6"
+                        placeholder="-Gaji Pokok UMK&#10;-BPJS Kesehatan & Ketenagakerjaan&#10;-Tunjangan transport & uang makan"></textarea>
                     </div>
                   </div>
                 </div>
@@ -2689,8 +2689,8 @@
     </div>
   </div>
 
-  <script src="./js/admin.js?v=20261115_02" defer></script>
-  <script src="./js/cv-builder.js?v=20261115_02" defer></script>
+  <script src="./js/admin.js?v=20261115_03" defer></script>
+  <script src="./js/cv-builder.js?v=20261115_03" defer></script>
 </body>
 
 </html>

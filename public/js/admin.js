@@ -70,25 +70,53 @@ let isLoadingAdminJobs = false;
 
 function parseStructuredList(val) {
   if (!val) return [];
-  const splitSingle = (str) => {
+  const splitSingle = (str, fromArray = false) => {
     const raw = String(str || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
     if (!raw) return [];
     const cleanLine = (line) => line
-      .replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-*]+/, '')
+      .replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-–—*]+/, '')
       .replace(/^\d{1,2}[\.\)]\s+/, '')
       .trim();
 
+    const leadingBulletRe = /^(?:[-–—•▪▫◦●○■□✓✔➤➢►▶*]|\d{1,2}[\.\)])(?:\s+\S|(?=[A-Za-zÀ-ÿ]))|^[•▪▫◦●○■□✓✔➤➢►▶*](?=\S)/;
+    const inlineDashMatches = raw.match(/(?:^|\s)-(?=[A-Za-zÀ-ÿ])/g) || [];
+    let hasExplicitBullets = false;
     let parts = [];
+
     if (raw.includes('\n')) {
-      parts = raw.split(/\n+/).map(cleanLine).filter(Boolean);
+      const rawLines = raw.split(/\n+/).map(s => s.trim()).filter(Boolean);
+      hasExplicitBullets = rawLines.some(l => leadingBulletRe.test(l));
+      if (hasExplicitBullets) {
+        for (const line of rawLines) {
+          const isBullet = leadingBulletRe.test(line);
+          const cleaned = cleanLine(line).replace(/\s+/g, ' ');
+          if (!cleaned) continue;
+          if (isBullet || parts.length === 0) {
+            parts.push(cleaned);
+          } else {
+            parts[parts.length - 1] += ' ' + cleaned;
+          }
+        }
+      } else {
+        parts = rawLines.map(cleanLine).filter(Boolean);
+      }
     } else if (/[•▪▫◦●■□✓✔➤➢►▶]/.test(raw)) {
+      hasExplicitBullets = true;
       parts = raw.split(/\s*[•▪▫◦●■□✓✔➤➢►▶]+\s*/).map(cleanLine).filter(Boolean);
+    } else if (inlineDashMatches.length >= 2) {
+      hasExplicitBullets = true;
+      parts = raw.split(/(?:^|\s)+-(?=[A-Za-zÀ-ÿ])/).map(cleanLine).filter(Boolean);
     } else if (raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').includes(';')) {
       parts = raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').split(/\s*;\s*/).map(s => cleanLine(s.replace(/\x00/g, ';'))).filter(Boolean);
     } else if (/(?:^|\s)\d{1,2}[\.\)]\s+\S/.test(raw) && (raw.match(/(?:^|\s)\d{1,2}[\.\)]\s+/g) || []).length >= 2) {
+      hasExplicitBullets = true;
       parts = raw.split(/\s+(?=\d{1,2}[\.\)]\s+)/).map(cleanLine).filter(Boolean);
     } else {
       parts = [cleanLine(raw)].filter(Boolean);
+    }
+
+    if (hasExplicitBullets) {
+      return parts;
     }
 
     const out = [];
@@ -98,7 +126,7 @@ function parseStructuredList(val) {
     for (const p of parts) {
       const gluedSplit = p.replace(gluedRe, '\n').split('\n');
       for (const seg of gluedSplit) {
-        const expanded = seg.length > 48 ? seg.replace(collapsedRe, '\n') : seg;
+        const expanded = (!fromArray && seg.length > 48) ? seg.replace(collapsedRe, '\n') : seg;
         expanded.split('\n').map(cleanLine).filter(Boolean).forEach(item => out.push(item));
       }
     }
@@ -109,22 +137,52 @@ function parseStructuredList(val) {
   if (typeof val === 'string') {
     const trimmed = val.trim();
     if (trimmed.startsWith('[')) {
-      try { arr = JSON.parse(trimmed); } catch { return splitSingle(trimmed); }
+      try { arr = JSON.parse(trimmed); } catch { return splitSingle(trimmed, false); }
     } else {
-      return splitSingle(trimmed);
+      return splitSingle(trimmed, false);
     }
   }
   if (Array.isArray(arr)) {
     const res = [];
     for (const item of arr) {
       if (item === null || item === undefined) continue;
-      splitSingle(item).forEach(s => res.push(s));
+      splitSingle(item, true).forEach(s => res.push(s));
     }
     return res;
   }
-  return splitSingle(arr);
+  return splitSingle(arr, false);
 }
 if (typeof window !== 'undefined') window.parseStructuredList = parseStructuredList;
+
+function formatManualDescription(val) {
+  const raw = String(val || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+  if (!raw) return '';
+  const bulletLineRe = /^(?:[-–—]|\•)(?:\s+\S|(?=[A-Za-zÀ-ÿ]))/;
+  const dashOnlyRe = /^-(?:\s+\S|(?=[A-Za-zÀ-ÿ]))/;
+  const paragraphs = raw.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
+  if (!paragraphs.some(p => p.split('\n').some(l => dashOnlyRe.test(l.trim())))) {
+    return raw;
+  }
+  const formattedParagraphs = paragraphs.map(block => {
+    const lines = block.split('\n').map(s => s.trim()).filter(Boolean);
+    if (!lines.some(l => bulletLineRe.test(l))) {
+      return lines.join('\n');
+    }
+    const entries = [];
+    for (const line of lines) {
+      if (bulletLineRe.test(line)) {
+        const text = line.replace(/^[-–—•]+\s*/, '').replace(/\s+/g, ' ').trim();
+        if (text) entries.push({ bullet: true, text });
+      } else if (entries.length > 0) {
+        entries[entries.length - 1].text += ' ' + line.replace(/\s+/g, ' ').trim();
+      } else {
+        entries.push({ bullet: false, text: line.replace(/\s+/g, ' ').trim() });
+      }
+    }
+    return entries.map(e => (e.bullet ? `• ${e.text}` : e.text)).join('\n');
+  });
+  return formattedParagraphs.filter(Boolean).join('\n\n');
+}
 
 function buildApplyInfoText(companyName, email, whatsapp, website, title) {
   const parts = [];
@@ -1508,7 +1566,25 @@ window.removeDynamicItemRow = function(btn) {
   }
 };
 
+const UPLOAD_BULK_TEXTAREA_MAP = {
+  'upload-resp-items': { textareaId: 'upload-resp-textarea', counterId: 'upload-resp-counter' },
+  'upload-req-items': { textareaId: 'upload-req-textarea', counterId: 'upload-req-counter' },
+  'upload-ben-items': { textareaId: 'upload-ben-textarea', counterId: 'upload-ben-counter' }
+};
+
 window.refreshDynamicManagerNumbers = function(containerId, counterId) {
+  const bulkMeta = UPLOAD_BULK_TEXTAREA_MAP[containerId];
+  if (bulkMeta) {
+    const count = window.getDynamicListValues(containerId).length;
+    const counterEl = document.getElementById(counterId || bulkMeta.counterId);
+    if (counterEl) {
+      counterEl.textContent = `${count} poin`;
+      counterEl.classList.remove('full');
+      counterEl.title = `${count} poin terdeteksi`;
+    }
+    return;
+  }
+
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -1546,6 +1622,12 @@ window.refreshDynamicManagerNumbers = function(containerId, counterId) {
 };
 
 window.getDynamicListValues = function(containerId) {
+  const bulkMeta = UPLOAD_BULK_TEXTAREA_MAP[containerId];
+  if (bulkMeta) {
+    const ta = document.getElementById(bulkMeta.textareaId);
+    return ta ? parseStructuredList(ta.value) : [];
+  }
+
   const container = document.getElementById(containerId);
   if (!container) return [];
   const inputs = container.querySelectorAll('.dm-item-input');
@@ -1558,6 +1640,17 @@ window.getDynamicListValues = function(containerId) {
 };
 
 window.setDynamicListValues = function(containerId, itemsArray, category, counterId) {
+  const bulkMeta = UPLOAD_BULK_TEXTAREA_MAP[containerId];
+  if (bulkMeta) {
+    const ta = document.getElementById(bulkMeta.textareaId);
+    const list = parseStructuredList(itemsArray);
+    if (ta) {
+      ta.value = list.length ? list.map(item => `- ${item}`).join('\n') : '';
+    }
+    window.refreshDynamicManagerNumbers(containerId, counterId || bulkMeta.counterId);
+    return;
+  }
+
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -1590,6 +1683,7 @@ window.setDynamicListValues = function(containerId, itemsArray, category, counte
 };
 
 window.syncDynamicItems = function(containerId) {
+  if (UPLOAD_BULK_TEXTAREA_MAP[containerId]) return;
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -1616,9 +1710,17 @@ window.syncDynamicItems = function(containerId) {
 };
 
 function initUploadFormDynamicLists() {
-  window.setDynamicListValues('upload-resp-items', [], 'responsibilities', 'upload-resp-counter');
-  window.setDynamicListValues('upload-req-items', [], 'requirements', 'upload-req-counter');
-  window.setDynamicListValues('upload-ben-items', [], 'benefits', 'upload-ben-counter');
+  Object.entries(UPLOAD_BULK_TEXTAREA_MAP).forEach(([containerId, meta]) => {
+    const ta = document.getElementById(meta.textareaId);
+    if (ta) {
+      if (!ta.dataset.bulkBound) {
+        ta.dataset.bulkBound = '1';
+        ta.addEventListener('input', () => window.refreshDynamicManagerNumbers(containerId, meta.counterId));
+      }
+      ta.value = '';
+    }
+    window.refreshDynamicManagerNumbers(containerId, meta.counterId);
+  });
 }
 
 // -------------------------------------------------------------
@@ -1674,9 +1776,9 @@ function setupJobFormSubmit() {
     const whatsapp = uploadForm.querySelector('[name="whatsapp"]')?.value.trim() || '';
     const email = uploadForm.querySelector('[name="email"]')?.value.trim() || '';
 
-    // Smart fallback: if user typed description text but didn't click "+" dynamic rows, extract lines
+    // Smart fallback: if user typed description text but didn't fill the 3 bulk boxes, extract structured lines
     if (reqLines.length === 0 && respLines.length === 0 && benLines.length === 0 && desc) {
-      const descLines = desc.split(/\r?\n/).map(s => s.replace(/^[•\-\*\d\.\)\s]+/, '').trim()).filter(Boolean);
+      const descLines = parseStructuredList(desc);
       if (descLines.length > 0) {
         reqLines = descLines.slice(0, 7);
       }
@@ -1735,7 +1837,8 @@ function setupJobFormSubmit() {
 
     const title = form.querySelector('[name="title"]').value.trim();
     const company = form.querySelector('[name="company_name"]').value.trim();
-    const desc = form.querySelector('[name="description"]').value.trim();
+    const rawDesc = form.querySelector('[name="description"]').value.trim();
+    const desc = formatManualDescription(rawDesc);
 
     if (!title || !company || !desc) {
       alert('Judul posisi, nama perusahaan, dan deskripsi wajib diisi!');
@@ -1771,9 +1874,9 @@ function setupJobFormSubmit() {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menerbitkan ke Portal User...';
 
-    const reqValues = parseStructuredList(window.getDynamicListValues('upload-req-items'));
-    const respValues = parseStructuredList(window.getDynamicListValues('upload-resp-items'));
-    const benValues = parseStructuredList(window.getDynamicListValues('upload-ben-items'));
+    const reqValues = window.getDynamicListValues('upload-req-items');
+    const respValues = window.getDynamicListValues('upload-resp-items');
+    const benValues = window.getDynamicListValues('upload-ben-items');
 
     const effectiveCover = (typeof currentCoverMode !== 'undefined' && currentCoverMode === 'upload' && currentManualCoverBase64)
       ? currentManualCoverBase64
@@ -1842,6 +1945,7 @@ function setupJobFormSubmit() {
       formData.set('email', email);
       formData.set('website_url', website);
       formData.set('apply_info', customApplyInfo);
+      formData.set('description', desc);
       formData.set('cover_image', effectiveCover);
       formData.set('poster_image', effectivePoster);
       formData.set('flyer_images', JSON.stringify(allFlyers));

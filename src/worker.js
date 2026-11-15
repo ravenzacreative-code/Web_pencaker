@@ -138,26 +138,54 @@ function parseStructuredListField(val) {
     if (val === undefined) return undefined;
     if (val === null || val === '') return [];
 
-    const splitSingleString = (str) => {
+    const splitSingleString = (str, fromArray = false) => {
         const raw = String(str || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
         if (!raw) return [];
 
         const cleanLine = (line) => line
-            .replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-*]+/, '')
+            .replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-–—*]+/, '')
             .replace(/^\d{1,2}[\.\)]\s+/, '')
             .trim();
 
+        const leadingBulletRe = /^(?:[-–—•▪▫◦●○■□✓✔➤➢►▶*]|\d{1,2}[\.\)])(?:\s+\S|(?=[A-Za-zÀ-ÿ]))|^[•▪▫◦●○■□✓✔➤➢►▶*](?=\S)/;
+        const inlineDashMatches = raw.match(/(?:^|\s)-(?=[A-Za-zÀ-ÿ])/g) || [];
+        let hasExplicitBullets = false;
         let parts = [];
+
         if (raw.includes('\n')) {
-            parts = raw.split(/\n+/).map(cleanLine).filter(Boolean);
+            const rawLines = raw.split(/\n+/).map(s => s.trim()).filter(Boolean);
+            hasExplicitBullets = rawLines.some(l => leadingBulletRe.test(l));
+            if (hasExplicitBullets) {
+                for (const line of rawLines) {
+                    const isBullet = leadingBulletRe.test(line);
+                    const cleaned = cleanLine(line).replace(/\s+/g, ' ');
+                    if (!cleaned) continue;
+                    if (isBullet || parts.length === 0) {
+                        parts.push(cleaned);
+                    } else {
+                        parts[parts.length - 1] += ' ' + cleaned;
+                    }
+                }
+            } else {
+                parts = rawLines.map(cleanLine).filter(Boolean);
+            }
         } else if (/[•▪▫◦●■□✓✔➤➢►▶]/.test(raw)) {
+            hasExplicitBullets = true;
             parts = raw.split(/\s*[•▪▫◦●■□✓✔➤➢►▶]+\s*/).map(cleanLine).filter(Boolean);
+        } else if (inlineDashMatches.length >= 2) {
+            hasExplicitBullets = true;
+            parts = raw.split(/(?:^|\s)+-(?=[A-Za-zÀ-ÿ])/).map(cleanLine).filter(Boolean);
         } else if (raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').includes(';')) {
             parts = raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').split(/\s*;\s*/).map(s => cleanLine(s.replace(/\x00/g, ';'))).filter(Boolean);
         } else if (/(?:^|\s)\d{1,2}[\.\)]\s+\S/.test(raw) && (raw.match(/(?:^|\s)\d{1,2}[\.\)]\s+/g) || []).length >= 2) {
+            hasExplicitBullets = true;
             parts = raw.split(/\s+(?=\d{1,2}[\.\)]\s+)/).map(cleanLine).filter(Boolean);
         } else {
             parts = [cleanLine(raw)].filter(Boolean);
+        }
+
+        if (hasExplicitBullets) {
+            return parts;
         }
 
         const out = [];
@@ -167,7 +195,7 @@ function parseStructuredListField(val) {
         for (const p of parts) {
             const gluedSplit = p.replace(gluedRe, '\n').split('\n');
             for (const seg of gluedSplit) {
-                const expanded = seg.length > 48 ? seg.replace(collapsedRe, '\n') : seg;
+                const expanded = (!fromArray && seg.length > 48) ? seg.replace(collapsedRe, '\n') : seg;
                 expanded.split('\n').map(cleanLine).filter(Boolean).forEach(item => out.push(item));
             }
         }
@@ -181,10 +209,10 @@ function parseStructuredListField(val) {
             try {
                 arr = JSON.parse(trimmed);
             } catch {
-                return splitSingleString(trimmed);
+                return splitSingleString(trimmed, false);
             }
         } else {
-            return splitSingleString(trimmed);
+            return splitSingleString(trimmed, false);
         }
     }
 
@@ -192,12 +220,12 @@ function parseStructuredListField(val) {
         const result = [];
         for (const item of arr) {
             if (item === null || item === undefined) continue;
-            splitSingleString(item).forEach(s => result.push(s));
+            splitSingleString(item, true).forEach(s => result.push(s));
         }
         return result;
     }
 
-    return splitSingleString(arr);
+    return splitSingleString(arr, false);
 }
 
 function normalizeJobPayload(body, isCreate = true) {

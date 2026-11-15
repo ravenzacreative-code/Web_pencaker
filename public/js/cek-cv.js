@@ -9,15 +9,36 @@ let analyzedSkills = [];
 
 function parseCvJobList(val) {
   if (!val) return [];
-  const splitSingle = (str) => {
+  const splitSingle = (str, fromArray = false) => {
     const raw = String(str || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
     if (!raw) return [];
-    const cleanLine = (line) => line.replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-*]+/, '').replace(/^\d{1,2}[\.\)]\s+/, '').trim();
+    const cleanLine = (line) => line.replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-–—*]+/, '').replace(/^\d{1,2}[\.\)]\s+/, '').trim();
+    const leadingBulletRe = /^(?:[-–—•▪▫◦●○■□✓✔➤➢►▶*]|\d{1,2}[\.\)])(?:\s+\S|(?=[A-Za-zÀ-ÿ]))|^[•▪▫◦●○■□✓✔➤➢►▶*](?=\S)/;
+    const inlineDashMatches = raw.match(/(?:^|\s)-(?=[A-Za-zÀ-ÿ])/g) || [];
+    let hasExplicitBullets = false;
     let parts = [];
-    if (raw.includes('\n')) parts = raw.split(/\n+/).map(cleanLine).filter(Boolean);
-    else if (/[•▪▫◦●■□✓✔➤➢►▶]/.test(raw)) parts = raw.split(/\s*[•▪▫◦●■□✓✔➤➢►▶]+\s*/).map(cleanLine).filter(Boolean);
-    else if (raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').includes(';')) parts = raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').split(/\s*;\s*/).map(s => cleanLine(s.replace(/\x00/g, ';'))).filter(Boolean);
+    if (raw.includes('\n')) {
+      const rawLines = raw.split(/\n+/).map(s => s.trim()).filter(Boolean);
+      hasExplicitBullets = rawLines.some(l => leadingBulletRe.test(l));
+      if (hasExplicitBullets) {
+        for (const line of rawLines) {
+          const isBullet = leadingBulletRe.test(line);
+          const cleaned = cleanLine(line).replace(/\s+/g, ' ');
+          if (!cleaned) continue;
+          if (isBullet || parts.length === 0) parts.push(cleaned);
+          else parts[parts.length - 1] += ' ' + cleaned;
+        }
+      } else parts = rawLines.map(cleanLine).filter(Boolean);
+    } else if (/[•▪▫◦●■□✓✔➤➢►▶]/.test(raw)) {
+      hasExplicitBullets = true;
+      parts = raw.split(/\s*[•▪▫◦●■□✓✔➤➢►▶]+\s*/).map(cleanLine).filter(Boolean);
+    } else if (inlineDashMatches.length >= 2) {
+      hasExplicitBullets = true;
+      parts = raw.split(/(?:^|\s)+-(?=[A-Za-zÀ-ÿ])/).map(cleanLine).filter(Boolean);
+    } else if (raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').includes(';')) parts = raw.replace(/(&[a-zA-Z0-9#]{2,8});/g, '$1\x00').split(/\s*;\s*/).map(s => cleanLine(s.replace(/\x00/g, ';'))).filter(Boolean);
     else parts = [cleanLine(raw)].filter(Boolean);
+
+    if (hasExplicitBullets) return parts;
 
     const out = [];
     const gluedRe = /(?<=[a-z0-9\)%]|SMA|SMK|WNI|S1|D3|TAHUN|AKTIF|ROHANI|JASMANI|MENIKAH|SEDERAJAT|WANITA|PRIA)(?=(?:Pendidikan|Lulusan|Usia|Umur|Tinggi|Berat|Sehat|Tidak|Belum|Bukan|Bersedia|Memiliki|Warga|WNI|Minimal|Maksimal|Berpenampilan|Siap|Mampu|Menguasai|Pengalaman|Diutamakan|Fresh|Domisili|Penempatan|Pria|Wanita|Laki|Perempuan|MEMILIKI|TIDAK|BERSEDIA|SEHAT|USIA|TINGGI|PENDIDIKAN|MINIMAL|MAKSIMAL)\b)/g;
@@ -25,7 +46,7 @@ function parseCvJobList(val) {
     for (const p of parts) {
       const gluedSplit = p.replace(gluedRe, '\n').split('\n');
       for (const seg of gluedSplit) {
-        const expanded = seg.length > 48 ? seg.replace(collapsedRe, '\n') : seg;
+        const expanded = (!fromArray && seg.length > 48) ? seg.replace(collapsedRe, '\n') : seg;
         expanded.split('\n').map(cleanLine).filter(Boolean).forEach(item => out.push(item));
       }
     }
@@ -35,15 +56,15 @@ function parseCvJobList(val) {
   if (typeof val === 'string') {
     const trimmed = val.trim();
     if (trimmed.startsWith('[')) {
-      try { arr = JSON.parse(trimmed); } catch { return splitSingle(trimmed); }
-    } else return splitSingle(trimmed);
+      try { arr = JSON.parse(trimmed); } catch { return splitSingle(trimmed, false); }
+    } else return splitSingle(trimmed, false);
   }
   if (Array.isArray(arr)) {
     const res = [];
-    for (const item of arr) { if (item !== null && item !== undefined) splitSingle(item).forEach(s => res.push(s)); }
+    for (const item of arr) { if (item !== null && item !== undefined) splitSingle(item, true).forEach(s => res.push(s)); }
     return res;
   }
-  return splitSingle(arr);
+  return splitSingle(arr, false);
 }
 
 // Curated Multilingual Skill & Role Dictionary across Industries
