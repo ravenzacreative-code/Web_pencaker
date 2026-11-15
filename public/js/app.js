@@ -2007,7 +2007,7 @@ function renderJobs(jobs) {
             <div class="company-avatar">${initial}</div>
             <div class="company-meta">
               <div class="company-name">${escapeHtml(job.company_name)}</div>
-              <div class="job-location"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(job.location)}</div>
+              <div class="job-location"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(job.location || 'Indonesia')}</div>
             </div>
           </div>
 
@@ -2460,7 +2460,7 @@ async function openJobDetail(jobId) {
           <h2>${escapeHtml(job.title)}</h2>
           <div class="modal-header-meta">
             <span><i class="fa-solid fa-building"></i> ${escapeHtml(job.company_name)}</span>
-            <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(job.location)}</span>
+            <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(job.location || 'Indonesia')}</span>
             <span><i class="fa-solid fa-tag"></i> ${escapeHtml(job.category)}</span>
             <span><i class="fa-regular fa-eye"></i> Dilihat ${(job.views_count || 0) + 1}x</span>
           </div>
@@ -2833,7 +2833,8 @@ function extractJobContacts(job) {
   }
 
   // If website points to our own portal or localhost, it is NOT the company's apply URL
-  const isSelfPortalUrl = website.includes('job-portal') || website.includes('localhost') || website.includes('127.0.0.1') || website.includes('?job=');
+  const currentHost = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname : '';
+  const isSelfPortalUrl = website.includes('job-portal') || website.includes('localhost') || website.includes('127.0.0.1') || website.includes('kitakerja.biz.id') || (currentHost && website.includes(currentHost)) || website.includes('?job=');
   if (isSelfPortalUrl) {
     website = '';
   }
@@ -2916,6 +2917,32 @@ function extractJobContacts(job) {
   };
 }
 
+function isMobileDeviceClient() {
+  const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : '';
+  const touchCapable = typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1 && typeof window !== 'undefined' && window.innerWidth <= 1024;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || touchCapable;
+}
+
+function openExternalUrlSafely(url) {
+  if (!url) return false;
+  let opened = null;
+  try {
+    opened = window.open(url, '_blank');
+    if (opened) {
+      try { opened.opener = null; } catch (e) {}
+      return true;
+    }
+  } catch (e) {}
+
+  try {
+    window.location.assign(url);
+    return true;
+  } catch (e) {
+    window.location.href = url;
+    return true;
+  }
+}
+
 // 1-Click Direct Apply Launcher (Bypass modal for immediate application)
 window.directApplyJob = function(jobId, event) {
   if (event) {
@@ -2940,31 +2967,28 @@ window.directApplyJob = function(jobId, event) {
   const comp = job.company_name || 'Perusahaan';
   const title = job.title || 'Posisi Lowongan';
 
-  // Increment view count in background
-  if (sbClient && job.id) {
-    sbClient.from('jobs').update({ views_count: (job.views_count || 0) + 1 }).eq('id', job.id).then();
-  }
-
   if (contacts.website_url) {
     showToast('info', `Membuka portal pendaftaran resmi ${comp}...`);
-    window.open(contacts.website_url, '_blank', 'noopener,noreferrer');
-    return;
-  }
-
-  if (contacts.whatsapp) {
+    openExternalUrlSafely(contacts.website_url);
+  } else if (contacts.whatsapp) {
     showToast('info', `Menghubungkan langsung ke WhatsApp HRD ${comp}...`);
     triggerWhatsAppChat(contacts.whatsapp, comp, title);
-    return;
-  }
-
-  if (contacts.email) {
+  } else if (contacts.email) {
     showToast('info', `Membuka draf lamaran email HRD ${comp}...`);
     triggerEmailApplication(contacts.email, comp, title);
-    return;
+  } else {
+    // Fallback to detail modal if no contact channel found
+    openJobDetail(jobId);
   }
 
-  // Fallback to detail modal if no contact channel found
-  openJobDetail(jobId);
+  // Increment view count safely in background without blocking mobile gesture navigation
+  try {
+    if (sbClient && job.id) {
+      Promise.resolve(
+        sbClient.from('jobs').update({ views_count: (job.views_count || 0) + 1 }).eq('id', job.id)
+      ).catch(() => {});
+    }
+  } catch (e) {}
 };
 
 // Render Multi-Channel Contact Buttons
@@ -3110,24 +3134,49 @@ window.triggerWhatsAppChat = function(phone, companyName, jobTitle) {
   );
 
   const waUrl = `https://api.whatsapp.com/send?phone=${clean}&text=${textMsg}`;
-  const win = window.open(waUrl, '_blank', 'noopener,noreferrer');
-  if (!win || win.closed || typeof win.closed === 'undefined') {
-    // Popup was blocked or desktop protocol, fallback
-    window.location.href = `https://wa.me/${clean}?text=${textMsg}`;
-  }
+  openExternalUrlSafely(waUrl);
 };
 
-// Direct Webmail Home Launcher (Gmail, Outlook, Yahoo, Mailto)
+function buildEmailApplyDraft(companyName, jobTitle) {
+  const subject = `Lamaran Pekerjaan: ${jobTitle || 'Posisi'} - [Nama Anda]`;
+  const body = `Halo Tim HRD / Rekrutmen ${companyName || 'Perusahaan'},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${jobTitle || 'Pekerjaan'}.\n\nBersama email ini saya melampirkan berkas Curriculum Vitae (CV) dan Portofolio terbaru saya untuk dijadikan bahan pertimbangan.\n\nBesar harapan saya untuk dapat mengikuti tahapan proses seleksi selanjutnya. Terima kasih banyak atas waktu dan kesempatan yang diberikan.\n\nSalam hormat,\n[Nama Anda]\n[Nomor WhatsApp / Kontak]`;
+  return { subject, body };
+}
+
+function openNativeMailtoClient(email, companyName, jobTitle) {
+  const cleanEmail = String(email || '').trim();
+  if (!cleanEmail) return;
+  const { subject, body } = buildEmailApplyDraft(companyName, jobTitle);
+  const mailtoUrl = `mailto:${cleanEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const link = document.createElement('a');
+  link.href = mailtoUrl;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  try {
+    link.click();
+  } catch (e) {
+    window.location.href = mailtoUrl;
+  }
+  link.remove();
+  showToast('info', `Membuka aplikasi Email/Gmail perangkat Anda ke ${cleanEmail}...`);
+}
+
+// Direct Webmail Home Launcher (Gmail Desktop, Native Mailto on Mobile/HP, Outlook, Yahoo)
 window.openWebmail = function(provider, email, companyName, jobTitle) {
-  if (!email) {
+  const cleanEmail = String(email || '').trim();
+  if (!cleanEmail) {
     showToast('error', 'Alamat email rekruter tidak tersedia.');
     return;
   }
 
-  const subject = `Lamaran Pekerjaan: ${jobTitle || 'Posisi'} - [Nama Anda]`;
-  const body = `Halo Tim HRD / Rekrutmen ${companyName || 'Perusahaan'},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${jobTitle || 'Pekerjaan'}.\n\nBersama email ini saya melampirkan berkas Curriculum Vitae (CV) dan Portofolio terbaru saya untuk dijadikan bahan pertimbangan.\n\nBesar harapan saya untuk dapat mengikuti tahapan proses seleksi selanjutnya. Terima kasih banyak atas waktu dan kesempatan yang diberikan.\n\nSalam hormat,\n[Nama Anda]\n[Nomor WhatsApp / Kontak]`;
+  // Native Mailto: reliable on mobile phones (where desktop Gmail Web ?view=cm fails) or when 'mailto' chosen
+  if (provider === 'mailto' || (provider === 'gmail' && isMobileDeviceClient())) {
+    openNativeMailtoClient(cleanEmail, companyName, jobTitle);
+    return;
+  }
 
-  const encEmail = encodeURIComponent(email);
+  const { subject, body } = buildEmailApplyDraft(companyName, jobTitle);
+  const encEmail = encodeURIComponent(cleanEmail);
   const encSub = encodeURIComponent(subject);
   const encBody = encodeURIComponent(body);
 
@@ -3135,36 +3184,29 @@ window.openWebmail = function(provider, email, companyName, jobTitle) {
   let providerName = '';
 
   if (provider === 'gmail') {
-    // Gmail Web Compose Deep Link (Direct into Home Email)
     targetUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encEmail}&su=${encSub}&body=${encBody}`;
     providerName = 'Gmail Web';
   } else if (provider === 'outlook') {
-    // Outlook / Hotmail Web Compose Deep Link
     targetUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=${encEmail}&subject=${encSub}&body=${encBody}`;
     providerName = 'Outlook / Hotmail Web';
   } else if (provider === 'yahoo') {
-    // Yahoo Mail Web Compose Deep Link
     targetUrl = `https://compose.mail.yahoo.com/?to=${encEmail}&subj=${encSub}&body=${encBody}`;
     providerName = 'Yahoo Mail Web';
-  } else if (provider === 'mailto') {
-    // Native Mailto client
-    window.location.href = `mailto:${encEmail}?subject=${encSub}&body=${encBody}`;
-    showToast('info', 'Membuka aplikasi email bawaan perangkat Anda...');
-    return;
   }
 
   if (targetUrl) {
-    const win = window.open(targetUrl, '_blank', 'noopener,noreferrer');
-    if (!win || win.closed || typeof win.closed === 'undefined') {
-      window.location.href = targetUrl;
-    }
-    showToast('success', `Membuka ${providerName} untuk lamaran ke ${email}...`);
+    openExternalUrlSafely(targetUrl);
+    showToast('success', `Membuka ${providerName} untuk lamaran ke ${cleanEmail}...`);
   }
 };
 
 window.triggerEmailApplication = function(email, companyName, jobTitle) {
-  // Langsung buka Gmail Web Compose ("masuk ke home email gitu gas")
-  window.openWebmail('gmail', email, companyName, jobTitle);
+  // Mobile/HP -> Native Mailto (Gmail App / Apple Mail); Desktop/PC -> Gmail Web Compose
+  if (isMobileDeviceClient()) {
+    window.openWebmail('mailto', email, companyName, jobTitle);
+  } else {
+    window.openWebmail('gmail', email, companyName, jobTitle);
+  }
 };
 
 // Clipboard Helper

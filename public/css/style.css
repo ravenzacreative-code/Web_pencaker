@@ -2465,6 +2465,20 @@ textarea.form-control {
     min-width: 0;
     width: 100%;
   }
+  .job-card-footer {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .card-actions {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+  .card-actions .btn,
+  .job-card-body .btn-apply-direct {
+    min-height: 38px;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
 }
 
 /* ==============================================================

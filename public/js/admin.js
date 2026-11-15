@@ -1837,11 +1837,12 @@ function setupJobFormSubmit() {
 
     const title = form.querySelector('[name="title"]').value.trim();
     const company = form.querySelector('[name="company_name"]').value.trim();
+    const locationVal = (form.querySelector('[name="location"]')?.value || '').trim() || 'Indonesia';
     const rawDesc = form.querySelector('[name="description"]').value.trim();
     const desc = formatManualDescription(rawDesc);
 
-    if (!title || !company || !desc) {
-      alert('Judul posisi, nama perusahaan, dan deskripsi wajib diisi!');
+    if (!title || !company) {
+      alert('Judul posisi dan nama perusahaan wajib diisi!');
       return;
     }
 
@@ -1913,7 +1914,7 @@ function setupJobFormSubmit() {
       company_name: company,
       category: form.querySelector('[name="category"]').value,
       job_type: form.querySelector('[name="job_type"]').value,
-      location: form.querySelector('[name="location"]').value,
+      location: locationVal,
       salary_display: form.querySelector('[name="salary_display"]').value || 'Kompetitif',
       experience_level: form.querySelector('[name="experience_level"]').value,
       deadline: form.querySelector('[name="deadline"]').value || '',
@@ -1945,6 +1946,7 @@ function setupJobFormSubmit() {
       formData.set('email', email);
       formData.set('website_url', website);
       formData.set('apply_info', customApplyInfo);
+      formData.set('location', locationVal);
       formData.set('description', desc);
       formData.set('cover_image', effectiveCover);
       formData.set('poster_image', effectivePoster);
@@ -3386,7 +3388,7 @@ function setupEditFormSubmit() {
       company_name: form.querySelector('[name="company_name"]').value.trim(),
       category: form.querySelector('[name="category"]').value,
       job_type: form.querySelector('[name="job_type"]').value,
-      location: form.querySelector('[name="location"]').value,
+      location: (form.querySelector('[name="location"]')?.value || '').trim() || 'Indonesia',
       salary_display: form.querySelector('[name="salary_display"]').value || 'Kompetitif',
       experience_level: form.querySelector('[name="experience_level"]').value,
       deadline: form.querySelector('[name="deadline"]')?.value.trim() || '',

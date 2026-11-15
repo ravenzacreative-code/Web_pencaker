@@ -298,6 +298,7 @@ function normalizeJobPayload(body, isCreate = true) {
     };
 
     if (isCreate) {
+        payload.location = payload.location || 'Indonesia';
         payload.salary_display = payload.salary_display || 'Kompetitif';
         payload.job_type = payload.job_type || 'Full-Time';
         payload.experience_level = payload.experience_level || 'Fresh Graduate';
@@ -595,8 +596,8 @@ app.post('/api/jobs', requireAdminAuth, async (c) => {
         const body = await parseJobRequestBody(c);
         const payload = normalizeJobPayload(body, true);
 
-        if (!payload.title || !payload.company_name || !payload.location) {
-            return c.json({ error: 'Judul, Nama Perusahaan, dan Lokasi wajib diisi!' }, 400);
+        if (!payload.title || !payload.company_name) {
+            return c.json({ error: 'Judul dan Nama Perusahaan wajib diisi!' }, 400);
         }
 
         const created = await addJob(c.env, payload);

@@ -14,8 +14,8 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/admin.css?v=20261115_03">
-  <link rel="stylesheet" href="./css/cv-builder.css?v=20261115_03">
+  <link rel="stylesheet" href="./css/admin.css?v=20261115_04">
+  <link rel="stylesheet" href="./css/cv-builder.css?v=20261115_04">
   <!-- Start Admin Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialAdminJobsPrefetch = fetch('/api/jobs?status=all').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
@@ -662,9 +662,9 @@
                     </div>
 
                     <div class="form-group">
-                      <label class="form-label">Lokasi Kerja <span class="req">*</span></label>
+                      <label class="form-label">Lokasi Kerja</label>
                       <input type="text" name="location" id="upload-location" list="master-locations-list"
-                        class="form-input" placeholder="Contoh: Jakarta Selatan (SCBD) atau Remote" required>
+                        class="form-input" placeholder="Opsional — Contoh: Jakarta Selatan (SCBD) atau Remote">
                     </div>
                   </div>
                 </div>
@@ -907,12 +907,12 @@
                   </div>
 
                   <div class="form-group full-width">
-                    <label class="form-label">Keterangan / Ringkasan Posisi <span class="req">*</span></label>
+                    <label class="form-label">Keterangan / Ringkasan Posisi</label>
                     <textarea name="description" class="form-textarea" rows="4"
-                      placeholder="Tuliskan gambaran pekerjaan atau copy-paste daftar poin (awali baris dengan tanda - untuk memisahkan setiap poin baru)..."
-                      required></textarea>
+                      placeholder="Opsional — Tuliskan gambaran pekerjaan atau copy-paste daftar poin (awali baris dengan tanda - untuk memisahkan setiap poin baru)..."></textarea>
                     <div class="dm-bulk-hint" style="margin-top: 6px;">
-                      <i class="fa-solid fa-wand-magic-sparkles"></i> Tips: Awali baris dengan <code>-</code> untuk poin baru; baris lanjutannya otomatis digabung rapi.
+                      <i class="fa-solid fa-wand-magic-sparkles"></i> Tips: Awali baris dengan <code>-</code> untuk poin
+                      baru; baris lanjutannya otomatis digabung rapi.
                     </div>
                   </div>
 
@@ -933,9 +933,11 @@
                         </div>
                       </div>
                       <div class="dm-bulk-hint">
-                        <i class="fa-solid fa-circle-info"></i> Copy-paste semua poin sekaligus. Awali tiap poin baru dengan tanda <code>-</code>
+                        <i class="fa-solid fa-circle-info"></i> Copy-paste semua poin sekaligus. Awali tiap poin baru
+                        dengan tanda <code>-</code>
                       </div>
-                      <textarea name="responsibilities" id="upload-resp-textarea" class="form-textarea dm-bulk-textarea" rows="6"
+                      <textarea name="responsibilities" id="upload-resp-textarea" class="form-textarea dm-bulk-textarea"
+                        rows="6"
                         placeholder="-Melakukan proses praloading terhadap part yang dibutuhkan&#10;-Melakukan proses loading sesuai jadwal&#10;-Memastikan area kerja tetap bersih dan rapi"></textarea>
                     </div>
 
@@ -954,9 +956,11 @@
                         </div>
                       </div>
                       <div class="dm-bulk-hint">
-                        <i class="fa-solid fa-circle-info"></i> Copy-paste semua poin sekaligus. Awali tiap poin baru dengan tanda <code>-</code>
+                        <i class="fa-solid fa-circle-info"></i> Copy-paste semua poin sekaligus. Awali tiap poin baru
+                        dengan tanda <code>-</code>
                       </div>
-                      <textarea name="requirements" id="upload-req-textarea" class="form-textarea dm-bulk-textarea" rows="6"
+                      <textarea name="requirements" id="upload-req-textarea" class="form-textarea dm-bulk-textarea"
+                        rows="6"
                         placeholder="-Pria / Wanita, usia maksimal 28 tahun&#10;-Pendidikan minimal SMA/SMK sederajat&#10;-Sehat jasmani dan rohani, siap bekerja shift"></textarea>
                     </div>
 
@@ -975,7 +979,8 @@
                         </div>
                       </div>
                       <div class="dm-bulk-hint">
-                        <i class="fa-solid fa-circle-info"></i> Copy-paste semua poin sekaligus. Awali tiap poin baru dengan tanda <code>-</code>
+                        <i class="fa-solid fa-circle-info"></i> Copy-paste semua poin sekaligus. Awali tiap poin baru
+                        dengan tanda <code>-</code>
                       </div>
                       <textarea name="benefits" id="upload-ben-textarea" class="form-textarea dm-bulk-textarea" rows="6"
                         placeholder="-Gaji Pokok UMK&#10;-BPJS Kesehatan & Ketenagakerjaan&#10;-Tunjangan transport & uang makan"></textarea>
@@ -1086,7 +1091,8 @@
                     <button type="reset" class="btn btn-secondary">
                       <i class="fa-solid fa-rotate-left"></i> Reset Form
                     </button>
-                    <button type="submit" class="btn btn-primary btn-submit-glow" title="Publikasikan lowongan beserta poster dan detail kualifikasi langsung ke halaman Portal User">
+                    <button type="submit" class="btn btn-primary btn-submit-glow"
+                      title="Publikasikan lowongan beserta poster dan detail kualifikasi langsung ke halaman Portal User">
                       <i class="fa-solid fa-paper-plane"></i> Publikasikan ke Portal User
                     </button>
                   </div>
@@ -2011,8 +2017,7 @@
             </div>
             <div class="form-group">
               <label class="form-label">Lokasi</label>
-              <input type="text" name="location" id="edit-location" list="master-locations-list" class="form-input"
-                required>
+              <input type="text" name="location" id="edit-location" list="master-locations-list" class="form-input">
             </div>
           </div>
 
@@ -2177,7 +2182,7 @@
 
           <div class="form-group">
             <label class="form-label">Deskripsi Lengkap Posisi</label>
-            <textarea name="description" class="form-textarea" rows="4" required></textarea>
+            <textarea name="description" class="form-textarea" rows="4"></textarea>
           </div>
 
           <!-- 3 KOLOM DINAMIS EDIT: TANGGUNG JAWAB, KUALIFIKASI, BENEFIT (MAKS 10 DENGAN TOMBOL +) -->
@@ -2689,8 +2694,8 @@
     </div>
   </div>
 
-  <script src="./js/admin.js?v=20261115_03" defer></script>
-  <script src="./js/cv-builder.js?v=20261115_03" defer></script>
+  <script src="./js/admin.js?v=20261115_04" defer></script>
+  <script src="./js/cv-builder.js?v=20261115_04" defer></script>
 </body>
 
 </html>
