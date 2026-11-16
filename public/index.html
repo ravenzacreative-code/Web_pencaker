@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
   
-  <link rel="stylesheet" href="./css/style.css?v=20261116_02">
+  <link rel="stylesheet" href="./css/style.css?v=20261116_03">
   <!-- Start Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function(r){return r.ok ? r.json() : null;}).catch(function(){return null;});</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
@@ -484,15 +484,18 @@
       </div>
       <div class="footer-bottom">
         <span>&copy; 2026 KerjaHub - Portal Berbagi Poster Lowongan Kerja Resmi.</span>
-        <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-watermark-pill" title="Kunjungi Daysheet.id">
-          <span class="daysheet-wm-badge">
-            <img src="./uploads/daysheet_logo.png" alt="Daysheet">
-          </span>
-          <span class="daysheet-wm-text">
-            <span class="daysheet-wm-label">@copyright by</span>
-            <span class="daysheet-wm-domain">daysheet<span class="daysheet-wm-tld">.id</span></span>
-          </span>
-        </a>
+        <div class="footer-bottom-actions">
+          <div class="footer-social-links" id="footer-social-links" style="display: none;" aria-label="Media Sosial Resmi"></div>
+          <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-watermark-pill" title="Kunjungi Daysheet.id">
+            <span class="daysheet-wm-badge">
+              <img src="./uploads/daysheet_logo.png" alt="Daysheet">
+            </span>
+            <span class="daysheet-wm-text">
+              <span class="daysheet-wm-label">@copyright by</span>
+              <span class="daysheet-wm-domain">daysheet<span class="daysheet-wm-tld">.id</span></span>
+            </span>
+          </a>
+        </div>
       </div>
     </div>
   </footer>
@@ -511,6 +514,6 @@
     </a>
   </div>
 
-  <script src="./js/app.js?v=20261116_02" defer></script>
+  <script src="./js/app.js?v=20261116_03" defer></script>
 </body>
 </html>

@@ -479,8 +479,14 @@ export async function getSettings(env) {
 }
 
 export async function saveSettings(env, settingsData) {
+    const currentSettings = await getSettings(env);
+    const mergedSettings = {
+        ...(currentSettings && typeof currentSettings === 'object' ? currentSettings : {}),
+        ...(settingsData && typeof settingsData === 'object' ? settingsData : {}),
+        updated_at: new Date().toISOString()
+    };
     const existing = await supabaseFetch(env, 'jobs?status=eq.system_settings&limit=1&select=id');
-    const jsonStr = JSON.stringify(settingsData || {});
+    const jsonStr = JSON.stringify(mergedSettings);
     if (Array.isArray(existing) && existing.length > 0) {
         await supabaseFetch(env, `jobs?id=eq.${existing[0].id}`, {
             method: 'PATCH',

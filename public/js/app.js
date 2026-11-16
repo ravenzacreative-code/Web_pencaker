@@ -347,10 +347,74 @@ window.cleanJobData = function(job) {
   return copy;
 };
 
-// Site Settings (WhatsApp CV Order, etc.)
+// Site Settings (WhatsApp CV Order & Social Media Footer)
 window.siteSettings = {
   cv_whatsapp: '081234567890',
-  cv_order_message: 'Halo Admin KerjaHub, saya ingin memesan layanan pembuatan / review CV profesional berstandar ATS agar lolos seleksi kerja. Mohon informasi tarif dan prosedurnya. Terima kasih.'
+  cv_order_message: 'Halo Admin KerjaHub, saya ingin memesan layanan pembuatan / review CV profesional berstandar ATS agar lolos seleksi kerja. Mohon informasi tarif dan prosedurnya. Terima kasih.',
+  instagram_url: '',
+  tiktok_url: ''
+};
+
+function normalizePublicSocialUrl(rawVal, platform) {
+  const raw = String(rawVal || '').trim();
+  if (!raw || /^(javascript|data|vbscript):/i.test(raw)) return '';
+  let url = raw;
+  if (!/^https?:\/\//i.test(url)) {
+    const cleanHandle = raw.replace(/^@+/, '').replace(/^\/+|\/+$/g, '');
+    if (!cleanHandle) return '';
+    if (platform === 'instagram') {
+      url = (/^(www\.)?instagram\.com\//i.test(cleanHandle) || /^instagr\.am\//i.test(cleanHandle))
+        ? `https://${cleanHandle}`
+        : `https://www.instagram.com/${cleanHandle}/`;
+    } else if (platform === 'tiktok') {
+      url = (/^(www\.|vm\.|vt\.)?tiktok\.com\//i.test(cleanHandle))
+        ? `https://${cleanHandle}`
+        : `https://www.tiktok.com/@${cleanHandle}`;
+    } else {
+      url = `https://${cleanHandle}`;
+    }
+  }
+  try {
+    const parsed = new URL(url);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? parsed.href : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+window.renderFooterSocialLinks = function() {
+  const container = document.getElementById('footer-social-links');
+  if (!container) return;
+  const s = window.siteSettings || {};
+  const igUrl = normalizePublicSocialUrl(s.instagram_url, 'instagram');
+  const ttUrl = normalizePublicSocialUrl(s.tiktok_url, 'tiktok');
+
+  const items = [];
+  if (igUrl) {
+    items.push(`
+      <a href="${escapeHtml(igUrl)}" target="_blank" rel="noopener noreferrer" class="social-footer-btn social-ig" title="Ikuti Instagram Resmi KerjaHub" aria-label="Instagram KerjaHub">
+        <span class="social-footer-icon"><i class="fa-brands fa-instagram"></i></span>
+        <span>Instagram</span>
+      </a>
+    `);
+  }
+  if (ttUrl) {
+    items.push(`
+      <a href="${escapeHtml(ttUrl)}" target="_blank" rel="noopener noreferrer" class="social-footer-btn social-tt" title="Ikuti TikTok Resmi KerjaHub" aria-label="TikTok KerjaHub">
+        <span class="social-footer-icon"><i class="fa-brands fa-tiktok"></i></span>
+        <span>TikTok</span>
+      </a>
+    `);
+  }
+
+  if (items.length === 0) {
+    container.innerHTML = '';
+    container.style.display = 'none';
+    return;
+  }
+
+  container.innerHTML = items.join('');
+  container.style.display = 'inline-flex';
 };
 
 window.openCvOrderWhatsApp = function() {
@@ -462,13 +526,22 @@ async function initSupabaseClient() {
         if (data.cv_order_message) {
           window.siteSettings.cv_order_message = data.cv_order_message;
         }
+        if (typeof data.instagram_url === 'string') {
+          window.siteSettings.instagram_url = data.instagram_url;
+        }
+        if (typeof data.tiktok_url === 'string') {
+          window.siteSettings.tiktok_url = data.tiktok_url;
+        }
+        if (typeof window.renderFooterSocialLinks === 'function') {
+          window.renderFooterSocialLinks();
+        }
       }
     } catch (e) {
       // offline/static preview
     }
 
     // 3. Resilient fallback for site settings directly from Supabase if needed
-    if (sbClient && window.siteSettings && (!window.siteSettings.cv_whatsapp || window.siteSettings.cv_whatsapp === '081234567890')) {
+    if (sbClient && window.siteSettings && (!window.siteSettings.cv_whatsapp || window.siteSettings.cv_whatsapp === '081234567890' || (!window.siteSettings.instagram_url && !window.siteSettings.tiktok_url))) {
       try {
         const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 4000));
         const fetchPromise = sbClient.from('jobs').select('description').eq('status', 'system_settings').limit(1);
@@ -477,6 +550,11 @@ async function initSupabaseClient() {
           const parsed = JSON.parse(stRows[0].description);
           if (parsed.cv_whatsapp) window.siteSettings.cv_whatsapp = parsed.cv_whatsapp;
           if (parsed.cv_order_message) window.siteSettings.cv_order_message = parsed.cv_order_message;
+          if (!window.siteSettings.instagram_url && parsed.instagram_url) window.siteSettings.instagram_url = parsed.instagram_url;
+          if (!window.siteSettings.tiktok_url && parsed.tiktok_url) window.siteSettings.tiktok_url = parsed.tiktok_url;
+          if (typeof window.renderFooterSocialLinks === 'function') {
+            window.renderFooterSocialLinks();
+          }
         }
       } catch (e) {}
     }
@@ -549,7 +627,13 @@ function setupLiveJobsAutoSync() {
       _liveJobsBc = new BroadcastChannel('kerjahub_jobs_sync');
       _liveJobsBc.onmessage = (ev) => {
         const msg = ev && ev.data;
-        if (!msg || msg.type !== 'jobs_updated') return;
+        if (!msg) return;
+        if (msg.type === 'settings_updated' && msg.settings) {
+          Object.assign(window.siteSettings, msg.settings);
+          if (typeof window.renderFooterSocialLinks === 'function') window.renderFooterSocialLinks();
+          return;
+        }
+        if (msg.type !== 'jobs_updated') return;
         if (Array.isArray(msg.jobs)) {
           const nextJobs = msg.jobs.map(window.cleanJobData).filter(isJobPubliclyVisible);
           const nextSig = getJobsSignature(nextJobs);
@@ -575,7 +659,18 @@ function setupLiveJobsAutoSync() {
 
   // 2. Fallback cross-tab storage event listener
   window.addEventListener('storage', (e) => {
-    if (!e || (e.key !== 'kerjahub_jobs_sync_ts' && e.key !== 'kerja_public_jobs_cache')) return;
+    if (!e) return;
+    if (e.key === 'kerjahub_settings_sync' && e.newValue) {
+      try {
+        const s = JSON.parse(e.newValue);
+        if (s && typeof s === 'object') {
+          Object.assign(window.siteSettings, s);
+          if (typeof window.renderFooterSocialLinks === 'function') window.renderFooterSocialLinks();
+        }
+      } catch (se) {}
+      return;
+    }
+    if (e.key !== 'kerjahub_jobs_sync_ts' && e.key !== 'kerja_public_jobs_cache') return;
     try {
       const cached = safeLocalGet('kerja_public_jobs_cache');
       if (cached !== null && cached !== undefined) {

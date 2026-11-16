@@ -1001,8 +1001,8 @@ function switchSection(sectionName) {
     if (subEl) subEl.textContent = 'Kelola Kategori Bidang, Tipe Pekerjaan, Level Pengalaman, dan Lokasi.';
     loadMasterData();
   } else if (sectionName === 'settings-cv') {
-    if (titleEl) titleEl.textContent = 'Pengaturan Layanan Pesan CV WhatsApp';
-    if (subEl) subEl.textContent = 'Atur nomor WhatsApp resmi yang akan dihubungi pelamar saat memesan CV.';
+    if (titleEl) titleEl.textContent = 'Pengaturan WhatsApp CV & Media Sosial Footer';
+    if (subEl) subEl.textContent = 'Atur nomor WhatsApp layanan CV serta link Instagram & TikTok yang tampil di footer website user.';
     loadCvSettings();
   } else if (sectionName === 'cv-builder') {
     if (titleEl) titleEl.textContent = 'Studio Pembuat & Desain CV (8 Template ATS)';
@@ -9239,21 +9239,65 @@ function escapeHtml(str) {
 // -------------------------------------------------------------
 // PENGATURAN PESAN CV (WHATSAPP KONTAK PUBLIK)
 // -------------------------------------------------------------
+function normalizeSocialUrl(rawVal, platform) {
+  const raw = String(rawVal || '').trim();
+  if (!raw) return '';
+  if (/^(javascript|data|vbscript):/i.test(raw)) return '';
+
+  let url = raw;
+  if (!/^https?:\/\//i.test(url)) {
+    const cleanHandle = raw.replace(/^@+/, '').replace(/^\/+|\/+$/g, '');
+    if (!cleanHandle) return '';
+    if (platform === 'instagram') {
+      if (/^(www\.)?instagram\.com\//i.test(cleanHandle) || /^instagr\.am\//i.test(cleanHandle)) {
+        url = `https://${cleanHandle}`;
+      } else {
+        url = `https://www.instagram.com/${cleanHandle}/`;
+      }
+    } else if (platform === 'tiktok') {
+      if (/^(www\.|vm\.|vt\.)?tiktok\.com\//i.test(cleanHandle)) {
+        url = `https://${cleanHandle}`;
+      } else {
+        url = `https://www.tiktok.com/@${cleanHandle}`;
+      }
+    } else {
+      url = `https://${cleanHandle}`;
+    }
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+    return parsed.href;
+  } catch (e) {
+    return '';
+  }
+}
+
 async function loadCvSettings() {
   const inputWa = document.getElementById('setting-cv-whatsapp');
   const inputMsg = document.getElementById('setting-cv-message');
+  const inputIg = document.getElementById('setting-social-instagram');
+  const inputTt = document.getElementById('setting-social-tiktok');
+
+  const applyLoaded = (s) => {
+    if (!s || typeof s !== 'object') return;
+    if (inputWa) inputWa.value = s.cv_whatsapp || '';
+    if (inputMsg) inputMsg.value = s.cv_order_message || '';
+    if (inputIg) inputIg.value = s.instagram_url || '';
+    if (inputTt) inputTt.value = s.tiktok_url || '';
+    updateCvSettingsPreview(s.cv_whatsapp, s.cv_order_message, s.instagram_url, s.tiktok_url);
+  };
 
   try {
-    const { ok, data } = await safeFetchJson(getApiEndpoint('/api/settings'));
-    if (ok && data && data.success && data.data) {
-      const s = data.data;
-      if (inputWa) inputWa.value = s.cv_whatsapp || '';
-      if (inputMsg) inputMsg.value = s.cv_order_message || '';
-      updateCvSettingsPreview(s.cv_whatsapp, s.cv_order_message);
+    const { ok, data } = await safeFetchJson(getApiEndpoint(`/api/settings?_t=${Date.now()}`));
+    const payload = (data && data.success && data.data) ? data.data : data;
+    if (ok && payload && typeof payload === 'object' && ('cv_whatsapp' in payload || 'whatsapp_number' in payload || 'instagram_url' in payload || 'tiktok_url' in payload)) {
+      applyLoaded(payload);
       return;
     }
   } catch (e) {
-    console.warn('Gagal memuat pengaturan CV dari API:', e);
+    console.warn('Gagal memuat pengaturan CV & medsos dari API:', e);
   }
 
   // Resilient fallback: direct Supabase read
@@ -9261,10 +9305,7 @@ async function loadCvSettings() {
     try {
       const { data: rows } = await sbClient.from('jobs').select('description').eq('status', 'system_settings').limit(1);
       if (rows && rows.length > 0 && rows[0].description) {
-        const s = JSON.parse(rows[0].description);
-        if (inputWa) inputWa.value = s.cv_whatsapp || '';
-        if (inputMsg) inputMsg.value = s.cv_order_message || '';
-        updateCvSettingsPreview(s.cv_whatsapp, s.cv_order_message);
+        applyLoaded(JSON.parse(rows[0].description));
       }
     } catch (err) {
       console.warn('Gagal memuat pengaturan CV dari Supabase:', err);
@@ -9272,7 +9313,7 @@ async function loadCvSettings() {
   }
 }
 
-function updateCvSettingsPreview(wa, msg) {
+function updateCvSettingsPreview(wa, msg, ig, tt) {
   const previewNum = document.getElementById('preview-cv-wa-number');
   const previewMsg = document.getElementById('preview-cv-wa-msg');
   if (previewNum) {
@@ -9286,25 +9327,46 @@ function updateCvSettingsPreview(wa, msg) {
   if (previewMsg) {
     previewMsg.textContent = msg || 'Halo Admin, saya ingin memesan layanan pembuatan / review CV profesional berstandar ATS agar lolos seleksi kerja. Mohon informasi tarif dan prosedurnya. Terima kasih.';
   }
+
+  const updateSocialBadge = (elId, rawVal, platform, labelName) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const url = normalizeSocialUrl(rawVal, platform);
+    const spanEl = el.querySelector('span');
+    if (url) {
+      el.href = url;
+      el.style.opacity = '1';
+      el.style.pointerEvents = 'auto';
+      el.title = `Buka ${labelName}: ${url}`;
+      if (spanEl) spanEl.textContent = `${labelName} (Aktif)`;
+    } else {
+      el.href = '#';
+      el.style.opacity = '0.45';
+      el.style.pointerEvents = 'none';
+      el.title = `${labelName} belum diisi`;
+      if (spanEl) spanEl.textContent = `${labelName} (Belum Diisi)`;
+    }
+  };
+
+  updateSocialBadge('preview-social-ig-link', ig, 'instagram', 'Instagram');
+  updateSocialBadge('preview-social-tt-link', tt, 'tiktok', 'TikTok');
 }
 
 function setupCvSettings() {
   const form = document.getElementById('form-settings-cv');
   const inputWa = document.getElementById('setting-cv-whatsapp');
   const inputMsg = document.getElementById('setting-cv-message');
+  const inputIg = document.getElementById('setting-social-instagram');
+  const inputTt = document.getElementById('setting-social-tiktok');
   const btnTest = document.getElementById('btn-test-wa-direct');
 
-  if (inputWa) {
-    inputWa.addEventListener('input', () => {
-      updateCvSettingsPreview(inputWa.value, inputMsg?.value);
-    });
-  }
+  const syncPreview = () => {
+    updateCvSettingsPreview(inputWa?.value, inputMsg?.value, inputIg?.value, inputTt?.value);
+  };
 
-  if (inputMsg) {
-    inputMsg.addEventListener('input', () => {
-      updateCvSettingsPreview(inputWa?.value, inputMsg.value);
-    });
-  }
+  [inputWa, inputMsg, inputIg, inputTt].forEach(el => {
+    if (el) el.addEventListener('input', syncPreview);
+  });
 
   if (btnTest) {
     btnTest.addEventListener('click', () => {
@@ -9329,6 +9391,33 @@ function setupCvSettings() {
 
       const wa = inputWa?.value.trim() || '';
       const msg = inputMsg?.value.trim() || '';
+      const rawIg = inputIg?.value.trim() || '';
+      const rawTt = inputTt?.value.trim() || '';
+      const igUrl = normalizeSocialUrl(rawIg, 'instagram');
+      const ttUrl = normalizeSocialUrl(rawTt, 'tiktok');
+
+      if (rawIg && !igUrl) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origHtml;
+        alert('Format link Instagram tidak valid. Masukkan URL seperti https://instagram.com/akunanda atau @akunanda.');
+        inputIg?.focus();
+        return;
+      }
+      if (rawTt && !ttUrl) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origHtml;
+        alert('Format link TikTok tidak valid. Masukkan URL seperti https://tiktok.com/@akunanda atau @akunanda.');
+        inputTt?.focus();
+        return;
+      }
+
+      const payload = {
+        cv_whatsapp: wa,
+        cv_order_message: msg,
+        instagram_url: igUrl,
+        tiktok_url: ttUrl,
+        updated_at: new Date().toISOString()
+      };
 
       let saved = false;
       let errorMsg = '';
@@ -9341,10 +9430,7 @@ function setupCvSettings() {
             'Content-Type': 'application/json',
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           },
-          body: JSON.stringify({
-            cv_whatsapp: wa,
-            cv_order_message: msg
-          })
+          body: JSON.stringify(payload)
         });
 
         if (res.ok && res.data && res.data.success) {
@@ -9356,19 +9442,17 @@ function setupCvSettings() {
         errorMsg = err.message;
       }
 
-      // Resilient fallback: direct Supabase save
+      // Resilient fallback: direct Supabase save (merge existing keys)
       if (!saved && sbClient) {
         try {
-          const { data: existingRows } = await sbClient.from('jobs').select('id').eq('status', 'system_settings').limit(1);
-          const payload = {
-            cv_whatsapp: wa,
-            cv_order_message: msg,
-            updated_at: new Date().toISOString()
-          };
+          const { data: existingRows } = await sbClient.from('jobs').select('id, description').eq('status', 'system_settings').limit(1);
           if (existingRows && existingRows.length > 0) {
+            let prev = {};
+            try { prev = JSON.parse(existingRows[0].description || '{}') || {}; } catch (pe) {}
+            const merged = { ...prev, ...payload };
             const { error: patchErr } = await sbClient.from('jobs').update({
-              description: JSON.stringify(payload),
-              updated_at: new Date().toISOString()
+              description: JSON.stringify(merged),
+              updated_at: payload.updated_at
             }).eq('id', existingRows[0].id);
             if (!patchErr) saved = true;
           } else {
@@ -9395,8 +9479,20 @@ function setupCvSettings() {
       submitBtn.innerHTML = origHtml;
 
       if (saved) {
-        alert(`Berhasil! Nomor WhatsApp pemesanan CV (${wa}) berhasil disimpan dan langsung aktif di tombol "Pesan CV" website publik.`);
-        updateCvSettingsPreview(wa, msg);
+        if (inputIg) inputIg.value = igUrl;
+        if (inputTt) inputTt.value = ttUrl;
+        updateCvSettingsPreview(wa, msg, igUrl, ttUrl);
+
+        try {
+          if (typeof BroadcastChannel === 'function') {
+            const bc = new BroadcastChannel('kerjahub_jobs_sync');
+            bc.postMessage({ type: 'settings_updated', settings: payload });
+            bc.close();
+          }
+          localStorage.setItem('kerjahub_settings_sync', JSON.stringify(payload));
+        } catch (be) {}
+
+        alert('Berhasil! Pengaturan WhatsApp CV & link media sosial (Instagram / TikTok) sudah disimpan dan langsung aktif di web user.');
       } else {
         alert('Gagal menyimpan pengaturan: ' + (errorMsg || 'Server menolak request.'));
       }

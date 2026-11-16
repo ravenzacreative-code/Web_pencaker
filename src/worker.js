@@ -380,7 +380,9 @@ app.get('/api/config', async (c) => {
                 supabaseKey: publicKey,
                 whatsappNumber: settings.whatsapp_number || '6281234567890',
                 cv_whatsapp: settings.cv_whatsapp || settings.whatsapp_number || '',
-                cv_order_message: settings.cv_order_message || ''
+                cv_order_message: settings.cv_order_message || '',
+                instagram_url: settings.instagram_url || '',
+                tiktok_url: settings.tiktok_url || ''
             };
         });
     } catch (err) {

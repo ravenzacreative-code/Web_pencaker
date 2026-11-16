@@ -202,10 +202,73 @@ async function safeFetchJson(url, options = {}) {
   }
 }
 
-// Site Settings (WhatsApp CV Order, etc.)
+// Site Settings (WhatsApp CV Order & Social Media Footer)
 window.siteSettings = {
   cv_whatsapp: '081234567890',
-  cv_order_message: 'Halo Admin KerjaHub, saya ingin memesan layanan pembuatan / review CV profesional berstandar ATS agar lolos seleksi kerja. Mohon informasi tarif dan prosedurnya. Terima kasih.'
+  cv_order_message: 'Halo Admin KerjaHub, saya ingin memesan layanan pembuatan / review CV profesional berstandar ATS agar lolos seleksi kerja. Mohon informasi tarif dan prosedurnya. Terima kasih.',
+  instagram_url: '',
+  tiktok_url: ''
+};
+
+function normalizePublicSocialUrl(rawVal, platform) {
+  const raw = String(rawVal || '').trim();
+  if (!raw || /^(javascript|data|vbscript):/i.test(raw)) return '';
+  let url = raw;
+  if (!/^https?:\/\//i.test(url)) {
+    const cleanHandle = raw.replace(/^@+/, '').replace(/^\/+|\/+$/g, '');
+    if (!cleanHandle) return '';
+    if (platform === 'instagram') {
+      url = (/^(www\.)?instagram\.com\//i.test(cleanHandle) || /^instagr\.am\//i.test(cleanHandle))
+        ? `https://${cleanHandle}`
+        : `https://www.instagram.com/${cleanHandle}/`;
+    } else if (platform === 'tiktok') {
+      url = (/^(www\.|vm\.|vt\.)?tiktok\.com\//i.test(cleanHandle))
+        ? `https://${cleanHandle}`
+        : `https://www.tiktok.com/@${cleanHandle}`;
+    } else {
+      url = `https://${cleanHandle}`;
+    }
+  }
+  try {
+    const parsed = new URL(url);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? parsed.href : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+window.renderFooterSocialLinks = function() {
+  const container = document.getElementById('footer-social-links');
+  if (!container) return;
+  const s = window.siteSettings || {};
+  const igUrl = normalizePublicSocialUrl(s.instagram_url, 'instagram');
+  const ttUrl = normalizePublicSocialUrl(s.tiktok_url, 'tiktok');
+  const esc = (v) => String(v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const items = [];
+  if (igUrl) {
+    items.push(`
+      <a href="${esc(igUrl)}" target="_blank" rel="noopener noreferrer" class="social-footer-btn social-ig" title="Ikuti Instagram Resmi KerjaHub" aria-label="Instagram KerjaHub">
+        <span class="social-footer-icon"><i class="fa-brands fa-instagram"></i></span>
+        <span>Instagram</span>
+      </a>
+    `);
+  }
+  if (ttUrl) {
+    items.push(`
+      <a href="${esc(ttUrl)}" target="_blank" rel="noopener noreferrer" class="social-footer-btn social-tt" title="Ikuti TikTok Resmi KerjaHub" aria-label="TikTok KerjaHub">
+        <span class="social-footer-icon"><i class="fa-brands fa-tiktok"></i></span>
+        <span>TikTok</span>
+      </a>
+    `);
+  }
+  if (items.length === 0) {
+    container.innerHTML = '';
+    container.style.display = 'none';
+    return;
+  }
+  container.innerHTML = items.join('');
+  container.style.display = 'inline-flex';
 };
 
 window.openCvOrderWhatsApp = function() {
@@ -289,6 +352,9 @@ async function loadAllJobs() {
           const s = JSON.parse(stData[0].description);
           if (s.cv_whatsapp) window.siteSettings.cv_whatsapp = s.cv_whatsapp;
           if (s.cv_order_message) window.siteSettings.cv_order_message = s.cv_order_message;
+          if (s.instagram_url) window.siteSettings.instagram_url = s.instagram_url;
+          if (s.tiktok_url) window.siteSettings.tiktok_url = s.tiktok_url;
+          if (typeof window.renderFooterSocialLinks === 'function') window.renderFooterSocialLinks();
         } catch (err) {}
       }
     } catch (e) {}
@@ -316,6 +382,15 @@ async function loadAllJobs() {
       }
       if (cfg.cv_order_message) {
         window.siteSettings.cv_order_message = cfg.cv_order_message;
+      }
+      if (typeof cfg.instagram_url === 'string') {
+        window.siteSettings.instagram_url = cfg.instagram_url;
+      }
+      if (typeof cfg.tiktok_url === 'string') {
+        window.siteSettings.tiktok_url = cfg.tiktok_url;
+      }
+      if (typeof window.renderFooterSocialLinks === 'function') {
+        window.renderFooterSocialLinks();
       }
     }
   } catch (e) {}
