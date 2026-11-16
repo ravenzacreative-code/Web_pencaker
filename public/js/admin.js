@@ -2250,6 +2250,51 @@ function renderDashboardCharts(jobsList, activeCount, scheduledCount, expiredCou
     const dataVals = [activeCount || 0, scheduledCount || 0, expiredCount || 0];
     const total = dataVals.reduce((a, b) => a + b, 0);
 
+    const doughnutValueLabelsPlugin = {
+      id: 'doughnutValueLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea } = chart;
+        if (!chartArea) return;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || meta.data.length === 0) return;
+
+        const centerX = (chartArea.left + chartArea.right) / 2;
+        const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '800 22px Inter, Plus Jakarta Sans, sans-serif';
+        ctx.fillText(String(total), centerX, centerY - 7);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.fillText('Total Loker', centerX, centerY + 12);
+
+        if (total > 0) {
+          const dsData = chart.data.datasets[0].data || [];
+          meta.data.forEach((arc, idx) => {
+            const val = Number(dsData[idx] || 0);
+            if (val <= 0) return;
+            const sweep = Math.abs((arc.endAngle || 0) - (arc.startAngle || 0));
+            if (sweep < 0.28) return;
+            const pos = arc.tooltipPosition();
+            const pct = Math.round((val / total) * 100);
+            const labelTxt = sweep >= 0.65 ? `${val} (${pct}%)` : String(val);
+
+            ctx.font = '800 11px Inter, sans-serif';
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(15, 23, 42, 0.38)';
+            ctx.strokeText(labelTxt, pos.x, pos.y);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(labelTxt, pos.x, pos.y);
+          });
+        }
+        ctx.restore();
+      }
+    };
+
     window.dashboardStatusChartInstance = new window.Chart(statusCtx, {
       type: 'doughnut',
       data: {
@@ -2265,7 +2310,7 @@ function renderDashboardCharts(jobsList, activeCount, scheduledCount, expiredCou
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '72%',
+        cutout: '66%',
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2279,7 +2324,8 @@ function renderDashboardCharts(jobsList, activeCount, scheduledCount, expiredCou
             }
           }
         }
-      }
+      },
+      plugins: [doughnutValueLabelsPlugin]
     });
 
     const legendEl = document.getElementById('dashboard-status-legend');
@@ -2308,6 +2354,30 @@ function renderDashboardCharts(jobsList, activeCount, scheduledCount, expiredCou
     const sortedCats = Object.keys(catCounts).sort((a, b) => catCounts[b] - catCounts[a]).slice(0, 7);
     const catLabels = sortedCats.length > 0 ? sortedCats : ['Belum Ada Kategori'];
     const catData = sortedCats.length > 0 ? sortedCats.map(c => catCounts[c]) : [0];
+    const maxCatVal = Math.max(...catData, 1);
+
+    const barValueLabelsPlugin = {
+      id: 'barValueLabels',
+      afterDatasetsDraw(chart) {
+        if (sortedCats.length === 0) return;
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.font = '800 12px Inter, Plus Jakarta Sans, sans-serif';
+
+        meta.data.forEach((bar, idx) => {
+          const val = Number(catData[idx] || 0);
+          const textY = Math.max(bar.y - 6, 14);
+          ctx.fillStyle = '#1e3a8a';
+          ctx.fillText(String(val), bar.x, textY);
+        });
+        ctx.restore();
+      }
+    };
 
     window.dashboardCategoryChartInstance = new window.Chart(categoryCtx, {
       type: 'bar',
@@ -2319,12 +2389,15 @@ function renderDashboardCharts(jobsList, activeCount, scheduledCount, expiredCou
           backgroundColor: '#2563eb',
           borderRadius: 8,
           borderSkipped: false,
-          maxBarThickness: 32
+          maxBarThickness: 34
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: { top: 24, left: 4, right: 6, bottom: 0 }
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2347,6 +2420,7 @@ function renderDashboardCharts(jobsList, activeCount, scheduledCount, expiredCou
           },
           y: {
             beginAtZero: true,
+            suggestedMax: maxCatVal + Math.max(1, Math.ceil(maxCatVal * 0.25)),
             ticks: {
               stepSize: 1,
               precision: 0,
@@ -2358,7 +2432,8 @@ function renderDashboardCharts(jobsList, activeCount, scheduledCount, expiredCou
             }
           }
         }
-      }
+      },
+      plugins: [barValueLabelsPlugin]
     });
   }
 }
@@ -2367,25 +2442,26 @@ function renderDashboardStats(jobsList) {
   const realJobs = (jobsList || []).filter(j => j && (!j.status || !j.status.startsWith('system_')));
   const now = new Date();
 
-  // Lowongan terjadwal (antrean yang belum terbit)
+  // Lowongan terjadwal (antrean yang belum terbit & belum kedaluwarsa)
   const scheduledJobs = realJobs.filter(j => {
+    if (isJobLocked(j)) return false;
     if (j.status === 'scheduled') return true;
-    if (j.scheduled_at && new Date(j.scheduled_at) > now && j.status !== 'expired' && j.status !== 'closed') return true;
+    if (j.scheduled_at && new Date(j.scheduled_at) > now) return true;
     return false;
   });
 
-  // Lowongan aktif (terbuka untuk umum)
+  // Lowongan aktif (terbuka untuk umum & belum expired)
   const activeJobs = realJobs.filter(j => {
-    if (j.status === 'expired' || j.status === 'closed') return false;
+    if (isJobLocked(j)) return false;
     if (j.status === 'scheduled') return false;
     if (j.scheduled_at && new Date(j.scheduled_at) > now) return false;
     return j.status === 'active' || j.status === 'published';
   });
 
-  const closedJobs = realJobs.filter(j => j.status === 'closed' || j.status === 'expired');
+  const closedJobs = realJobs.filter(j => isJobLocked(j));
   const totalJobs = realJobs.length;
   const totalViews = realJobs.reduce((acc, j) => acc + (j.views_count || 0), 0);
-  const recentJobs = realJobs.slice(0, 5);
+  const recentJobs = sortJobsNewestFirst(realJobs).slice(0, 5);
 
   document.getElementById('stat-total-jobs') && (document.getElementById('stat-total-jobs').textContent = totalJobs);
   document.getElementById('stat-active-jobs') && (document.getElementById('stat-active-jobs').textContent = activeJobs.length);
@@ -2404,8 +2480,8 @@ function renderDashboardStats(jobsList) {
       recentTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#94a3b8;">Belum ada lowongan terdaftar.</td></tr>`;
     } else {
       recentTbody.innerHTML = recentJobs.map(job => {
-        const isLocked = job.status === 'expired' || job.status === 'closed';
-        const isSched = job.status === 'scheduled' || (job.scheduled_at && new Date(job.scheduled_at) > now);
+        const isLocked = isJobLocked(job);
+        const isSched = !isLocked && (job.status === 'scheduled' || (job.scheduled_at && new Date(job.scheduled_at) > now));
         let badgeClass = 'badge-active';
         let badgeLabel = '<i class="fa-solid fa-circle-check"></i> Aktif';
         if (isLocked) {
@@ -2755,6 +2831,8 @@ function populateAdminJobsCategoryDropdown(jobs) {
 // -------------------------------------------------------------
 function sortJobsNewestFirst(list) {
   return [...(list || [])].sort((a, b) => {
+    const lockDiff = (isJobLocked(a) ? 1 : 0) - (isJobLocked(b) ? 1 : 0);
+    if (lockDiff !== 0) return lockDiff;
     const idB = Number(b && b.id) || 0;
     const idA = Number(a && a.id) || 0;
     if (idB !== idA) return idB - idA;
@@ -2775,11 +2853,11 @@ function renderAdminJobsTable() {
 
   // 1. Status Filter
   if (adminJobsStatusFilter === 'active') {
-    filteredJobs = filteredJobs.filter(j => j.status === 'active' || j.status === 'published');
+    filteredJobs = filteredJobs.filter(j => !isJobLocked(j) && (j.status === 'active' || j.status === 'published'));
   } else if (adminJobsStatusFilter === 'scheduled') {
-    filteredJobs = filteredJobs.filter(j => j.status === 'scheduled');
+    filteredJobs = filteredJobs.filter(j => !isJobLocked(j) && j.status === 'scheduled');
   } else if (adminJobsStatusFilter === 'expired') {
-    filteredJobs = filteredJobs.filter(j => j.status === 'expired' || j.status === 'closed');
+    filteredJobs = filteredJobs.filter(j => isJobLocked(j));
   }
 
   // 2. Category Filter
@@ -2832,8 +2910,8 @@ function renderAdminJobsTable() {
     const posterSrc = getEffectiveJobPoster(job);
 
     const contacts = extractJobContacts(job);
-    const isLocked = job.status === 'expired' || job.status === 'closed';
-    const isScheduled = job.status === 'scheduled';
+    const isLocked = isJobLocked(job);
+    const isScheduled = !isLocked && job.status === 'scheduled';
 
     let statusBadge = '';
     if (isLocked) {
@@ -3561,13 +3639,32 @@ function setupEditFormSubmit() {
 // ==============================================================
 // SMART DATE & DEADLINE VALIDATION HELPERS (ANTI-EXPIRED)
 // ==============================================================
+// Smart Date Parser (handles YYYY-MM-DD, DD/MM/YYYY, and Indonesian Date Formats; returns end-of-day local time)
 function parseDateSafe(str) {
   if (!str) return null;
-  str = String(str).trim();
-  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+  if (typeof str !== 'string') {
     const d = new Date(str);
     return isNaN(d.getTime()) ? null : d;
   }
+  const s = str.trim();
+  if (!s) return null;
+
+  const isoMatch = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    const year = parseInt(isoMatch[1], 10);
+    const month = parseInt(isoMatch[2], 10) - 1;
+    const day = parseInt(isoMatch[3], 10);
+    return new Date(year, month, day, 23, 59, 59, 999);
+  }
+
+  const dmyMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const year = parseInt(dmyMatch[3], 10);
+    return new Date(year, month, day, 23, 59, 59, 999);
+  }
+
   const months = {
     januari: 0, jan: 0, january: 0,
     februari: 1, feb: 1, february: 1,
@@ -3576,23 +3673,34 @@ function parseDateSafe(str) {
     mei: 4, may: 4,
     juni: 5, jun: 5, june: 5,
     juli: 6, jul: 6, july: 6,
-    agustus: 7, agu: 7, aug: 7, august: 7,
+    agustus: 7, agu: 7, ags: 7, aug: 7, august: 7,
     september: 8, sep: 8, sept: 8,
     oktober: 9, okt: 9, oct: 9, october: 9,
     november: 10, nov: 10,
     desember: 11, des: 11, dec: 11, december: 11
   };
-  const m = str.match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/);
+  const m = s.match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/);
   if (m) {
     const day = parseInt(m[1], 10);
     const monStr = m[2].toLowerCase();
     const year = parseInt(m[3], 10);
     if (months[monStr] !== undefined) {
-      return new Date(year, months[monStr], day, 23, 59, 59);
+      return new Date(year, months[monStr], day, 23, 59, 59, 999);
     }
   }
-  const d = new Date(str);
-  return isNaN(d.getTime()) ? null : d;
+  if (!/[\/\-:,T]/.test(s)) return null;
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return null;
+  if (!s.includes(':')) d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+function isJobLocked(job) {
+  if (!job) return false;
+  if (job.status === 'expired' || job.status === 'closed') return true;
+  const dObj = parseDateSafe(job.deadline);
+  if (!dObj) return false;
+  return dObj.getTime() < Date.now();
 }
 
 function formatIndoDate(dateObj) {
@@ -3613,7 +3721,7 @@ function toIsoDate(d) {
 }
 
 function getDeadlineMeta(deadlineStr, fallbackDaysAhead = 30) {
-  let d = parseDateSafe(deadlineStr);
+  const d = parseDateSafe(deadlineStr);
   if (!d) {
     const future = new Date();
     future.setDate(future.getDate() + fallbackDaysAhead);
@@ -3626,10 +3734,13 @@ function getDeadlineMeta(deadlineStr, fallbackDaysAhead = 30) {
     };
   }
   const now = new Date();
-  const diffDays = Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const isExpired = d.getTime() < now.getTime();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const dStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diffDays = Math.round((dStart - todayStart) / 86400000);
   return {
     isValid: true,
-    isExpired: diffDays < 0,
+    isExpired,
     daysLeft: diffDays,
     displayDate: formatIndoDate(d),
     isoDate: toIsoDate(d)

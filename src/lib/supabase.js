@@ -551,6 +551,11 @@ export async function getMasterData(env) {
                     result[item.type].push(item.name);
                 }
             });
+            for (const key of Object.keys(DEFAULT_MASTER_DATA)) {
+                if (!Array.isArray(result[key]) || result[key].length === 0) {
+                    result[key] = [...DEFAULT_MASTER_DATA[key]];
+                }
+            }
             return result;
         }
     } catch { /* fallback to system_master_data row */ }
@@ -558,7 +563,13 @@ export async function getMasterData(env) {
     try {
         const sysRows = await supabaseFetch(env, 'jobs?status=eq.system_master_data&limit=1&select=description');
         if (Array.isArray(sysRows) && sysRows.length > 0 && sysRows[0].description) {
-            return JSON.parse(sysRows[0].description);
+            const parsed = JSON.parse(sysRows[0].description);
+            for (const key of Object.keys(DEFAULT_MASTER_DATA)) {
+                if (!Array.isArray(parsed[key]) || parsed[key].length === 0) {
+                    parsed[key] = [...DEFAULT_MASTER_DATA[key]];
+                }
+            }
+            return parsed;
         }
     } catch { /* ignore */ }
 

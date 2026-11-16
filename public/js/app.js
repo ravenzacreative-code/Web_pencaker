@@ -562,6 +562,8 @@ function setupLiveJobsAutoSync() {
             } catch (e) {}
             if (!isAnyUserModalOpen()) {
               updateTabCounters();
+              if (typeof refreshMasterDataFromJobs === 'function') refreshMasterDataFromJobs();
+              if (typeof renderPopularCategoriesByViews === 'function') renderPopularCategoriesByViews();
               applyFiltersAndRender();
             }
           }
@@ -586,6 +588,8 @@ function setupLiveJobsAutoSync() {
             _lastJobsSignature = nextSig;
             if (!isAnyUserModalOpen()) {
               updateTabCounters();
+              if (typeof refreshMasterDataFromJobs === 'function') refreshMasterDataFromJobs();
+              if (typeof renderPopularCategoriesByViews === 'function') renderPopularCategoriesByViews();
               applyFiltersAndRender();
             }
           }
@@ -766,16 +770,35 @@ function setupEventListeners() {
     });
   }
 
-  // Trending Chips Click
-  document.querySelectorAll('.chip-keyword').forEach(chip => {
-    chip.addEventListener('click', () => {
-      if (chip.id === 'btn-search-all-cat') {
-        window.resetCategoryFilter();
+  // Trending Popular Category Chips Click (Delegated for dynamic view-ranked chips)
+  const catChipsSection = document.getElementById('kategori-section');
+  if (catChipsSection && !catChipsSection._delegatedBound) {
+    catChipsSection._delegatedBound = true;
+    catChipsSection.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip-keyword');
+      if (!chip) return;
+      if (chip.id === 'btn-search-all-cat' || chip.dataset.category === 'Semua') {
+        if (typeof window.resetCategoryFilter === 'function') {
+          window.resetCategoryFilter();
+        } else {
+          activeFilters.category = 'Semua';
+          syncSidebarInputs();
+          applyFiltersAndRender();
+        }
+        document.getElementById('lowongan')?.scrollIntoView({ behavior: 'smooth' });
         return;
       }
       if (chip.classList.contains('chip-plat')) {
         const plat = chip.dataset.platform || 'Semua';
         window.filterByPlatform(plat);
+        return;
+      }
+      if (chip.dataset.category) {
+        activeFilters.category = chip.dataset.category;
+        if (searchCategory) searchCategory.value = chip.dataset.category;
+        syncSidebarInputs();
+        applyFiltersAndRender();
+        document.getElementById('lowongan')?.scrollIntoView({ behavior: 'smooth' });
         return;
       }
       const kw = chip.dataset.keyword || '';
@@ -784,12 +807,10 @@ function setupEventListeners() {
         if (clearSearchBtn) clearSearchBtn.style.display = 'block';
       }
       activeFilters.search = kw;
-      document.querySelectorAll('.chip-keyword').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
       applyFiltersAndRender();
       document.getElementById('lowongan')?.scrollIntoView({ behavior: 'smooth' });
     });
-  });
+  }
 
   // Tab Buttons
   document.querySelectorAll('.job-tab-btn').forEach(btn => {
@@ -985,9 +1006,214 @@ function setupCustomDropdowns() {
   }
 }
 
+const DEFAULT_PUBLIC_MASTER_DATA = {
+  categories: [
+    'Manufaktur & Pabrik',
+    'Teknik & Otomotif',
+    'Operator & Produksi',
+    'Gudang & Logistik',
+    'Quality Control (QC)',
+    'Administrasi & Umum',
+    'Keuangan & Akuntansi',
+    'Teknologi & IT',
+    'Pemasaran & Sales',
+    'Kesehatan & Farmasi'
+  ],
+  locations: [
+    'Jakarta', 'Bekasi', 'Cikarang', 'Karawang', 'Tangerang',
+    'Bogor', 'Depok', 'Bandung', 'Surabaya', 'Semarang',
+    'Cilegon', 'Purwakarta', 'Subang', 'Remote / WFH'
+  ],
+  job_types: [
+    'Full-Time',
+    'Part-Time',
+    'Contract / Kontrak',
+    'Internship / Magang',
+    'Freelance',
+    'Shift / Operator'
+  ],
+  experience_levels: [
+    'Fresh Graduate / Pemula',
+    'Pengalaman 1-2 Tahun',
+    'Pengalaman 3-5 Tahun',
+    'Pengalaman > 5 Tahun',
+    'Tanpa Pengalaman'
+  ]
+};
+
+function normalizeFilterToken(val) {
+  return String(val || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function canonicalFilterKey(val) {
+  return String(val || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function matchFilterOption(jobValue, selectedFilter) {
+  if (!selectedFilter || selectedFilter === 'Semua') return true;
+  if (!jobValue) return false;
+
+  const jobNorm = normalizeFilterToken(jobValue);
+  const filterNorm = normalizeFilterToken(selectedFilter);
+  if (!jobNorm || !filterNorm) return false;
+  if (jobNorm === filterNorm || jobNorm.includes(filterNorm) || filterNorm.includes(jobNorm)) {
+    return true;
+  }
+
+  // Handle slash-separated bilingual variants like "Contract / Kontrak" or "Fresh Graduate / Pemula"
+  const jobParts = String(jobValue).split(/[\/,|]+/).map(normalizeFilterToken).filter(p => p.length >= 2);
+  const filterParts = String(selectedFilter).split(/[\/,|]+/).map(normalizeFilterToken).filter(p => p.length >= 2);
+  for (const fp of filterParts) {
+    for (const jp of jobParts) {
+      if (jp === fp || jp.includes(fp) || fp.includes(jp)) return true;
+    }
+  }
+  return false;
+}
+
+function getCategoryIcon(name) {
+  const n = String(name || '').toLowerCase();
+  if (n.includes('manufaktur') || n.includes('pabrik') || n.includes('operator') || n.includes('produksi')) return 'fa-industry';
+  if (n.includes('teknik') || n.includes('otomotif') || n.includes('mesin')) return 'fa-wrench';
+  if (n.includes('gudang') || n.includes('logistik') || n.includes('supply')) return 'fa-boxes-stacked';
+  if (n.includes('quality') || n.includes('qc') || n.includes('qa')) return 'fa-clipboard-check';
+  if (n.includes('admin') || n.includes('umum') || n.includes('hr')) return 'fa-folder-open';
+  if (n.includes('keuangan') || n.includes('akuntansi') || n.includes('finance') || n.includes('bank')) return 'fa-calculator';
+  if (n.includes('teknologi') || n.includes('it') || n.includes('software') || n.includes('web') || n.includes('data')) return 'fa-laptop-code';
+  if (n.includes('pemasaran') || n.includes('sales') || n.includes('marketing')) return 'fa-bullhorn';
+  if (n.includes('kesehatan') || n.includes('farmasi') || n.includes('medis')) return 'fa-kit-medical';
+  if (n.includes('desain') || n.includes('kreatif') || n.includes('media')) return 'fa-pen-nib';
+  return 'fa-tag';
+}
+
+function getLocationIcon(name) {
+  const n = String(name || '').toLowerCase();
+  return (n.includes('remote') || n.includes('wfh')) ? 'fa-house-laptop' : 'fa-location-dot';
+}
+
+function buildOptionItems(primaryList, fallbackList, extraJobValues, iconResolver) {
+  const merged = [];
+  const seenKeys = new Set();
+
+  const pushItem = (raw) => {
+    const rawName = (typeof raw === 'string' ? raw : (raw && raw.name)) || '';
+    const name = String(rawName).trim();
+    if (!name || name.toLowerCase() === 'semua') return;
+    const key = canonicalFilterKey(name);
+    if (!key || seenKeys.has(key)) return;
+    seenKeys.add(key);
+    const customIcon = (raw && typeof raw === 'object' && raw.icon) ? raw.icon : null;
+    merged.push({
+      name,
+      icon: customIcon || iconResolver(name)
+    });
+  };
+
+  const base = (Array.isArray(primaryList) && primaryList.length > 0) ? primaryList : fallbackList;
+  base.forEach(pushItem);
+  if (Array.isArray(extraJobValues)) {
+    extraJobValues.forEach(pushItem);
+  }
+  return merged;
+}
+
+function normalizeMasterDataForUser(rawData) {
+  const src = (rawData && typeof rawData === 'object') ? (rawData.allData || rawData) : {};
+  const visibleJobs = (typeof rawAllJobs !== 'undefined' && Array.isArray(rawAllJobs))
+    ? rawAllJobs.filter(isJobPubliclyVisible)
+    : [];
+
+  const jobCategories = visibleJobs.map(j => j.category).filter(Boolean);
+  const jobLocations = visibleJobs.map(j => j.location).filter(Boolean);
+  const jobTypes = visibleJobs.map(j => j.job_type).filter(Boolean);
+  const jobExperiences = visibleJobs.map(j => j.experience_level).filter(Boolean);
+
+  return {
+    categories: buildOptionItems(src.categories || src.category, DEFAULT_PUBLIC_MASTER_DATA.categories, jobCategories, getCategoryIcon),
+    locations: buildOptionItems(src.locations || src.location, DEFAULT_PUBLIC_MASTER_DATA.locations, jobLocations, getLocationIcon),
+    job_types: buildOptionItems(src.job_types || src.job_type, DEFAULT_PUBLIC_MASTER_DATA.job_types, jobTypes, () => 'fa-clock'),
+    experience_levels: buildOptionItems(src.experience_levels || src.experience, DEFAULT_PUBLIC_MASTER_DATA.experience_levels, jobExperiences, () => 'fa-graduation-cap')
+  };
+}
+
+function formatCompactViews(views) {
+  const num = Number(views || 0);
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace(/\.0$/, '')}jt`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1).replace(/\.0$/, '')}rb`;
+  return String(num);
+}
+
+// Render Popular Categories Ranked Strictly by Total Views
+function renderPopularCategoriesByViews() {
+  const section = document.getElementById('kategori-section');
+  if (!section) return;
+
+  const visibleJobs = (typeof rawAllJobs !== 'undefined' && Array.isArray(rawAllJobs))
+    ? rawAllJobs.filter(isJobPubliclyVisible)
+    : [];
+
+  const statsMap = new Map();
+  visibleJobs.forEach(job => {
+    const rawCat = String(job.category || '').trim();
+    if (!rawCat) return;
+    const key = canonicalFilterKey(rawCat) || rawCat.toLowerCase();
+    const views = Number(job.views_count || 0);
+    if (!statsMap.has(key)) {
+      statsMap.set(key, { name: rawCat, views: 0, count: 0 });
+    }
+    const entry = statsMap.get(key);
+    entry.views += views;
+    entry.count += 1;
+  });
+
+  let ranked = Array.from(statsMap.values()).sort((a, b) => {
+    if (b.views !== a.views) return b.views - a.views;
+    if (b.count !== a.count) return b.count - a.count;
+    return a.name.localeCompare(b.name);
+  });
+
+  if (ranked.length === 0) {
+    const masterCats = (window._normalizedMasterData && window._normalizedMasterData.categories) || [];
+    ranked = (masterCats.length > 0 ? masterCats : DEFAULT_PUBLIC_MASTER_DATA.categories.map(name => ({ name })))
+      .slice(0, 6)
+      .map(c => ({ name: c.name, views: 0, count: 0 }));
+  } else {
+    ranked = ranked.slice(0, 8);
+  }
+
+  const isAllActive = !activeFilters.category || activeFilters.category === 'Semua';
+  let html = `
+    <span class="trending-label"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Kategori Terpopuler:</span>
+    <button type="button" class="chip-keyword ${isAllActive ? 'active' : ''}" id="btn-search-all-cat" data-category="Semua" title="Tampilkan Semua Kategori">
+      <i class="fa-solid fa-layer-group" style="color: ${isAllActive ? '#ffffff' : '#6366f1'};"></i> Semua Kategori
+    </button>
+  `;
+
+  ranked.forEach(item => {
+    const isActive = !isAllActive && (
+      canonicalFilterKey(activeFilters.category) === canonicalFilterKey(item.name) ||
+      matchFilterOption(item.name, activeFilters.category)
+    );
+    const iconCls = getCategoryIcon(item.name);
+    html += `
+      <button type="button" class="chip-keyword ${isActive ? 'active' : ''}" data-category="${escapeHtml(item.name)}" title="Filter kategori ${escapeHtml(item.name)} (${item.views.toLocaleString('id-ID')}x dilihat)">
+        <i class="fa-solid ${iconCls}"></i>
+        <span>${escapeHtml(item.name)}</span>
+        <span class="chip-views-badge" title="${item.views.toLocaleString('id-ID')}x dilihat &bull; ${item.count} lowongan"><i class="fa-regular fa-eye"></i> ${formatCompactViews(item.views)}</span>
+      </button>
+    `;
+  });
+
+  section.innerHTML = html;
+}
+
 // Render Master Data to Filter DOM Elements
-function renderMasterDataToDOM(data) {
-  if (!data) return;
+function renderMasterDataToDOM(rawData) {
+  if (rawData && typeof rawData === 'object') {
+    window._lastMasterDataRaw = rawData;
+  }
+  const data = normalizeMasterDataForUser(rawData || window._lastMasterDataRaw);
+  window._normalizedMasterData = data;
 
   // 1. Category Dropdown Menu (#dropdown-category-menu)
   const catMenu = document.getElementById('dropdown-category-menu');
@@ -999,8 +1225,9 @@ function renderMasterDataToDOM(data) {
       </div>
     `;
     data.categories.forEach(c => {
+      const isChecked = activeFilters.category !== 'Semua' && matchFilterOption(c.name, activeFilters.category);
       catHtml += `
-        <div class="dropdown-item ${activeFilters.category === c.name ? 'active' : ''}" data-value="${escapeHtml(c.name)}">
+        <div class="dropdown-item ${isChecked ? 'active' : ''}" data-value="${escapeHtml(c.name)}">
           <div class="dropdown-item-left"><i class="fa-solid ${c.icon || 'fa-tag'}"></i><span>${escapeHtml(c.name)}</span></div>
           <i class="fa-solid fa-check dropdown-check"></i>
         </div>
@@ -1019,8 +1246,9 @@ function renderMasterDataToDOM(data) {
       </div>
     `;
     data.locations.forEach(l => {
+      const isChecked = activeFilters.location !== 'Semua' && matchFilterOption(l.name, activeFilters.location);
       locHtml += `
-        <div class="dropdown-item ${activeFilters.location === l.name ? 'active' : ''}" data-value="${escapeHtml(l.name)}">
+        <div class="dropdown-item ${isChecked ? 'active' : ''}" data-value="${escapeHtml(l.name)}">
           <div class="dropdown-item-left"><i class="fa-solid ${l.icon || 'fa-location-dot'}"></i><span>${escapeHtml(l.name)}</span></div>
           <i class="fa-solid fa-check dropdown-check"></i>
         </div>
@@ -1039,9 +1267,10 @@ function renderMasterDataToDOM(data) {
       </label>
     `;
     data.categories.forEach(c => {
+      const isChecked = activeFilters.category !== 'Semua' && matchFilterOption(c.name, activeFilters.category);
       sideCatHtml += `
         <label class="filter-checkbox">
-          <input type="radio" name="filter_category" value="${escapeHtml(c.name)}" ${activeFilters.category === c.name ? 'checked' : ''}>
+          <input type="radio" name="filter_category" value="${escapeHtml(c.name)}" ${isChecked ? 'checked' : ''}>
           <span>${escapeHtml(c.name)}</span>
         </label>
       `;
@@ -1059,9 +1288,10 @@ function renderMasterDataToDOM(data) {
       </label>
     `;
     data.job_types.forEach(t => {
+      const isChecked = activeFilters.job_type !== 'Semua' && matchFilterOption(t.name, activeFilters.job_type);
       sideTypesHtml += `
         <label class="filter-checkbox">
-          <input type="radio" name="filter_type" value="${escapeHtml(t.name)}" ${activeFilters.job_type === t.name ? 'checked' : ''}>
+          <input type="radio" name="filter_type" value="${escapeHtml(t.name)}" ${isChecked ? 'checked' : ''}>
           <span>${escapeHtml(t.name)}</span>
         </label>
       `;
@@ -1079,9 +1309,10 @@ function renderMasterDataToDOM(data) {
       </label>
     `;
     data.experience_levels.forEach(e => {
+      const isChecked = activeFilters.experience !== 'Semua' && matchFilterOption(e.name, activeFilters.experience);
       sideExpHtml += `
         <label class="filter-checkbox">
-          <input type="radio" name="filter_experience" value="${escapeHtml(e.name)}" ${activeFilters.experience === e.name ? 'checked' : ''}>
+          <input type="radio" name="filter_experience" value="${escapeHtml(e.name)}" ${isChecked ? 'checked' : ''}>
           <span>${escapeHtml(e.name)}</span>
         </label>
       `;
@@ -1091,20 +1322,32 @@ function renderMasterDataToDOM(data) {
 
   setupCustomDropdowns();
   setupDynamicFilterListeners();
+  syncSidebarInputs();
+}
+
+function refreshMasterDataFromJobs() {
+  renderMasterDataToDOM(window._lastMasterDataRaw || null);
 }
 
 // Dynamically Load Master Data into Filters
 async function loadMasterDataFilters() {
+  let renderedFromCache = false;
   // Check client-side cache for instant display
   try {
     const cached = safeSessionGet('kerja_master_data_cache');
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (parsed && Array.isArray(parsed.categories) && parsed.categories.length > 0) {
+      if (parsed && typeof parsed === 'object') {
         renderMasterDataToDOM(parsed);
+        renderedFromCache = true;
       }
     }
   } catch (e) {}
+
+  // Ensure sidebar & hero dropdowns are never empty at t=0ms
+  if (!renderedFromCache) {
+    renderMasterDataToDOM(null);
+  }
 
   let data = null;
 
@@ -1123,7 +1366,7 @@ async function loadMasterDataFilters() {
       const { data: rows } = await Promise.race([fetchPromise, timeoutPromise]);
       if (rows && rows.length > 0 && rows[0].description) {
         const parsed = JSON.parse(rows[0].description);
-        if (parsed && Array.isArray(parsed.categories)) {
+        if (parsed && (Array.isArray(parsed.categories) || Array.isArray(parsed.category))) {
           data = parsed;
         }
       }
@@ -1135,6 +1378,7 @@ async function loadMasterDataFilters() {
       safeSessionSet('kerja_master_data_cache', JSON.stringify(data));
     } catch (e) {}
     renderMasterDataToDOM(data);
+    renderPopularCategoriesByViews();
   }
 }
 
@@ -1142,6 +1386,8 @@ function setupDynamicFilterListeners() {
   document.querySelectorAll('input[name="filter_category"]').forEach(r => {
     r.onchange = (e) => {
       activeFilters.category = e.target.value;
+      const sc = document.getElementById('search-category');
+      if (sc) sc.value = e.target.value;
       syncSidebarInputs();
       applyFiltersAndRender();
     };
@@ -1163,15 +1409,33 @@ function setupDynamicFilterListeners() {
 }
 
 function syncSidebarInputs() {
-  const catRadio = document.querySelector(`input[name="filter_category"][value="${activeFilters.category}"]`);
-  if (catRadio) catRadio.checked = true;
+  document.querySelectorAll('input[name="filter_category"]').forEach(r => {
+    r.checked = activeFilters.category === 'Semua'
+      ? r.value === 'Semua'
+      : (r.value !== 'Semua' && matchFilterOption(r.value, activeFilters.category));
+  });
+
+  document.querySelectorAll('input[name="filter_type"]').forEach(r => {
+    r.checked = activeFilters.job_type === 'Semua'
+      ? r.value === 'Semua'
+      : (r.value !== 'Semua' && matchFilterOption(r.value, activeFilters.job_type));
+  });
+
+  document.querySelectorAll('input[name="filter_experience"]').forEach(r => {
+    r.checked = activeFilters.experience === 'Semua'
+      ? r.value === 'Semua'
+      : (r.value !== 'Semua' && matchFilterOption(r.value, activeFilters.experience));
+  });
 
   // Sync custom category dropdown
   const catDropdown = document.getElementById('dropdown-category');
   if (catDropdown) {
     const items = catDropdown.querySelectorAll('.dropdown-item');
     items.forEach(i => {
-      if (i.dataset.value === activeFilters.category) {
+      const isMatch = activeFilters.category === 'Semua'
+        ? i.dataset.value === 'Semua'
+        : (i.dataset.value !== 'Semua' && matchFilterOption(i.dataset.value, activeFilters.category));
+      if (isMatch) {
         i.classList.add('active');
         const textSpan = i.querySelector('.dropdown-item-left span') || i.querySelector('span');
         const selectedText = catDropdown.querySelector('.dropdown-selected-text');
@@ -1191,6 +1455,8 @@ function resetAllFilters() {
     location: 'Semua',
     experience: 'Semua',
     has_salary: false,
+    anti_hoax: false,
+    platform: 'Semua',
     tab: 'all',
     sort: 'newest'
   };
@@ -1242,14 +1508,19 @@ function resetAllFilters() {
   const allExpRadio = document.querySelector('input[name="filter_experience"][value="Semua"]');
   if (allExpRadio) allExpRadio.checked = true;
 
+  const allPlatRadio = document.querySelector('input[name="filter_platform"][value="Semua"]');
+  if (allPlatRadio) allPlatRadio.checked = true;
+
   const salaryCheckbox = document.getElementById('filter_has_salary');
   if (salaryCheckbox) salaryCheckbox.checked = false;
+
+  const antiHoaxCheckbox = document.getElementById('filter_anti_hoax');
+  if (antiHoaxCheckbox) antiHoaxCheckbox.checked = false;
 
   document.querySelectorAll('.job-tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.job-tab-btn[data-tab="all"]')?.classList.add('active');
 
-  document.querySelectorAll('.chip-keyword').forEach(c => c.classList.remove('active'));
-
+  renderPopularCategoriesByViews();
   applyFiltersAndRender();
 }
 
@@ -1301,6 +1572,7 @@ async function loadJobs(options = {}) {
             rawAllJobs = parsed.map(window.cleanJobData).filter(isJobPubliclyVisible);
             _lastJobsSignature = getJobsSignature(rawAllJobs);
             updateTabCounters();
+            if (typeof refreshMasterDataFromJobs === 'function') refreshMasterDataFromJobs();
             applyFiltersAndRender();
             hadCached = true;
           }
@@ -1398,12 +1670,14 @@ async function loadJobs(options = {}) {
       } catch (e) {}
       if (!hadCached || (changed && (!silent || !isAnyUserModalOpen()))) {
         updateTabCounters();
+        if (typeof refreshMasterDataFromJobs === 'function') refreshMasterDataFromJobs();
         applyFiltersAndRender();
       }
     } else if (!hadCached) {
       rawAllJobs = [];
       _lastJobsSignature = '';
       updateTabCounters();
+      if (typeof refreshMasterDataFromJobs === 'function') refreshMasterDataFromJobs();
       applyFiltersAndRender();
     }
 
@@ -1451,12 +1725,12 @@ function applyFiltersAndRender() {
 
   // Filter Kategori
   if (activeFilters.category && activeFilters.category !== 'Semua') {
-    list = list.filter(j => j.category === activeFilters.category);
+    list = list.filter(j => matchFilterOption(j.category, activeFilters.category));
   }
 
   // Filter Tipe Pekerjaan
   if (activeFilters.job_type && activeFilters.job_type !== 'Semua') {
-    list = list.filter(j => j.job_type === activeFilters.job_type);
+    list = list.filter(j => matchFilterOption(j.job_type, activeFilters.job_type));
   }
 
   // Filter Lokasi
@@ -1467,8 +1741,7 @@ function applyFiltersAndRender() {
 
   // Filter Pengalaman
   if (activeFilters.experience && activeFilters.experience !== 'Semua') {
-    const exp = activeFilters.experience.toLowerCase();
-    list = list.filter(j => j.experience_level && j.experience_level.toLowerCase().includes(exp));
+    list = list.filter(j => matchFilterOption(j.experience_level, activeFilters.experience));
   }
 
   // Filter Gaji
@@ -1529,7 +1802,7 @@ function applyFiltersAndRender() {
     // If zero matches inside currently selected category, but matches exist when searching across all categories:
     if (inCategoryList.length === 0 && activeFilters.category && activeFilters.category !== 'Semua') {
       const allCategoryMatches = rawAllJobs
-        .filter(j => j.status !== 'deleted' && j.status !== 'archived')
+        .filter(isJobPubliclyVisible)
         .filter(matchFunction);
 
       if (allCategoryMatches.length > 0) {
@@ -1543,31 +1816,30 @@ function applyFiltersAndRender() {
     }
   }
 
-  // Sorting
-  if (window.activeCvKeywords && window.activeCvKeywords.length > 0) {
-    // CV matching active: sort by match score descending
-    list.sort((a, b) => {
-      const scoreA = a._matchScore || 0;
-      const scoreB = b._matchScore || 0;
-      if (scoreB !== scoreA) return scoreB - scoreA;
-      return Number(b.id) - Number(a.id);
-    });
-  } else if (activeFilters.sort === 'views') {
-    list.sort((a, b) => ((b.views_count || 0) - (a.views_count || 0)) || ((Number(b.id) || 0) - (Number(a.id) || 0)));
-  } else if (activeFilters.sort === 'featured') {
-    list.sort((a, b) => ((b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0)) || ((Number(b.id) || 0) - (Number(a.id) || 0)));
-  } else {
-    // Newest: postingan terbaru selalu di urutan paling atas
-    list.sort((a, b) => {
-      const idB = Number(b.id) || 0;
-      const idA = Number(a.id) || 0;
-      if (idB !== idA) return idB - idA;
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-    });
-  }
+  // Sorting: lowongan yang sudah melewati batas waktu (terkunci/expired) SELALU ditaruh di urutan paling bawah
+  list.sort((a, b) => {
+    const lockDiff = (isJobLocked(a) ? 1 : 0) - (isJobLocked(b) ? 1 : 0);
+    if (lockDiff !== 0) return lockDiff;
+
+    if (window.activeCvKeywords && window.activeCvKeywords.length > 0) {
+      const scoreDiff = (b._matchScore || 0) - (a._matchScore || 0);
+      if (scoreDiff !== 0) return scoreDiff;
+    } else if (activeFilters.sort === 'views') {
+      const viewsDiff = (b.views_count || 0) - (a.views_count || 0);
+      if (viewsDiff !== 0) return viewsDiff;
+    } else if (activeFilters.sort === 'featured') {
+      const featDiff = (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
+      if (featDiff !== 0) return featDiff;
+    }
+
+    const idDiff = (Number(b.id) || 0) - (Number(a.id) || 0);
+    if (idDiff !== 0) return idDiff;
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+  });
 
   filteredJobs = list;
   renderActiveFilterChips();
+  if (typeof renderPopularCategoriesByViews === 'function') renderPopularCategoriesByViews();
   renderJobs(filteredJobs);
   updateCountDisplay(filteredJobs.length);
   updateTabCounters();
@@ -1978,9 +2250,7 @@ function renderJobs(jobs) {
     const flyerList = rawFlyers.filter(src => isManualJobFlyer({ poster_image: src }));
     const hasFlyers = flyerList.length > 0;
 
-    const dObj = parseDateSafe(job.deadline);
-    const isPassedDeadline = dObj ? (dObj.getTime() < Date.now()) : false;
-    const isLocked = (job.status === 'expired' || job.status === 'closed' || isPassedDeadline);
+    const isLocked = isJobLocked(job);
     const initial = job.company_name ? job.company_name.charAt(0).toUpperCase() : 'C';
     const timeAgo = formatTimeAgo(job.created_at);
     const urgencyBadge = calculateUrgencyBadge(job.deadline);
@@ -2096,20 +2366,32 @@ function generateSkillPills(job) {
   return pills.slice(0, 3);
 }
 
-// Smart Date Parser (handles ISO YYYY-MM-DD and Indonesian Date Formats)
+// Smart Date Parser (handles ISO YYYY-MM-DD, DD/MM/YYYY, and Indonesian Date Formats; end-of-day local time)
 function parseDateSafe(str) {
   if (!str) return null;
   if (typeof str !== 'string') {
     const d = new Date(str);
     return isNaN(d.getTime()) ? null : d;
   }
-  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const s = str.trim();
+  if (!s) return null;
+
+  const isoMatch = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (isoMatch) {
     const year = parseInt(isoMatch[1], 10);
     const month = parseInt(isoMatch[2], 10) - 1;
     const day = parseInt(isoMatch[3], 10);
-    return new Date(year, month, day, 23, 59, 59);
+    return new Date(year, month, day, 23, 59, 59, 999);
   }
+
+  const dmyMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const year = parseInt(dmyMatch[3], 10);
+    return new Date(year, month, day, 23, 59, 59, 999);
+  }
+
   const months = {
     januari: 0, jan: 0, january: 0,
     februari: 1, feb: 1, february: 1,
@@ -2124,17 +2406,30 @@ function parseDateSafe(str) {
     november: 10, nov: 10,
     desember: 11, des: 11, dec: 11, december: 11
   };
-  const m = str.match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/);
+  const m = s.match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/);
   if (m) {
     const day = parseInt(m[1], 10);
     const monStr = m[2].toLowerCase();
     const year = parseInt(m[3], 10);
     if (months[monStr] !== undefined) {
-      return new Date(year, months[monStr], day, 23, 59, 59);
+      return new Date(year, months[monStr], day, 23, 59, 59, 999);
     }
   }
-  const d = new Date(str);
-  return isNaN(d.getTime()) ? null : d;
+
+  if (!/[\/\-:,T]/.test(s)) return null;
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return null;
+  if (!s.includes(':')) d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+// Job Lock Check: missing/open deadline stays open forever; dated deadline stays open through today and locks tomorrow
+function isJobLocked(job) {
+  if (!job) return false;
+  if (job.status === 'expired' || job.status === 'closed') return true;
+  const dObj = parseDateSafe(job.deadline);
+  if (!dObj) return false;
+  return dObj.getTime() < Date.now();
 }
 
 // Urgency badge calculation
@@ -2144,13 +2439,18 @@ function calculateUrgencyBadge(deadlineStr) {
     const deadline = parseDateSafe(deadlineStr);
     if (!deadline) return '<span class="pill pill-urgency"><i class="fa-solid fa-circle-check"></i> Terbuka</span>';
     const now = new Date();
-    const diffDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) {
+    if (deadline.getTime() < now.getTime()) {
       return '<span class="pill pill-expired" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;"><i class="fa-solid fa-ban"></i> Batas Waktu Terlewat</span>';
-    } else if (diffDays <= 7) {
-      return `<span class="pill pill-urgency" style="background: rgba(245, 158, 11, 0.12); color: #d97706;"><i class="fa-solid fa-hourglass-half"></i> Sisa ${diffDays} Hari</span>`;
+    }
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dStart = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate()).getTime();
+    const calDays = Math.round((dStart - todayStart) / 86400000);
+    if (calDays === 0) {
+      return '<span class="pill pill-urgency" style="background: rgba(245, 158, 11, 0.14); color: #b45309;"><i class="fa-solid fa-hourglass-half"></i> Berakhir Hari Ini</span>';
+    } else if (calDays <= 7) {
+      return `<span class="pill pill-urgency" style="background: rgba(245, 158, 11, 0.12); color: #d97706;"><i class="fa-solid fa-hourglass-half"></i> Sisa ${calDays} Hari</span>`;
     } else {
-      return `<span class="pill pill-urgency"><i class="fa-regular fa-calendar-check"></i> Sisa ${diffDays} Hari</span>`;
+      return `<span class="pill pill-urgency"><i class="fa-regular fa-calendar-check"></i> Sisa ${calDays} Hari</span>`;
     }
   } catch (e) {
     return '';
@@ -2460,7 +2760,7 @@ async function openJobDetail(jobId) {
   const job = typeof window.cleanJobData === 'function' ? window.cleanJobData(rawJob) : rawJob;
 
   // Strict check: if job is locked / expired, visitor CANNOT open detail modal
-  if (job.status === 'expired' || job.status === 'closed') {
+  if (isJobLocked(job)) {
     showLockedNotice(job.title);
     return;
   }
@@ -2469,14 +2769,22 @@ async function openJobDetail(jobId) {
   const content = document.getElementById('job-detail-content');
   if (!modal || !content) return;
 
+  const nextViews = (Number(rawJob.views_count || job.views_count || 0)) + 1;
+  rawJob.views_count = nextViews;
+  job.views_count = nextViews;
+
   // Increment views count in Supabase Cloud
   if (sbClient) {
-    sbClient.from('jobs').update({ views_count: (job.views_count || 0) + 1 }).eq('id', job.id).then();
+    sbClient.from('jobs').update({ views_count: nextViews }).eq('id', job.id).then();
+  }
+  if (typeof renderPopularCategoriesByViews === 'function') {
+    renderPopularCategoriesByViews();
   }
 
   const flyerImages = getJobFlyerImages(job);
   const heroCoverSrc = getEffectiveJobCover(job);
   const isMultiFlyer = flyerImages.length > 1;
+  const companyInitial = (job.company_name || 'K').trim().charAt(0).toUpperCase();
 
   const contacts = extractJobContacts(job);
   const contactBtnHtml = renderContactButton(job);
@@ -2492,17 +2800,26 @@ async function openJobDetail(jobId) {
   const safeCompany = (job.company_name || '').replace(/'/g, "\\'");
 
   content.innerHTML = `
-    <!-- Header Banner Sampul Lowongan (16:9 Landscape Corporate Cover) -->
+    <!-- Header Banner Sampul Lowongan (Modern Frosted Glass Header) -->
     <div class="modal-hero-banner" id="hero-banner-${job.id}">
       <img src="${heroCoverSrc}" alt="${escapeHtml(job.title)}" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
       <div class="modal-banner-overlay">
-        <div class="modal-header-info">
-          <h2>${escapeHtml(job.title)}</h2>
-          <div class="modal-header-meta">
-            <span><i class="fa-solid fa-building"></i> ${escapeHtml(job.company_name)}</span>
-            <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(job.location || 'Indonesia')}</span>
-            <span><i class="fa-solid fa-tag"></i> ${escapeHtml(job.category)}</span>
-            <span><i class="fa-regular fa-eye"></i> Dilihat ${(job.views_count || 0) + 1}x</span>
+        <div class="modal-hero-top-pills">
+          <span class="mh-pill open"><i class="fa-solid fa-circle-check"></i> Sedang Dibuka</span>
+          <span class="mh-pill type"><i class="fa-regular fa-clock"></i> ${escapeHtml(job._clean_status || job.job_type || 'Full Time')}</span>
+          ${job.salary_display ? `<span class="mh-pill open"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(job.salary_display)}</span>` : ''}
+          <span class="mh-pill views"><i class="fa-regular fa-eye"></i> ${nextViews.toLocaleString('id-ID')}x Dilihat</span>
+        </div>
+        <div class="modal-hero-glass">
+          <div class="modal-hero-avatar">${escapeHtml(companyInitial)}</div>
+          <div class="modal-header-info">
+            <div class="modal-hero-company"><i class="fa-solid fa-building"></i> ${escapeHtml(job.company_name)}</div>
+            <h2>${escapeHtml(job.title)}</h2>
+            <div class="modal-header-meta">
+              <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(job.location || 'Indonesia')}</span>
+              <span><i class="fa-solid fa-tag"></i> ${escapeHtml(job.category)}</span>
+              ${(job._clean_education || job.experience_level) ? `<span><i class="fa-solid fa-graduation-cap"></i> ${escapeHtml(job._clean_education || job.experience_level)}</span>` : ''}
+            </div>
           </div>
         </div>
       </div>
@@ -2996,9 +3313,7 @@ window.directApplyJob = function(jobId, event) {
     return;
   }
 
-  const dObj = parseDateSafe(job.deadline);
-  const isPassed = dObj ? (dObj.getTime() < Date.now()) : false;
-  if (job.status === 'expired' || job.status === 'closed' || isPassed) {
+  if (isJobLocked(job)) {
     showLockedNotice(job.title || 'Lowongan');
     return;
   }
@@ -3033,9 +3348,7 @@ window.directApplyJob = function(jobId, event) {
 
 // Render Multi-Channel Contact Buttons
 function renderContactButton(job) {
-  const dObj = parseDateSafe(job.deadline);
-  const isPassed = dObj ? (dObj.getTime() < Date.now()) : false;
-  if (job.status === 'expired' || job.status === 'closed' || isPassed) {
+  if (isJobLocked(job)) {
     return `
       <div class="locked-contact-card" style="padding: 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; text-align: center; margin-bottom: 12px;">
         <i class="fa-solid fa-lock" style="font-size: 1.5rem; color: #ef4444; margin-bottom: 8px;"></i>
