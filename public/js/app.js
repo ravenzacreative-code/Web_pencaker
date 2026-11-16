@@ -101,7 +101,7 @@ function safeLocalGet(key) {
     if (typeof window !== 'undefined' && window.localStorage) {
       return window.localStorage.getItem(key);
     }
-  } catch (e) {}
+  } catch (e) { }
   return _appMemoryStore.local[key] || null;
 }
 function safeLocalSet(key, value) {
@@ -110,7 +110,7 @@ function safeLocalSet(key, value) {
       window.localStorage.setItem(key, value);
       return;
     }
-  } catch (e) {}
+  } catch (e) { }
   _appMemoryStore.local[key] = String(value);
 }
 function safeLocalRemove(key) {
@@ -119,7 +119,7 @@ function safeLocalRemove(key) {
       window.localStorage.removeItem(key);
       return;
     }
-  } catch (e) {}
+  } catch (e) { }
   delete _appMemoryStore.local[key];
 }
 function safeSessionGet(key) {
@@ -127,7 +127,7 @@ function safeSessionGet(key) {
     if (typeof window !== 'undefined' && window.sessionStorage) {
       return window.sessionStorage.getItem(key);
     }
-  } catch (e) {}
+  } catch (e) { }
   return _appMemoryStore.session[key] || null;
 }
 function safeSessionSet(key, value) {
@@ -136,7 +136,7 @@ function safeSessionSet(key, value) {
       window.sessionStorage.setItem(key, value);
       return;
     }
-  } catch (e) {}
+  } catch (e) { }
   _appMemoryStore.session[key] = String(value);
 }
 function safeSessionRemove(key) {
@@ -145,7 +145,7 @@ function safeSessionRemove(key) {
       window.sessionStorage.removeItem(key);
       return;
     }
-  } catch (e) {}
+  } catch (e) { }
   delete _appMemoryStore.session[key];
 }
 
@@ -177,7 +177,7 @@ async function safeFetchJson(url, options = {}) {
       if (text && text.trim()) {
         data = JSON.parse(text);
       }
-    } catch (parseErr) {}
+    } catch (parseErr) { }
     return { ok: res.ok, status: res.status, data, res };
   } catch (netErr) {
     return { ok: false, status: 0, data: null, error: netErr };
@@ -185,7 +185,7 @@ async function safeFetchJson(url, options = {}) {
 }
 
 // Global Normalizer: Cleans social media copy, emoji spam, extracts real company and structured metadata
-window.cleanJobData = function(job) {
+window.cleanJobData = function (job) {
   if (!job) return job;
   const copy = { ...job };
 
@@ -325,7 +325,7 @@ window.cleanJobData = function(job) {
     try {
       const parsed = JSON.parse(copy.flyer_images);
       if (Array.isArray(parsed)) flyers = parsed;
-    } catch (e) {}
+    } catch (e) { }
   }
   if (copy.contact_value) {
     try {
@@ -336,7 +336,7 @@ window.cleanJobData = function(job) {
           flyers = cv.flyer_images;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }
   if ((!flyers || flyers.length === 0) && copy.poster_image && String(copy.poster_image).trim()) {
     flyers = [copy.poster_image];
@@ -382,7 +382,7 @@ function normalizePublicSocialUrl(rawVal, platform) {
   }
 }
 
-window.renderFooterSocialLinks = function() {
+window.renderFooterSocialLinks = function () {
   const container = document.getElementById('footer-social-links');
   if (!container) return;
   const s = window.siteSettings || {};
@@ -417,7 +417,46 @@ window.renderFooterSocialLinks = function() {
   container.style.display = 'inline-flex';
 };
 
-window.openCvOrderWhatsApp = function() {
+window.closeWaWidget = function() {
+  const card = document.getElementById('wa-popover-card');
+  const btn = document.getElementById('btn-floating-pesan-cv');
+  const wrap = document.getElementById('floating-wa-widget');
+  if (card) card.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+  if (wrap) wrap.classList.remove('is-open');
+};
+
+window.toggleWaWidget = function(event) {
+  if (event) event.stopPropagation();
+  const card = document.getElementById('wa-popover-card');
+  const btn = document.getElementById('btn-floating-pesan-cv');
+  const wrap = document.getElementById('floating-wa-widget');
+  if (!card) {
+    window.openCvOrderWhatsApp();
+    return;
+  }
+  const willOpen = card.hidden;
+  card.hidden = !willOpen;
+  if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  if (wrap) wrap.classList.toggle('is-open', willOpen);
+};
+
+if (typeof document !== 'undefined' && !window._waWidgetOutsideBound) {
+  window._waWidgetOutsideBound = true;
+  document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('floating-wa-widget');
+    const card = document.getElementById('wa-popover-card');
+    if (wrap && card && !card.hidden && !wrap.contains(e.target)) {
+      window.closeWaWidget();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') window.closeWaWidget();
+  });
+}
+
+window.openCvOrderWhatsApp = function(event) {
+  if (event) event.stopPropagation();
   const settings = window.siteSettings || {};
   let phone = (settings.cv_whatsapp || '081234567890').trim();
   let clean = phone.replace(/[^0-9]/g, '');
@@ -427,9 +466,10 @@ window.openCvOrderWhatsApp = function() {
 
   const msg = settings.cv_order_message || 'Halo Admin KerjaHub, saya ingin memesan layanan pembuatan / review CV profesional berstandar ATS agar lolos seleksi kerja. Mohon informasi tarif dan prosedurnya. Terima kasih.';
   window.open(`https://api.whatsapp.com/send?phone=${clean}&text=${encodeURIComponent(msg)}`, '_blank');
+  window.closeWaWidget();
 };
 
-window.resetCategoryFilter = function() {
+window.resetCategoryFilter = function () {
   activeFilters.category = 'Semua';
   const sc = document.getElementById('search-category');
   if (sc) sc.value = 'Semua';
@@ -445,7 +485,7 @@ window.resetCategoryFilter = function() {
   applyFiltersAndRender();
 };
 
-window.filterByPlatform = function(plat) {
+window.filterByPlatform = function (plat) {
   activeFilters.platform = plat;
   const radio = document.querySelector(`input[name="filter_platform"][value="${plat}"]`);
   if (radio) radio.checked = true;
@@ -556,7 +596,7 @@ async function initSupabaseClient() {
             window.renderFooterSocialLinks();
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   })();
 }
@@ -593,8 +633,8 @@ function setupSupabaseRealtimeSync() {
       })
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-          try { sbClient.removeChannel(channel); } catch (e) {}
-          try { sbClient.realtime?.disconnect(); } catch (e) {}
+          try { sbClient.removeChannel(channel); } catch (e) { }
+          try { sbClient.realtime?.disconnect(); } catch (e) { }
           _publicRealtimeChannel = null;
         }
       });
@@ -643,7 +683,7 @@ function setupLiveJobsAutoSync() {
             try {
               safeLocalSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
               safeSessionSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
-            } catch (e) {}
+            } catch (e) { }
             if (!isAnyUserModalOpen()) {
               updateTabCounters();
               if (typeof refreshMasterDataFromJobs === 'function') refreshMasterDataFromJobs();
@@ -654,7 +694,7 @@ function setupLiveJobsAutoSync() {
         }
         loadJobs({ silent: true, bypassCache: true });
       };
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 2. Fallback cross-tab storage event listener
@@ -667,7 +707,7 @@ function setupLiveJobsAutoSync() {
           Object.assign(window.siteSettings, s);
           if (typeof window.renderFooterSocialLinks === 'function') window.renderFooterSocialLinks();
         }
-      } catch (se) {}
+      } catch (se) { }
       return;
     }
     if (e.key !== 'kerjahub_jobs_sync_ts' && e.key !== 'kerja_public_jobs_cache') return;
@@ -690,7 +730,7 @@ function setupLiveJobsAutoSync() {
           }
         }
       }
-    } catch (err) {}
+    } catch (err) { }
     loadJobs({ silent: true, bypassCache: true });
   });
 
@@ -707,7 +747,7 @@ function setupLiveJobsAutoSync() {
           await loadJobs({ silent: true, bypassCache: true });
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   checkVersionAndSync();
@@ -767,7 +807,7 @@ async function loadCompanyImagesCache() {
         applyFiltersAndRender();
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // Theme handling
@@ -788,8 +828,8 @@ function toggleTheme() {
 function updateThemeIcon(theme) {
   const btn = document.getElementById('theme-toggle-btn');
   if (btn) {
-    btn.innerHTML = theme === 'dark' 
-      ? '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>' 
+    btn.innerHTML = theme === 'dark'
+      ? '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>'
       : '<i class="fa-solid fa-moon"></i>';
   }
 }
@@ -1437,7 +1477,7 @@ async function loadMasterDataFilters() {
         renderedFromCache = true;
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // Ensure sidebar & hero dropdowns are never empty at t=0ms
   if (!renderedFromCache) {
@@ -1451,7 +1491,7 @@ async function loadMasterDataFilters() {
     if (ok && json && json.success && json.data) {
       data = json.data.allData || json.data;
     }
-  } catch (err) {}
+  } catch (err) { }
 
   // Resilient fallback to direct Supabase if API is unavailable
   if (!data && sbClient) {
@@ -1465,13 +1505,13 @@ async function loadMasterDataFilters() {
           data = parsed;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   if (data) {
     try {
       safeSessionSet('kerja_master_data_cache', JSON.stringify(data));
-    } catch (e) {}
+    } catch (e) { }
     renderMasterDataToDOM(data);
     renderPopularCategoriesByViews();
   }
@@ -1672,7 +1712,7 @@ async function loadJobs(options = {}) {
             hadCached = true;
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (!hadCached && !silent && (!rawAllJobs || rawAllJobs.length === 0) && container) {
@@ -1700,7 +1740,7 @@ async function loadJobs(options = {}) {
         if (ok && json && json.success && Array.isArray(json.data)) {
           return json.data.map(window.cleanJobData).filter(isJobPubliclyVisible);
         }
-      } catch (e) {}
+      } catch (e) { }
       return null;
     };
 
@@ -1744,7 +1784,7 @@ async function loadJobs(options = {}) {
             return window.cleanJobData(row);
           }).filter(isJobPubliclyVisible);
         }
-      } catch (e) {}
+      } catch (e) { }
       return null;
     };
 
@@ -1762,7 +1802,7 @@ async function loadJobs(options = {}) {
       try {
         safeLocalSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
         safeSessionSet('kerja_public_jobs_cache', JSON.stringify(rawAllJobs));
-      } catch (e) {}
+      } catch (e) { }
       if (!hadCached || (changed && (!silent || !isAnyUserModalOpen()))) {
         updateTabCounters();
         if (typeof refreshMasterDataFromJobs === 'function') refreshMasterDataFromJobs();
@@ -1785,7 +1825,7 @@ async function loadJobs(options = {}) {
           openJobDetail(targetJobId);
         }, 300);
       }
-    } catch (e) {}
+    } catch (e) { }
   } finally {
     isLoadingPublicJobs = false;
   }
@@ -2098,7 +2138,7 @@ function renderActiveFilterChips() {
   }
 }
 
-window.removeFilterChip = function(idx) {
+window.removeFilterChip = function (idx) {
   if (window._chipActions && window._chipActions[idx]) {
     window._chipActions[idx]();
     applyFiltersAndRender();
@@ -2245,7 +2285,7 @@ function generateCompanyBannerDataUrl(job) {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
-window.handlePublicPosterError = function(imgEl, jobId) {
+window.handlePublicPosterError = function (imgEl, jobId) {
   if (!imgEl) return;
   imgEl.onerror = null;
   const job = (rawAllJobs || []).find(j => Number(j.id) === Number(jobId)) || (window.rawAllJobs || []).find(j => Number(j.id) === Number(jobId));
@@ -2260,7 +2300,7 @@ function getEffectiveJobCover(job) {
     try {
       const cv = typeof job.contact_value === 'string' ? JSON.parse(job.contact_value) : job.contact_value;
       if (cv && cv.cover_image) cover = cv.cover_image;
-    } catch (e) {}
+    } catch (e) { }
   }
   if (cover && typeof cover === 'string' && cover.trim()) {
     let p = cover.trim();
@@ -2365,10 +2405,10 @@ function renderJobs(jobs) {
           <img src="${coverSrc}" alt="${escapeHtml(job.title)}" loading="lazy" decoding="async" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
           ${isLocked ? '<div class="badge-locked-overlay"><i class="fa-solid fa-lock"></i> TELAH DITUTUP (EXPIRED)</div>' : ''}
           ${job.is_featured && !isLocked ? '<div class="badge-featured"><i class="fa-solid fa-star"></i> Unggulan</div>' : ''}
-          ${hasFlyers && !isLocked ? `<div class="badge-card-flyer"><i class="fa-regular fa-image"></i> ${flyerList.length > 1 ? flyerList.length + ' Flyer' : 'Flyer Loker'}</div>` : ''}
+          ${hasFlyers && !isLocked ? `<div class="badge-card-flyer"><i class="fa-regular fa-image"></i> ${flyerList.length > 1 ? flyerList.length + ' Poster' : 'Poster Loker'}</div>` : ''}
           <div class="badge-category">${escapeHtml(job.category)}</div>
           <div class="poster-overlay">
-            <span class="poster-badge-btn"><i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-expand'}"></i> ${isLocked ? 'Lowongan Telah Kedaluwarsa' : (hasFlyers ? 'Lihat Flyer Loker (' + flyerList.length + ')' : 'Lihat Sampul Penuh')}</span>
+            <span class="poster-badge-btn"><i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-expand'}"></i> ${isLocked ? 'Lowongan Telah Kedaluwarsa' : (hasFlyers ? 'Lihat Poster (' + flyerList.length + ')' : 'Lihat Poster')}</span>
           </div>
         </div>
 
@@ -2553,7 +2593,7 @@ function calculateUrgencyBadge(deadlineStr) {
 }
 
 // Quick Search by Skill Tag
-window.searchBySkill = function(event, skill) {
+window.searchBySkill = function (event, skill) {
   if (event) {
     event.stopPropagation();
     event.preventDefault();
@@ -2632,14 +2672,14 @@ function renderLightboxSlide() {
   if (nextBtn) nextBtn.style.display = showNav;
 }
 
-window.prevLightboxSlide = function(event) {
+window.prevLightboxSlide = function (event) {
   if (event) event.stopPropagation();
   if (lightboxSlides.length <= 1) return;
   lightboxSlideIndex = (lightboxSlideIndex - 1 + lightboxSlides.length) % lightboxSlides.length;
   renderLightboxSlide();
 };
 
-window.nextLightboxSlide = function(event) {
+window.nextLightboxSlide = function (event) {
   if (event) event.stopPropagation();
   if (lightboxSlides.length <= 1) return;
   lightboxSlideIndex = (lightboxSlideIndex + 1) % lightboxSlides.length;
@@ -2690,7 +2730,7 @@ function getJobFlyerImages(job) {
     try {
       const parsed = JSON.parse(job.flyer_images);
       if (Array.isArray(parsed)) parsed.forEach(pushUnique);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 2. Check contact_value JSON
@@ -2700,7 +2740,7 @@ function getJobFlyerImages(job) {
       if (cv && Array.isArray(cv.flyer_images) && cv.flyer_images.length > 0) {
         cv.flyer_images.forEach(pushUnique);
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 3. Check poster_image
@@ -2710,7 +2750,7 @@ function getJobFlyerImages(job) {
       try {
         const parsed = JSON.parse(p);
         if (Array.isArray(parsed)) parsed.forEach(pushUnique);
-      } catch (e) {}
+      } catch (e) { }
     } else if (p) {
       pushUnique(p);
     }
@@ -2749,27 +2789,27 @@ function stopJobFlyerCarousel() {
   }
 }
 
-window.pauseJobFlyerCarousels = function(jobId) {
+window.pauseJobFlyerCarousels = function (jobId) {
   isJobCarouselPaused = true;
 };
 
-window.resumeJobFlyerCarousels = function(jobId) {
+window.resumeJobFlyerCarousels = function (jobId) {
   isJobCarouselPaused = false;
 };
 
-window.goToJobSlide = function(jobId, index) {
+window.goToJobSlide = function (jobId, index) {
   if (!currentJobFlyerImages || currentJobFlyerImages.length === 0) return;
   activeJobFlyerSlide = (index + currentJobFlyerImages.length) % currentJobFlyerImages.length;
   updateJobCarouselDOM(jobId);
 };
 
-window.nextJobSlide = function(jobId, isAuto = false) {
+window.nextJobSlide = function (jobId, isAuto = false) {
   if (!currentJobFlyerImages || currentJobFlyerImages.length === 0) return;
   activeJobFlyerSlide = (activeJobFlyerSlide + 1) % currentJobFlyerImages.length;
   updateJobCarouselDOM(jobId);
 };
 
-window.prevJobSlide = function(jobId) {
+window.prevJobSlide = function (jobId) {
   if (!currentJobFlyerImages || currentJobFlyerImages.length === 0) return;
   activeJobFlyerSlide = (activeJobFlyerSlide - 1 + currentJobFlyerImages.length) % currentJobFlyerImages.length;
   updateJobCarouselDOM(jobId);
@@ -2810,12 +2850,12 @@ function updateJobCarouselDOM(jobId) {
   }
 }
 
-window.openActiveJobLightbox = function(jobId) {
+window.openActiveJobLightbox = function (jobId) {
   if (!currentJobFlyerImages || currentJobFlyerImages.length === 0) return;
   openLightbox(currentJobFlyerImages, 'Poster Lowongan', activeJobFlyerSlide);
 };
 
-window.downloadActiveJobSlide = function(jobId) {
+window.downloadActiveJobSlide = function (jobId) {
   if (!currentJobFlyerImages || currentJobFlyerImages.length === 0) return;
   const currentSrc = currentJobFlyerImages[activeJobFlyerSlide] || currentJobFlyerImages[0];
   const a = document.createElement('a');
@@ -2827,7 +2867,7 @@ window.downloadActiveJobSlide = function(jobId) {
   document.body.removeChild(a);
 };
 
-window.openLightboxSlide = function(jobId, slideIndex) {
+window.openLightboxSlide = function (jobId, slideIndex) {
   if (!currentJobFlyerImages || currentJobFlyerImages.length === 0) return;
   openLightbox(currentJobFlyerImages, 'Poster Lowongan', slideIndex);
 };
@@ -2913,7 +2953,7 @@ async function openJobDetail(jobId) {
           rawAllJobs.unshift(rawJob);
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }
   if (!rawJob) return;
 
@@ -2946,7 +2986,7 @@ async function openJobDetail(jobId) {
   const isMultiFlyer = flyerImages.length > 1;
   const companyInitial = (job.company_name || 'K').trim().charAt(0).toUpperCase();
   const hasRealFlyer = flyerImages.some(src => isManualJobFlyer({ poster_image: src }));
-  const flyerBtnLabel = flyerImages.length > 1 ? `Lihat ${flyerImages.length} Flyer` : (hasRealFlyer ? 'Lihat Flyer' : 'Lihat Sampul');
+  const flyerBtnLabel = flyerImages.length > 1 ? `Lihat ${flyerImages.length} Poster` : 'Lihat Poster';
 
   const contacts = extractJobContacts(job);
   const contactBtnHtml = renderContactButton(job);
@@ -3118,7 +3158,7 @@ async function openJobDetail(jobId) {
                 <div class="side-carousel-track">
                   ${flyerImages.map((src, i) => `
                     <div class="side-slide ${i === 0 ? 'active' : ''}" data-index="${i}">
-                      <img src="${src}" alt="Poster Slide ${i+1}" onclick="openLightboxSlide(${job.id}, ${i})" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
+                      <img src="${src}" alt="Poster Slide ${i + 1}" onclick="openLightboxSlide(${job.id}, ${i})" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
                     </div>
                   `).join('')}
                 </div>
@@ -3260,12 +3300,12 @@ async function openJobDetail(jobId) {
 
 
 // Notice for Locked / Expired Jobs
-window.showLockedNotice = function(jobTitle) {
+window.showLockedNotice = function (jobTitle) {
   showToast('error', `Lowongan untuk posisi "${jobTitle || 'Pekerjaan ini'}" telah berakhir dan dikunci oleh pihak rekruter. Anda tidak dapat membuka detail atau mengajukan lamaran baru.`);
 };
 
 // Interactive Checklist Match Score
-window.updateMatchScore = function(totalReqs) {
+window.updateMatchScore = function (totalReqs) {
   if (totalReqs <= 0) return;
   const checked = document.querySelectorAll('.check-list-item input[type="checkbox"]:checked').length;
   const pct = Math.round((checked / totalReqs) * 100);
@@ -3293,7 +3333,7 @@ window.updateMatchScore = function(totalReqs) {
 };
 
 // Copy Application Template
-window.copyApplicationTemplate = function(title, company) {
+window.copyApplicationTemplate = function (title, company) {
   const box = document.getElementById('wa-template-box');
   const text = box ? box.textContent : `Halo HRD ${company}, saya bermaksud mengajukan lamaran kerja untuk posisi ${title}. Bersama pesan ini saya siap melampirkan berkas CV saya. Terima kasih.`;
   navigator.clipboard.writeText(text).then(() => {
@@ -3464,10 +3504,10 @@ function openExternalUrlSafely(url) {
   try {
     opened = window.open(url, '_blank');
     if (opened) {
-      try { opened.opener = null; } catch (e) {}
+      try { opened.opener = null; } catch (e) { }
       return true;
     }
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     window.location.assign(url);
@@ -3479,7 +3519,7 @@ function openExternalUrlSafely(url) {
 }
 
 // 1-Click Direct Apply Launcher (Bypass modal for immediate application)
-window.directApplyJob = function(jobId, event) {
+window.directApplyJob = function (jobId, event) {
   if (event) {
     event.stopPropagation();
     event.preventDefault();
@@ -3519,9 +3559,9 @@ window.directApplyJob = function(jobId, event) {
     if (sbClient && job.id) {
       Promise.resolve(
         sbClient.from('jobs').update({ views_count: (job.views_count || 0) + 1 }).eq('id', job.id)
-      ).catch(() => {});
+      ).catch(() => { });
     }
-  } catch (e) {}
+  } catch (e) { }
 };
 
 // Render Multi-Channel Contact Buttons
@@ -3655,7 +3695,7 @@ function renderContactButton(job) {
 }
 
 // Reliable WhatsApp Chat Launcher
-window.triggerWhatsAppChat = function(phone, companyName, jobTitle) {
+window.triggerWhatsAppChat = function (phone, companyName, jobTitle) {
   if (!phone) {
     showToast('error', 'Nomor WhatsApp perekrut tidak tersedia.');
     return;
@@ -3703,7 +3743,7 @@ function openNativeMailtoClient(email, companyName, jobTitle) {
 }
 
 // Direct Webmail Home Launcher (Gmail Desktop, Native Mailto on Mobile/HP, Outlook, Yahoo)
-window.openWebmail = function(provider, email, companyName, jobTitle) {
+window.openWebmail = function (provider, email, companyName, jobTitle) {
   const cleanEmail = String(email || '').trim();
   if (!cleanEmail) {
     showToast('error', 'Alamat email rekruter tidak tersedia.');
@@ -3741,7 +3781,7 @@ window.openWebmail = function(provider, email, companyName, jobTitle) {
   }
 };
 
-window.triggerEmailApplication = function(email, companyName, jobTitle) {
+window.triggerEmailApplication = function (email, companyName, jobTitle) {
   // Mobile/HP -> Native Mailto (Gmail App / Apple Mail); Desktop/PC -> Gmail Web Compose
   if (isMobileDeviceClient()) {
     window.openWebmail('mailto', email, companyName, jobTitle);
@@ -3751,7 +3791,7 @@ window.triggerEmailApplication = function(email, companyName, jobTitle) {
 };
 
 // Clipboard Helper
-window.copyToClipboard = function(text, successMsg) {
+window.copyToClipboard = function (text, successMsg) {
   if (!text) return;
   navigator.clipboard.writeText(text).then(() => {
     showToast('info', successMsg || 'Berhasil disalin ke clipboard.');
@@ -3836,9 +3876,9 @@ function showToast(type, message) {
 window.activeCvKeywords = null;
 
 const SKILL_KEYWORDS_DICT = [
-  'react', 'vue', 'angular', 'node', 'nodejs', 'express', 'javascript', 'typescript', 'php', 'laravel', 
+  'react', 'vue', 'angular', 'node', 'nodejs', 'express', 'javascript', 'typescript', 'php', 'laravel',
   'python', 'django', 'fastapi', 'java', 'spring', 'kotlin', 'flutter', 'android', 'ios', 'swift',
-  'html', 'css', 'tailwind', 'bootstrap', 'sass', 'sql', 'mysql', 'postgresql', 'postgres', 'mongodb', 
+  'html', 'css', 'tailwind', 'bootstrap', 'sass', 'sql', 'mysql', 'postgresql', 'postgres', 'mongodb',
   'redis', 'docker', 'kubernetes', 'aws', 'cloud', 'git', 'github', 'api', 'rest api', 'graphql',
   'ui', 'ux', 'ui/ux', 'figma', 'adobe', 'photoshop', 'illustrator', 'canva', 'prototyping', 'design system',
   'marketing', 'digital marketing', 'social media', 'content creator', 'copywriter', 'copywriting', 'seo', 'sem',
@@ -3989,7 +4029,7 @@ async function handleCvFileUpload(file) {
 
 function runCvAnalysis(rawText, sourceName) {
   const lower = (rawText || '').toLowerCase();
-  
+
   // Detect candidate skills
   const candidateSkills = [];
   SKILL_KEYWORDS_DICT.forEach(skill => {

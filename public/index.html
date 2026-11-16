@@ -1,26 +1,31 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KerjaHub - Portal Publikasi Poster Lowongan Kerja & Karir</title>
-  <meta name="description" content="Temukan poster rekrutmen resmi dan informasi lowongan kerja terkini. Hubungi langsung pihak perekrut resmi via WhatsApp dan Email secara cepat dan terpercaya.">
+  <meta name="description"
+    content="Temukan poster rekrutmen resmi dan informasi lowongan kerja terkini. Hubungi langsung pihak perekrut resmi via WhatsApp dan Email secara cepat dan terpercaya.">
 
   <!-- Favicon / Fonts / Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://nptmawuukuysqzqakwej.supabase.co" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
-  
-  <link rel="stylesheet" href="./css/style.css?v=20261116_04">
+
+  <link rel="stylesheet" href="./css/style.css?v=20261116_05">
   <!-- Start Jobs Prefetch Immediately at t=0ms -->
-  <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function(r){return r.ok ? r.json() : null;}).catch(function(){return null;});</script>
+  <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
   <script src="./vendor/supabase/supabase.min.js" defer></script>
   <!-- PDF.js (Self-Hosted Local Vendor Asset) -->
   <script src="./vendor/pdfjs/pdf.min.js" defer></script>
 </head>
+
 <body>
 
   <!-- NAVBAR -->
@@ -34,7 +39,8 @@
           <span>KerjaHub<span class="brand-tag">PORTAL</span></span>
         </a>
         <span class="brand-credit-divider" aria-hidden="true"></span>
-        <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-top-credit" title="Powered by Daysheet.id">
+        <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-top-credit"
+          title="Powered by Daysheet.id">
           <span class="daysheet-by">by</span>
           <img src="./uploads/daysheet_logo.png" alt="Daysheet.id" class="daysheet-top-logo">
         </a>
@@ -42,13 +48,15 @@
 
       <ul class="nav-links">
         <li><a href="#lowongan" class="nav-link active">Lowongan Kerja</a></li>
-        <li><a href="cek-cv.html" class="nav-link" style="color: var(--primary); font-weight: 700;"><i class="fa-solid fa-wand-magic-sparkles"></i> Cek CV AI</a></li>
+        <li><a href="cek-cv.html" class="nav-link" style="color: var(--primary); font-weight: 700;"><i
+              class="fa-solid fa-wand-magic-sparkles"></i> Cek CV AI</a></li>
         <li><a href="#kategori-section" class="nav-link">Kategori Populer</a></li>
         <li><a href="#panduan-pelamar" class="nav-link">Panduan Pelamar</a></li>
       </ul>
 
       <div class="nav-actions">
-        <a href="cek-cv.html" class="btn btn-primary btn-sm" id="nav-btn-cv" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+        <a href="cek-cv.html" class="btn btn-primary btn-sm" id="nav-btn-cv"
+          style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
           <i class="fa-solid fa-wand-magic-sparkles"></i> Cek CV AI
         </a>
         <!-- Theme Toggle -->
@@ -62,88 +70,13 @@
   <!-- HERO SECTION -->
   <section class="hero">
     <div class="container hero-content">
-      <a href="#lowongan" class="hero-invite-banner hero-gif-card" title="Klik untuk melihat lowongan kerja resmi terbaru">
-        <span class="hero-mascot-stage" aria-hidden="true">
-          <svg class="hero-mascot-svg" viewBox="0 0 88 88" width="68" height="68">
-            <defs>
-              <linearGradient id="suitGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#1d4ed8"/>
-                <stop offset="100%" stop-color="#4f46e5"/>
-              </linearGradient>
-              <linearGradient id="auraGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#dbeafe"/>
-                <stop offset="50%" stop-color="#ede9fe"/>
-                <stop offset="100%" stop-color="#cffafe"/>
-              </linearGradient>
-              <linearGradient id="bagGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#0ea5e9"/>
-                <stop offset="100%" stop-color="#0284c7"/>
-              </linearGradient>
-            </defs>
-            <circle cx="44" cy="44" r="40" fill="url(#auraGrad)"/>
-            <!-- Floating Animated Particles (GIF-style sparkle/coin motion) -->
-            <g class="gif-particle gif-p1">
-              <path d="M16 24l1.8-4.2L22 18l-4.2-1.8L16 12l-1.8 4.2L10 18l4.2 1.8z" fill="#f59e0b"/>
-            </g>
-            <g class="gif-particle gif-p2">
-              <circle cx="71" cy="20" r="4.2" fill="#fbbf24" stroke="#d97706" stroke-width="1"/>
-              <path d="M71 17.8v4.4M69.2 20h3.6" stroke="#92400e" stroke-width="1" stroke-linecap="round"/>
-            </g>
-            <g class="gif-particle gif-p3">
-              <path d="M68 58l1.4-3 3-1.4-3-1.4-1.4-3-1.4 3-3 1.4 3 1.4z" fill="#6366f1"/>
-            </g>
-            <!-- Whole Bouncing Character -->
-            <g class="gif-character-body">
-              <!-- Shoulders & Suit -->
-              <path d="M24 74c0-11 8.8-18.5 20-18.5S64 63 64 74" fill="url(#suitGrad)"/>
-              <path d="M40 55.5l4 10.5 4-10.5" fill="#ffffff"/>
-              <path d="M42.3 57.5L44 68l1.7-10.5z" fill="#f59e0b"/>
-              <!-- Neck & Head -->
-              <g class="gif-head-nod">
-                <rect x="40" y="47" width="8" height="7" rx="3" fill="#fcd34d"/>
-                <circle cx="44" cy="34" r="14" fill="#fde68a"/>
-                <!-- Hair -->
-                <path d="M30 32.5c0-8.8 6.4-14.5 14.3-14.5 7.4 0 13.7 5.4 13.7 13.8-3.4-3-8.1-4.3-14-4.3-5.8 0-10.4 1.8-14 5z" fill="#1e293b"/>
-                <!-- Rosy cheeks -->
-                <ellipse cx="36" cy="37.5" rx="2.4" ry="1.3" fill="#fb7185" opacity="0.45"/>
-                <ellipse cx="52" cy="37.5" rx="2.4" ry="1.3" fill="#fb7185" opacity="0.45"/>
-                <!-- Blinking Eyes -->
-                <g class="gif-eyes-blink">
-                  <circle cx="39" cy="34.2" r="1.8" fill="#0f172a"/>
-                  <circle cx="49" cy="34.2" r="1.8" fill="#0f172a"/>
-                  <circle cx="39.6" cy="33.6" r="0.6" fill="#ffffff"/>
-                  <circle cx="49.6" cy="33.6" r="0.6" fill="#ffffff"/>
-                </g>
-                <!-- Cheerful Smile -->
-                <path d="M39.5 39.5c2.4 2.6 6.6 2.6 9 0" fill="none" stroke="#b45309" stroke-width="2.1" stroke-linecap="round"/>
-              </g>
-              <!-- Swinging Briefcase on Left -->
-              <g class="gif-briefcase-swing">
-                <rect x="12" y="50" width="16" height="12.5" rx="3" fill="url(#bagGrad)" stroke="#ffffff" stroke-width="1.5"/>
-                <path d="M17 50v-2.4a2.2 2.2 0 0 1 2.2-2.2h1.6a2.2 2.2 0 0 1 2.2 2.2V50" fill="none" stroke="#ffffff" stroke-width="1.5"/>
-                <path d="M12.8 55.5h14.4" stroke="#bae6fd" stroke-width="1.3"/>
-              </g>
-              <!-- Expressive Waving Right Hand -->
-              <g class="gif-hand-wave">
-                <path d="M60 51c5-4.5 9.2-11.2 7.8-16.2-.8-2.9-4.3-2.9-5.6-.3L57 46" fill="#fde68a" stroke="#d97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M70 30.5c1.8 1.5 2.4 3.5 1.8 5.2" fill="none" stroke="#f59e0b" stroke-width="1.7" stroke-linecap="round"/>
-              </g>
-            </g>
-          </svg>
-        </span>
-        <span class="hero-invite-copy">
-          <span class="hero-gif-tag"><span class="live-dot-pulse"></span> SEMANGAT PEJUANG KARIR</span>
-          <span class="hero-invite-title">Ayo Semangat! Semoga Dilancarkan Rejekinya <span class="invite-sparkle">✨</span></span>
-          <span class="hero-invite-sub">Jangan menyerah — klik untuk lihat lowongan resmi terbaru hari ini</span>
-        </span>
-        <i class="fa-solid fa-arrow-down hero-invite-arrow"></i>
-      </a>
       <h1 class="hero-title">
         Temukan Poster & Info Karir <br>
         <span class="text-gradient">Cepat, Transparan, Langsung ke Perekrut</span>
       </h1>
       <p class="hero-desc">
-        Akses ratusan poster rekrutmen resmi dari berbagai perusahaan. Periksa deskripsi posisi, unduh flyer pengumuman, dan hubungi kontak HRD resmi secara langsung.
+        Akses ratusan poster rekrutmen resmi dari berbagai perusahaan. Periksa deskripsi posisi, unduh flyer pengumuman,
+        dan hubungi kontak HRD resmi secara langsung.
       </p>
 
       <!-- SEARCH BAR WITH CUSTOM DROPDOWNS -->
@@ -151,7 +84,8 @@
         <div class="search-field" style="flex: 2;">
           <div class="search-field-input-wrapper">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="search-input" placeholder="Cari posisi pekerjaan, keahlian, atau nama perusahaan..." autocomplete="off">
+            <input type="text" id="search-input" placeholder="Cari posisi pekerjaan, keahlian, atau nama perusahaan..."
+              autocomplete="off">
             <button type="button" class="search-clear-btn" id="btn-clear-search" title="Hapus pencarian">
               <i class="fa-solid fa-xmark"></i>
             </button>
@@ -181,11 +115,13 @@
                 <i class="fa-solid fa-check dropdown-check"></i>
               </div>
               <div class="dropdown-item" data-value="Marketing & Penjualan">
-                <div class="dropdown-item-left"><i class="fa-solid fa-bullhorn"></i><span>Marketing & Penjualan</span></div>
+                <div class="dropdown-item-left"><i class="fa-solid fa-bullhorn"></i><span>Marketing & Penjualan</span>
+                </div>
                 <i class="fa-solid fa-check dropdown-check"></i>
               </div>
               <div class="dropdown-item" data-value="Manajemen Produk">
-                <div class="dropdown-item-left"><i class="fa-solid fa-box-archive"></i><span>Manajemen Produk</span></div>
+                <div class="dropdown-item-left"><i class="fa-solid fa-box-archive"></i><span>Manajemen Produk</span>
+                </div>
                 <i class="fa-solid fa-check dropdown-check"></i>
               </div>
               <div class="dropdown-item" data-value="Data & AI">
@@ -193,7 +129,8 @@
                 <i class="fa-solid fa-check dropdown-check"></i>
               </div>
               <div class="dropdown-item" data-value="Administrasi & Keuangan">
-                <div class="dropdown-item-left"><i class="fa-solid fa-file-invoice-dollar"></i><span>Administrasi & Keuangan</span></div>
+                <div class="dropdown-item-left"><i class="fa-solid fa-file-invoice-dollar"></i><span>Administrasi &
+                    Keuangan</span></div>
                 <i class="fa-solid fa-check dropdown-check"></i>
               </div>
             </div>
@@ -250,8 +187,10 @@
 
       <!-- TRENDING POPULAR CATEGORIES BY VIEWS -->
       <div class="trending-keywords" id="kategori-section">
-        <span class="trending-label"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Kategori Terpopuler:</span>
-        <button type="button" class="chip-keyword active" id="btn-search-all-cat" data-category="Semua" title="Tampilkan Semua Kategori">
+        <span class="trending-label"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Kategori
+          Terpopuler:</span>
+        <button type="button" class="chip-keyword active" id="btn-search-all-cat" data-category="Semua"
+          title="Tampilkan Semua Kategori">
           <i class="fa-solid fa-layer-group" style="color: #6366f1;"></i> Semua Kategori
         </button>
       </div>
@@ -303,13 +242,16 @@
           <i class="fa-solid fa-briefcase"></i> Semua Lowongan <span class="job-tab-badge" id="tab-count-all">0</span>
         </button>
         <button type="button" class="job-tab-btn" data-tab="featured">
-          <i class="fa-solid fa-star"></i> Rekomendasi Unggulan <span class="job-tab-badge" id="tab-count-featured">0</span>
+          <i class="fa-solid fa-star"></i> Rekomendasi Unggulan <span class="job-tab-badge"
+            id="tab-count-featured">0</span>
         </button>
         <button type="button" class="job-tab-btn" data-tab="remote">
-          <i class="fa-solid fa-laptop-code"></i> Remote (WFH) <span class="job-tab-badge" id="tab-count-remote">0</span>
+          <i class="fa-solid fa-laptop-code"></i> Remote (WFH) <span class="job-tab-badge"
+            id="tab-count-remote">0</span>
         </button>
         <button type="button" class="job-tab-btn" data-tab="freshgrad">
-          <i class="fa-solid fa-graduation-cap"></i> Fresh Graduate <span class="job-tab-badge" id="tab-count-freshgrad">0</span>
+          <i class="fa-solid fa-graduation-cap"></i> Fresh Graduate <span class="job-tab-badge"
+            id="tab-count-freshgrad">0</span>
         </button>
       </div>
 
@@ -322,7 +264,8 @@
 
       <!-- MOBILE FILTER TOGGLE BAR -->
       <div class="mobile-filter-bar">
-        <button type="button" class="btn-mobile-filter-toggle" id="btn-toggle-filter-mobile" aria-label="Buka Filter Lowongan">
+        <button type="button" class="btn-mobile-filter-toggle" id="btn-toggle-filter-mobile"
+          aria-label="Buka Filter Lowongan">
           <span class="mft-left">
             <i class="fa-solid fa-sliders"></i>
             <span>Filter & Kategori Lowongan</span>
@@ -335,12 +278,13 @@
       </div>
 
       <div class="content-layout">
-        
+
         <!-- SIDEBAR FILTER -->
         <aside class="filter-sidebar" id="filter-sidebar">
           <div class="sidebar-header">
             <span class="sidebar-title"><i class="fa-solid fa-sliders"></i> Filter Pencarian</span>
-            <button type="button" class="filter-reset" id="btn-reset-filter"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            <button type="button" class="filter-reset" id="btn-reset-filter"><i class="fa-solid fa-rotate-left"></i>
+              Reset</button>
           </div>
 
 
@@ -385,13 +329,15 @@
             <div class="filter-options">
               <label class="filter-checkbox">
                 <input type="checkbox" id="filter_has_salary">
-                <span style="font-weight: 600; color: var(--text-main);"><i class="fa-solid fa-money-bill-wave" style="color: var(--success);"></i> Cantumkan Kisaran Gaji</span>
+                <span style="font-weight: 600; color: var(--text-main);"><i class="fa-solid fa-money-bill-wave"
+                    style="color: var(--success);"></i> Cantumkan Kisaran Gaji</span>
               </label>
             </div>
           </div>
 
           <!-- Panduan Pelamar Box -->
-          <div id="panduan-pelamar" style="margin-top: 24px; padding: 18px; background: var(--bg-surface-alt); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <div id="panduan-pelamar"
+            style="margin-top: 24px; padding: 18px; background: var(--bg-surface-alt); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
             <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">
               <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Panduan Pelamar Kerja
             </div>
@@ -404,7 +350,8 @@
 
           <!-- Mobile Apply Button -->
           <div class="mobile-filter-apply-box">
-            <button type="button" class="btn btn-primary btn-apply-filter-mobile" id="btn-apply-filter-mobile" style="width: 100%; margin-top: 18px; padding: 13px; font-weight: 700;">
+            <button type="button" class="btn btn-primary btn-apply-filter-mobile" id="btn-apply-filter-mobile"
+              style="width: 100%; margin-top: 18px; padding: 13px; font-weight: 700;">
               <i class="fa-solid fa-check"></i> Terapkan Filter & Lihat Lowongan
             </button>
           </div>
@@ -428,15 +375,18 @@
                 </button>
                 <div class="dropdown-menu sort-menu" id="dropdown-sort-menu">
                   <div class="dropdown-item active" data-value="newest">
-                    <div class="dropdown-item-left"><i class="fa-regular fa-clock"></i><span>Terbaru Ditambahkan</span></div>
+                    <div class="dropdown-item-left"><i class="fa-regular fa-clock"></i><span>Terbaru Ditambahkan</span>
+                    </div>
                     <i class="fa-solid fa-check dropdown-check"></i>
                   </div>
                   <div class="dropdown-item" data-value="views">
-                    <div class="dropdown-item-left"><i class="fa-solid fa-fire"></i><span>Paling Banyak Dilihat</span></div>
+                    <div class="dropdown-item-left"><i class="fa-solid fa-fire"></i><span>Paling Banyak Dilihat</span>
+                    </div>
                     <i class="fa-solid fa-check dropdown-check"></i>
                   </div>
                   <div class="dropdown-item" data-value="featured">
-                    <div class="dropdown-item-left"><i class="fa-solid fa-star"></i><span>Rekomendasi Unggulan</span></div>
+                    <div class="dropdown-item-left"><i class="fa-solid fa-star"></i><span>Rekomendasi Unggulan</span>
+                    </div>
                     <i class="fa-solid fa-check dropdown-check"></i>
                   </div>
                 </div>
@@ -444,8 +394,10 @@
               </div>
 
               <div class="view-toggles">
-                <button type="button" class="view-btn active" id="view-grid-btn" title="Tampilan Kartu Grid"><i class="fa-solid fa-table-cells-large"></i></button>
-                <button type="button" class="view-btn" id="view-list-btn" title="Tampilan Daftar List"><i class="fa-solid fa-list"></i></button>
+                <button type="button" class="view-btn active" id="view-grid-btn" title="Tampilan Kartu Grid"><i
+                    class="fa-solid fa-table-cells-large"></i></button>
+                <button type="button" class="view-btn" id="view-list-btn" title="Tampilan Daftar List"><i
+                    class="fa-solid fa-list"></i></button>
               </div>
             </div>
           </div>
@@ -473,14 +425,17 @@
   <!-- POSTER FULLSCREEN LIGHTBOX -->
   <div class="lightbox-overlay" id="poster-lightbox">
     <div class="lightbox-content">
-      <button type="button" class="modal-close-btn lightbox-close-btn" style="top: -16px; right: -16px;" title="Tutup Lightbox">
+      <button type="button" class="modal-close-btn lightbox-close-btn" style="top: -16px; right: -16px;"
+        title="Tutup Lightbox">
         <i class="fa-solid fa-xmark"></i>
       </button>
-      <button type="button" class="lightbox-nav-btn prev" id="lightbox-prev-btn" onclick="prevLightboxSlide(event)" style="display: none;" title="Slide Sebelumnya">
+      <button type="button" class="lightbox-nav-btn prev" id="lightbox-prev-btn" onclick="prevLightboxSlide(event)"
+        style="display: none;" title="Slide Sebelumnya">
         <i class="fa-solid fa-chevron-left"></i>
       </button>
       <img id="lightbox-img" src="" alt="Desain Poster Lowongan">
-      <button type="button" class="lightbox-nav-btn next" id="lightbox-next-btn" onclick="nextLightboxSlide(event)" style="display: none;" title="Slide Berikutnya">
+      <button type="button" class="lightbox-nav-btn next" id="lightbox-next-btn" onclick="nextLightboxSlide(event)"
+        style="display: none;" title="Slide Berikutnya">
         <i class="fa-solid fa-chevron-right"></i>
       </button>
       <div class="lightbox-bar">
@@ -505,7 +460,8 @@
             <span>KerjaHub</span>
           </a>
           <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 440px;">
-            Portal publikasi info dan flyer poster lowongan kerja resmi. Menghubungkan pelamar langsung dengan rekruter perusahaan secara transparan dan mudah diakses.
+            Portal publikasi info dan flyer poster lowongan kerja resmi. Menghubungkan pelamar langsung dengan rekruter
+            perusahaan secara transparan dan mudah diakses.
           </p>
         </div>
         <ul class="footer-links">
@@ -517,8 +473,10 @@
       <div class="footer-bottom">
         <span>&copy; 2026 KerjaHub - Portal Berbagi Poster Lowongan Kerja Resmi.</span>
         <div class="footer-bottom-actions">
-          <div class="footer-social-links" id="footer-social-links" style="display: none;" aria-label="Media Sosial Resmi"></div>
-          <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-watermark-pill" title="Kunjungi Daysheet.id">
+          <div class="footer-social-links" id="footer-social-links" style="display: none;"
+            aria-label="Media Sosial Resmi"></div>
+          <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-watermark-pill"
+            title="Kunjungi Daysheet.id">
             <span class="daysheet-wm-badge">
               <img src="./uploads/daysheet_logo.png" alt="Daysheet">
             </span>
@@ -532,20 +490,42 @@
     </div>
   </footer>
 
-  <!-- FLOATING WHATSAPP CV ORDER BUTTON -->
-  <div class="floating-wa-cv-container">
-    <a href="javascript:void(0)" class="floating-wa-cv-btn" id="btn-floating-pesan-cv" onclick="openCvOrderWhatsApp()" title="Pesan Layanan Pembuatan CV ATS via WhatsApp">
-      <div class="floating-wa-icon-box">
-        <span class="floating-wa-pulse"></span>
-        <i class="fa-brands fa-whatsapp"></i>
+  <!-- FLOATING WHATSAPP CV ORDER WIDGET (2-Step Compact Bobbing Widget) -->
+  <div class="floating-wa-cv-container" id="floating-wa-widget">
+    <div class="wa-popover-card" id="wa-popover-card" role="dialog" aria-label="Layanan Pesan CV WhatsApp" hidden>
+      <div class="wa-popover-head">
+        <div class="wa-popover-avatar">
+          <i class="fa-brands fa-whatsapp"></i>
+        </div>
+        <div class="wa-popover-meta">
+          <div class="wa-popover-name">Layanan CV KerjaHub</div>
+          <div class="wa-popover-status"><span class="wa-online-dot"></span> Online • Fast Response</div>
+        </div>
+        <button type="button" class="wa-popover-close" onclick="closeWaWidget()" title="Tutup" aria-label="Tutup Jendela WhatsApp">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
-      <div class="floating-wa-text">
-        <span class="floating-wa-title">Pesan CV Profesional</span>
-        <span class="floating-wa-sub">Standar ATS & HRD • Chat WA</span>
+      <div class="wa-popover-body">
+        <div class="wa-chat-bubble">
+          Halo! Butuh CV profesional standar ATS &amp; HRD agar lebih dilirik rekruter? Yuk konsultasi langsung via WhatsApp!
+        </div>
       </div>
-    </a>
+      <div class="wa-popover-foot">
+        <button type="button" class="wa-popover-cta" id="btn-wa-popover-chat" onclick="openCvOrderWhatsApp(event)">
+          <i class="fa-brands fa-whatsapp"></i> Chat Admin via WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <button type="button" class="floating-wa-cv-btn" id="btn-floating-pesan-cv" onclick="toggleWaWidget(event)"
+      aria-expanded="false" aria-controls="wa-popover-card" title="Bantuan &amp; Pesan CV ATS via WhatsApp">
+      <span class="floating-wa-pulse"></span>
+      <i class="fa-brands fa-whatsapp"></i>
+      <span class="wa-btn-badge-dot" aria-hidden="true"></span>
+    </button>
   </div>
 
-  <script src="./js/app.js?v=20261116_04" defer></script>
+  <script src="./js/app.js?v=20261116_05" defer></script>
 </body>
+
 </html>

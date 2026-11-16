@@ -16,7 +16,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/style.css?v=20261116_04">
+  <link rel="stylesheet" href="./css/style.css?v=20261116_05">
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
   <script src="./vendor/supabase/supabase.min.js"></script>
   <!-- PDF.js (Self-Hosted Local Vendor Asset) -->
@@ -116,15 +116,19 @@
       .cv-upload-container {
         padding: 20px 16px;
       }
+
       .cv-page-title {
         font-size: 1.8rem;
       }
+
       .cv-page-sub {
         font-size: 0.95rem;
       }
+
       .cv-dropzone {
         padding: 24px 14px !important;
       }
+
       .nav-links {
         display: none;
       }
@@ -145,7 +149,8 @@
           <span>KerjaHub<span class="brand-tag">PORTAL</span></span>
         </a>
         <span class="brand-credit-divider" aria-hidden="true"></span>
-        <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-top-credit" title="Powered by Daysheet.id">
+        <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-top-credit"
+          title="Powered by Daysheet.id">
           <span class="daysheet-by">by</span>
           <img src="./uploads/daysheet_logo.png" alt="Daysheet.id" class="daysheet-top-logo">
         </a>
@@ -304,7 +309,8 @@
   <!-- JOB DETAIL MODAL (POSTINGAN LENGKAP & LAMAR LANGSUNG) -->
   <div class="modal-overlay" id="job-detail-modal">
     <div class="modal-container">
-      <button class="modal-close-btn" onclick="closeJobDetailModal()" title="Tutup Modal"><i class="fa-solid fa-xmark"></i></button>
+      <button class="modal-close-btn" onclick="closeJobDetailModal()" title="Tutup Modal"><i
+          class="fa-solid fa-xmark"></i></button>
       <div id="job-detail-content">
         <!-- Rendered by JavaScript -->
       </div>
@@ -314,12 +320,15 @@
   <!-- POSTER FULLSCREEN LIGHTBOX -->
   <div class="lightbox-overlay" id="poster-lightbox">
     <div class="lightbox-content">
-      <button class="modal-close-btn lightbox-close-btn" onclick="closeLightbox()" style="top: -16px; right: -16px;" title="Tutup Lightbox">
+      <button class="modal-close-btn lightbox-close-btn" onclick="closeLightbox()" style="top: -16px; right: -16px;"
+        title="Tutup Lightbox">
         <i class="fa-solid fa-xmark"></i>
       </button>
       <img id="lightbox-img" src="" alt="Desain Poster Lowongan">
-      <div class="lightbox-bar" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.9); padding: 10px 16px; border-radius: 8px;">
-        <span id="lightbox-title" style="color: white; font-weight: 700; font-size: 0.95rem;">Poster Lowongan Resmi</span>
+      <div class="lightbox-bar"
+        style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.9); padding: 10px 16px; border-radius: 8px;">
+        <span id="lightbox-title" style="color: white; font-weight: 700; font-size: 0.95rem;">Poster Lowongan
+          Resmi</span>
         <a id="lightbox-download" href="#" target="_blank" download class="btn btn-primary btn-sm">
           <i class="fa-solid fa-download"></i> Buka Gambar Penuh
         </a>
@@ -353,8 +362,10 @@
       <div class="footer-bottom">
         <span>&copy; 2026 KerjaHub - Portal Berbagi Poster Lowongan Kerja Resmi.</span>
         <div class="footer-bottom-actions">
-          <div class="footer-social-links" id="footer-social-links" style="display: none;" aria-label="Media Sosial Resmi"></div>
-          <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-watermark-pill" title="Kunjungi Daysheet.id">
+          <div class="footer-social-links" id="footer-social-links" style="display: none;"
+            aria-label="Media Sosial Resmi"></div>
+          <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-watermark-pill"
+            title="Kunjungi Daysheet.id">
             <span class="daysheet-wm-badge">
               <img src="./uploads/daysheet_logo.png" alt="Daysheet">
             </span>
@@ -368,20 +379,42 @@
     </div>
   </footer>
 
-  <!-- FLOATING WHATSAPP CV ORDER BUTTON -->
-  <div class="floating-wa-cv-container">
-    <a href="javascript:void(0)" class="floating-wa-cv-btn" id="btn-floating-pesan-cv" onclick="openCvOrderWhatsApp()" title="Pesan Layanan Pembuatan CV ATS via WhatsApp">
-      <div class="floating-wa-icon-box">
-        <span class="floating-wa-pulse"></span>
-        <i class="fa-brands fa-whatsapp"></i>
+  <!-- FLOATING WHATSAPP CV ORDER WIDGET (2-Step Compact Bobbing Widget) -->
+  <div class="floating-wa-cv-container" id="floating-wa-widget">
+    <div class="wa-popover-card" id="wa-popover-card" role="dialog" aria-label="Layanan Pesan CV WhatsApp" hidden>
+      <div class="wa-popover-head">
+        <div class="wa-popover-avatar">
+          <i class="fa-brands fa-whatsapp"></i>
+        </div>
+        <div class="wa-popover-meta">
+          <div class="wa-popover-name">Layanan CV KerjaHub</div>
+          <div class="wa-popover-status"><span class="wa-online-dot"></span> Online • Fast Response</div>
+        </div>
+        <button type="button" class="wa-popover-close" onclick="closeWaWidget()" title="Tutup" aria-label="Tutup Jendela WhatsApp">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
-      <div class="floating-wa-text">
-        <span class="floating-wa-title">Pesan CV Profesional</span>
-        <span class="floating-wa-sub">Standar ATS & HRD • Chat WA</span>
+      <div class="wa-popover-body">
+        <div class="wa-chat-bubble">
+          Halo! Butuh CV profesional standar ATS &amp; HRD agar lebih dilirik rekruter? Yuk konsultasi langsung via WhatsApp!
+        </div>
       </div>
-    </a>
+      <div class="wa-popover-foot">
+        <button type="button" class="wa-popover-cta" id="btn-wa-popover-chat" onclick="openCvOrderWhatsApp(event)">
+          <i class="fa-brands fa-whatsapp"></i> Chat Admin via WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <button type="button" class="floating-wa-cv-btn" id="btn-floating-pesan-cv" onclick="toggleWaWidget(event)"
+      aria-expanded="false" aria-controls="wa-popover-card" title="Bantuan &amp; Pesan CV ATS via WhatsApp">
+      <span class="floating-wa-pulse"></span>
+      <i class="fa-brands fa-whatsapp"></i>
+      <span class="wa-btn-badge-dot" aria-hidden="true"></span>
+    </button>
   </div>
 
-  <script src="./js/cek-cv.js?v=20261116_04" defer></script>
+  <script src="./js/cek-cv.js?v=20261116_05" defer></script>
 </body>
+
 </html>

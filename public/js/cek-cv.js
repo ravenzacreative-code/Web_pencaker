@@ -271,7 +271,46 @@ window.renderFooterSocialLinks = function() {
   container.style.display = 'inline-flex';
 };
 
-window.openCvOrderWhatsApp = function() {
+window.closeWaWidget = function() {
+  const card = document.getElementById('wa-popover-card');
+  const btn = document.getElementById('btn-floating-pesan-cv');
+  const wrap = document.getElementById('floating-wa-widget');
+  if (card) card.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+  if (wrap) wrap.classList.remove('is-open');
+};
+
+window.toggleWaWidget = function(event) {
+  if (event) event.stopPropagation();
+  const card = document.getElementById('wa-popover-card');
+  const btn = document.getElementById('btn-floating-pesan-cv');
+  const wrap = document.getElementById('floating-wa-widget');
+  if (!card) {
+    window.openCvOrderWhatsApp();
+    return;
+  }
+  const willOpen = card.hidden;
+  card.hidden = !willOpen;
+  if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  if (wrap) wrap.classList.toggle('is-open', willOpen);
+};
+
+if (typeof document !== 'undefined' && !window._waWidgetOutsideBound) {
+  window._waWidgetOutsideBound = true;
+  document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('floating-wa-widget');
+    const card = document.getElementById('wa-popover-card');
+    if (wrap && card && !card.hidden && !wrap.contains(e.target)) {
+      window.closeWaWidget();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') window.closeWaWidget();
+  });
+}
+
+window.openCvOrderWhatsApp = function(event) {
+  if (event) event.stopPropagation();
   const settings = window.siteSettings || {};
   let phone = (settings.cv_whatsapp || '081234567890').trim();
   let clean = phone.replace(/[^0-9]/g, '');
@@ -281,6 +320,7 @@ window.openCvOrderWhatsApp = function() {
 
   const msg = settings.cv_order_message || 'Halo Admin KerjaHub, saya ingin memesan layanan pembuatan / review CV profesional berstandar ATS agar lolos seleksi kerja. Mohon informasi tarif dan prosedurnya. Terima kasih.';
   window.open(`https://api.whatsapp.com/send?phone=${clean}&text=${encodeURIComponent(msg)}`, '_blank');
+  window.closeWaWidget();
 };
 
 // Load Jobs and Settings directly from Supabase with API fallback
