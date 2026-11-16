@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
   
-  <link rel="stylesheet" href="./css/style.css?v=20261115_04">
+  <link rel="stylesheet" href="./css/style.css?v=20261116_01">
   <!-- Start Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function(r){return r.ok ? r.json() : null;}).catch(function(){return null;});</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
@@ -407,7 +407,13 @@
       <button type="button" class="modal-close-btn lightbox-close-btn" style="top: -16px; right: -16px;" title="Tutup Lightbox">
         <i class="fa-solid fa-xmark"></i>
       </button>
+      <button type="button" class="lightbox-nav-btn prev" id="lightbox-prev-btn" onclick="prevLightboxSlide(event)" style="display: none;" title="Slide Sebelumnya">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
       <img id="lightbox-img" src="" alt="Desain Poster Lowongan">
+      <button type="button" class="lightbox-nav-btn next" id="lightbox-next-btn" onclick="nextLightboxSlide(event)" style="display: none;" title="Slide Berikutnya">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
       <div class="lightbox-bar">
         <span id="lightbox-title" style="color: white; font-weight: 700; font-size: 0.95rem;">Poster Lowongan</span>
         <a id="lightbox-download" href="#" target="_blank" download class="btn btn-primary btn-sm">
@@ -468,6 +474,6 @@
     </a>
   </div>
 
-  <script src="./js/app.js?v=20261115_04" defer></script>
+  <script src="./js/app.js?v=20261116_01" defer></script>
 </body>
 </html>

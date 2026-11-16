@@ -231,19 +231,26 @@ export async function getJobs(env, { status = 'all', category = 'all', location 
     if (category && category !== 'all') params.push(`category=eq.${encodeURIComponent(category)}`);
     if (location && location !== 'all') params.push(`location=ilike.*${encodeURIComponent(location)}*`);
 
-    // Fetch lightweight metadata (~95 KB) + lightweight image pointers in parallel (avoids 16+ MB base64 500 OOM/timeout)
-    const [rows, posterDataRows, posterUrlRows, coverDataRows, coverUrlRows] = await Promise.all([
+    // Fetch lightweight metadata (~95 KB) + lightweight image/flyer pointers in parallel (avoids 16+ MB base64 500 OOM/timeout)
+    const MAX_FAST_FLYER_SLOTS = 6;
+    const flyerSlotQueries = Array.from({ length: MAX_FAST_FLYER_SLOTS }, (_, idx) =>
+        supabaseFetch(env, `jobs?${statusFilter}&select=id&flyer_images->>${idx}=not.is.null`).catch(() => [])
+    );
+
+    const [rows, posterDataRows, posterUrlRows, coverDataRows, coverUrlRows, ...flyerSlotRows] = await Promise.all([
         supabaseFetch(env, `jobs?${params.join('&')}&select=${LIGHT_JOB_COLS}`),
         supabaseFetch(env, 'jobs?select=id&poster_image=like.data:*').catch(() => []),
         supabaseFetch(env, 'jobs?select=id,poster_image&poster_image=not.like.data:*&poster_image=not.is.null&poster_image=neq.').catch(() => []),
         supabaseFetch(env, 'jobs?select=id&cover_image=like.data:*').catch(() => []),
-        supabaseFetch(env, 'jobs?select=id,cover_image&cover_image=not.like.data:*&cover_image=not.is.null&cover_image=neq.').catch(() => [])
+        supabaseFetch(env, 'jobs?select=id,cover_image&cover_image=not.like.data:*&cover_image=not.is.null&cover_image=neq.').catch(() => []),
+        ...flyerSlotQueries
     ]);
 
     const posterDataSet = new Set((Array.isArray(posterDataRows) ? posterDataRows : []).map(r => r.id));
     const posterUrlMap = new Map((Array.isArray(posterUrlRows) ? posterUrlRows : []).map(r => [r.id, r.poster_image]));
     const coverDataSet = new Set((Array.isArray(coverDataRows) ? coverDataRows : []).map(r => r.id));
     const coverUrlMap = new Map((Array.isArray(coverUrlRows) ? coverUrlRows : []).map(r => [r.id, r.cover_image]));
+    const flyerSlotSets = flyerSlotRows.map(list => new Set((Array.isArray(list) ? list : []).map(r => r.id)));
 
     let jobs = (Array.isArray(rows) ? rows : []).map((row) => {
         const ver = encodeURIComponent(row.updated_at || row.id);
@@ -257,6 +264,16 @@ export async function getJobs(env, { status = 'all', category = 'all', location 
             row.cover_image = coverUrlMap.get(row.id);
         } else if (coverDataSet.has(row.id)) {
             row.cover_image = `/api/jobs/${row.id}/image/cover?v=${ver}`;
+        }
+
+        const flyerIndices = [];
+        for (let i = 0; i < flyerSlotSets.length; i++) {
+            if (flyerSlotSets[i].has(row.id)) {
+                flyerIndices.push(i);
+            }
+        }
+        if (flyerIndices.length > 0) {
+            row.flyer_images = flyerIndices.map(i => `/api/jobs/${row.id}/image/flyer_${i}?v=${ver}`);
         }
 
         return enrichJobPlatform(row);
@@ -292,19 +309,42 @@ export async function getJobs(env, { status = 'all', category = 'all', location 
 }
 
 export async function getJobImageValue(env, id, slot = 'poster') {
-    const col = slot === 'cover' ? 'cover_image' : (slot.startsWith('flyer_') ? 'flyer_images' : 'poster_image');
-    const rows = await supabaseFetch(env, `jobs?id=eq.${encodeURIComponent(id)}&select=${col}`);
+    const rows = await supabaseFetch(env, `jobs?id=eq.${encodeURIComponent(id)}&select=poster_image,cover_image,flyer_images`);
     if (!Array.isArray(rows) || rows.length === 0) return '';
     const row = rows[0];
-    if (col === 'flyer_images') {
-        const idx = parseInt(slot.replace('flyer_', ''), 10) || 0;
-        let arr = row.flyer_images;
-        if (typeof arr === 'string') {
-            try { arr = JSON.parse(arr); } catch { arr = []; }
-        }
-        return Array.isArray(arr) && arr[idx] ? arr[idx] : '';
+
+    let flyerArr = row.flyer_images;
+    if (typeof flyerArr === 'string') {
+        try { flyerArr = JSON.parse(flyerArr); } catch { flyerArr = []; }
     }
-    return row[col] || '';
+    if (!Array.isArray(flyerArr)) flyerArr = [];
+
+    const readSlotRaw = (targetSlot) => {
+        if (targetSlot === 'cover') return row.cover_image || '';
+        if (targetSlot.startsWith('flyer_')) {
+            const idx = parseInt(targetSlot.replace('flyer_', ''), 10) || 0;
+            return flyerArr[idx] || '';
+        }
+        return row.poster_image || '';
+    };
+
+    const proxyPrefix = `/api/jobs/${String(id)}/image/`;
+    const visited = new Set();
+    let currentSlot = slot;
+    for (let hop = 0; hop < 4; hop++) {
+        if (visited.has(currentSlot)) return '';
+        visited.add(currentSlot);
+        const val = readSlotRaw(currentSlot);
+        if (!val || typeof val !== 'string') return '';
+        if (val.startsWith(proxyPrefix)) {
+            const nextPart = val.slice(proxyPrefix.length).split('?')[0].trim();
+            if (!nextPart) return '';
+            currentSlot = nextPart;
+            continue;
+        }
+        return val;
+    }
+    return '';
 }
 
 export async function getJobsVersion(env) {

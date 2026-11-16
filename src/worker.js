@@ -625,6 +625,40 @@ app.post('/api/jobs/:id/publish-now', requireAdminAuth, async (c) => {
     }
 });
 
+function resolveExistingJobImageSlot(val, jobId, existing) {
+    if (!val || typeof val !== 'string') return '';
+    const trimmed = val.trim();
+    const proxyPrefix = `/api/jobs/${String(jobId)}/image/`;
+    if (!trimmed.startsWith(proxyPrefix)) return trimmed;
+
+    let existingFlyers = existing?.flyer_images;
+    if (typeof existingFlyers === 'string') {
+        try { existingFlyers = JSON.parse(existingFlyers); } catch { existingFlyers = []; }
+    }
+    if (!Array.isArray(existingFlyers)) existingFlyers = [];
+
+    const readSlot = (slotName) => {
+        if (slotName === 'cover') return existing?.cover_image || '';
+        if (slotName === 'poster') return existing?.poster_image || '';
+        if (slotName.startsWith('flyer_')) {
+            const idx = parseInt(slotName.replace('flyer_', ''), 10) || 0;
+            return existingFlyers[idx] || '';
+        }
+        return '';
+    };
+
+    const visited = new Set();
+    let cur = trimmed;
+    for (let hop = 0; hop < 4; hop++) {
+        if (typeof cur !== 'string' || !cur.startsWith(proxyPrefix)) return cur || '';
+        const slot = cur.slice(proxyPrefix.length).split('?')[0].trim();
+        if (!slot || visited.has(slot)) return '';
+        visited.add(slot);
+        cur = readSlot(slot);
+    }
+    return (typeof cur === 'string' && !cur.startsWith(proxyPrefix)) ? cur : '';
+}
+
 app.put('/api/jobs/:id', requireAdminAuth, async (c) => {
     try {
         const id = c.req.param('id');
@@ -634,17 +668,34 @@ app.put('/api/jobs/:id', requireAdminAuth, async (c) => {
         const body = await parseJobRequestBody(c);
         const payload = normalizeJobPayload(body, false);
 
-        if (typeof payload.cover_image === 'string' && payload.cover_image.startsWith('/api/jobs/')) {
+        if (Array.isArray(payload.flyer_images)) {
+            payload.flyer_images = payload.flyer_images
+                .map(img => resolveExistingJobImageSlot(img, id, existing))
+                .filter(Boolean);
+        }
+
+        const resolvedCover = resolveExistingJobImageSlot(payload.cover_image, id, existing);
+        if (resolvedCover) {
+            payload.cover_image = resolvedCover;
+        } else {
             delete payload.cover_image;
+            if (body.clear_cover === '1' || body.clear_cover === true) {
+                payload.cover_image = '';
+            } else if (existing.cover_image) {
+                payload.cover_image = existing.cover_image;
+            }
         }
-        if (typeof payload.poster_image === 'string' && payload.poster_image.startsWith('/api/jobs/')) {
+
+        const resolvedPoster = resolveExistingJobImageSlot(payload.poster_image, id, existing);
+        if (resolvedPoster) {
+            payload.poster_image = resolvedPoster;
+        } else if (Array.isArray(payload.flyer_images) && payload.flyer_images.length > 0) {
+            payload.poster_image = payload.flyer_images[0];
+        } else {
             delete payload.poster_image;
-        }
-        if (!payload.cover_image && existing.cover_image) {
-            payload.cover_image = existing.cover_image;
-        }
-        if (!payload.poster_image && existing.poster_image) {
-            payload.poster_image = existing.poster_image;
+            if (existing.poster_image) {
+                payload.poster_image = existing.poster_image;
+            }
         }
 
         const updated = await updateJob(c.env, id, payload);

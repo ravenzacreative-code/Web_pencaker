@@ -1019,6 +1019,43 @@ function switchSection(sectionName) {
 // -------------------------------------------------------------
 let manualUploadedFlyers = [];
 
+function compressImageFileToDataUrl(file, maxDim = 1600, quality = 0.86) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onerror = () => resolve('');
+    reader.onload = (evt) => {
+      const rawDataUrl = evt.target.result;
+      if (!file || !file.type || !file.type.startsWith('image/') || file.type === 'image/svg+xml' || file.size <= 450 * 1024) {
+        resolve(rawDataUrl);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const w = img.naturalWidth || img.width;
+          const h = img.naturalHeight || img.height;
+          const scale = Math.min(1, maxDim / Math.max(w, h));
+          const targetW = Math.max(1, Math.round(w * scale));
+          const targetH = Math.max(1, Math.round(h * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = targetW;
+          canvas.height = targetH;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, targetW, targetH);
+          const outMime = (file.type === 'image/png' && file.size <= 900 * 1024) ? 'image/png' : 'image/jpeg';
+          const compressed = canvas.toDataURL(outMime, quality);
+          resolve(compressed && compressed.length < rawDataUrl.length ? compressed : rawDataUrl);
+        } catch (err) {
+          resolve(rawDataUrl);
+        }
+      };
+      img.onerror = () => resolve(rawDataUrl);
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function renderManualFlyerGallery() {
   const placeholder = document.getElementById('dropzone-placeholder');
   const galleryWrapper = document.getElementById('manual-flyer-gallery-wrapper');
@@ -1108,18 +1145,12 @@ window.addManualFlyerImages = function(filesOrUrls) {
   const fileArray = Array.from(filesOrUrls).filter(f => f.type && f.type.startsWith('image/'));
   if (fileArray.length === 0) return;
 
-  const readers = fileArray.map(file => {
-    return new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result);
-      reader.readAsDataURL(file);
-    });
-  });
+  const readers = fileArray.map(file => compressImageFileToDataUrl(file));
 
   Promise.all(readers).then(dataUrls => {
-    dataUrls.forEach(u => manualUploadedFlyers.push(u));
+    dataUrls.filter(Boolean).forEach(u => manualUploadedFlyers.push(u));
     renderManualFlyerGallery();
-    showAdminToast('Flyer Dimuat!', `${dataUrls.length} flyer berhasil ditambahkan. Total: ${manualUploadedFlyers.length} flyer.`, 'success');
+    showAdminToast('Flyer Dimuat!', `${dataUrls.filter(Boolean).length} flyer berhasil ditambahkan. Total: ${manualUploadedFlyers.length} flyer.`, 'success');
   });
 };
 
@@ -1132,14 +1163,13 @@ let currentCoverMode = 'auto'; // 'auto' | 'upload' | 'flyer'
 window.handleManualCoverUpload = function(e) {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    currentManualCoverBase64 = evt.target.result;
+  compressImageFileToDataUrl(file).then(dataUrl => {
+    if (!dataUrl) return;
+    currentManualCoverBase64 = dataUrl;
     currentCoverMode = 'upload';
     updateCoverPreviewUI(file.name);
     showAdminToast('Sampul Kustom', `Foto ${file.name} dipasang sebagai sampul kartu lowongan!`, 'success');
-  };
-  reader.readAsDataURL(file);
+  });
 };
 
 window.setCoverMode = function(mode) {
@@ -1249,6 +1279,10 @@ function updateCoverPreviewUI(customFileName = '') {
 let currentEditCoverBase64 = '';
 let currentEditFlyers = [];
 let currentEditingJob = null;
+let _editFlyersDirty = false;
+let _editCoverDirty = false;
+let _editCoverCleared = false;
+let _editModalSeq = 0;
 
 function getJobFlyerImages(job) {
   const images = [];
@@ -1336,18 +1370,21 @@ window.renderEditFlyerGallery = function() {
 window.handleEditCoverUpload = function(e) {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    currentEditCoverBase64 = evt.target.result;
+  compressImageFileToDataUrl(file).then(dataUrl => {
+    if (!dataUrl) return;
+    currentEditCoverBase64 = dataUrl;
+    _editCoverDirty = true;
+    _editCoverCleared = false;
     const preview = document.getElementById('edit-current-cover-preview');
     if (preview) preview.src = currentEditCoverBase64;
     showAdminToast('Foto Sampul Diperbarui', 'Foto sampul kartu berhasil diganti!', 'success');
-  };
-  reader.readAsDataURL(file);
+  });
 };
 
 window.resetEditCoverToAuto = function() {
   currentEditCoverBase64 = '';
+  _editCoverDirty = true;
+  _editCoverCleared = true;
   const preview = document.getElementById('edit-current-cover-preview');
   if (preview && currentEditingJob) {
     preview.src = getEffectiveJobCover({ ...currentEditingJob, cover_image: '' });
@@ -1361,6 +1398,8 @@ window.setEditCoverFromFlyer = function(idx = 0) {
     return;
   }
   currentEditCoverBase64 = currentEditFlyers[idx] || currentEditFlyers[0];
+  _editCoverDirty = true;
+  _editCoverCleared = false;
   const preview = document.getElementById('edit-current-cover-preview');
   if (preview) preview.src = currentEditCoverBase64;
   showAdminToast('Sampul Diperbarui', `Slide Flyer #${idx + 1} dijadikan sebagai foto sampul kartu!`, 'success');
@@ -1372,18 +1411,14 @@ window.handleEditAddFlyers = function(e) {
   const fileArray = Array.from(files).filter(f => f.type && f.type.startsWith('image/'));
   if (fileArray.length === 0) return;
 
-  const readers = fileArray.map(f => {
-    return new Promise(resolve => {
-      const r = new FileReader();
-      r.onload = ev => resolve(ev.target.result);
-      r.readAsDataURL(f);
-    });
-  });
+  const readers = fileArray.map(f => compressImageFileToDataUrl(f));
 
   Promise.all(readers).then(results => {
-    results.forEach(u => currentEditFlyers.push(u));
+    const valid = results.filter(Boolean);
+    valid.forEach(u => currentEditFlyers.push(u));
+    if (valid.length > 0) _editFlyersDirty = true;
     window.renderEditFlyerGallery();
-    showAdminToast('Flyer Ditambahkan', `${results.length} flyer baru ditambahkan ke galeri lowongan.`, 'success');
+    showAdminToast('Flyer Ditambahkan', `${valid.length} flyer baru ditambahkan ke galeri lowongan.`, 'success');
     e.target.value = '';
   });
 };
@@ -1391,6 +1426,7 @@ window.handleEditAddFlyers = function(e) {
 window.removeEditFlyer = function(idx) {
   if (idx >= 0 && idx < currentEditFlyers.length) {
     currentEditFlyers.splice(idx, 1);
+    _editFlyersDirty = true;
     window.renderEditFlyerGallery();
   }
 };
@@ -1823,7 +1859,9 @@ function setupJobFormSubmit() {
       apply_info: applyInfo,
       hashtag: '@Lokersmasmkjabodetabek #Lowongankerja2026',
       theme: 'factory',
-      mascot: 'factory'
+      mascot: 'factory',
+      flyer_images: (manualUploadedFlyers && manualUploadedFlyers.length > 0) ? [...manualUploadedFlyers] : undefined,
+      _hasManualUploadedSlides: Boolean(manualUploadedFlyers && manualUploadedFlyers.length > 0)
     });
   };
 
@@ -2007,7 +2045,16 @@ function setupJobFormSubmit() {
         apply_info: customApplyInfo,
         created_at: createdRecord?.created_at || new Date().toISOString()
       };
-      delete lightCreated.flyer_images;
+      if (createdId && Array.isArray(allFlyers) && allFlyers.length > 0) {
+        const verTs = Date.now();
+        lightCreated.flyer_images = allFlyers.map((src, idx) =>
+          (typeof src === 'string' && src.startsWith('data:'))
+            ? `/api/jobs/${createdId}/image/flyer_${idx}?v=${verTs}`
+            : src
+        );
+      } else {
+        delete lightCreated.flyer_images;
+      }
       if (createdId && typeof lightCreated.poster_image === 'string' && lightCreated.poster_image.startsWith('data:')) {
         lightCreated.poster_image = `/api/jobs/${createdId}/image/poster?v=${Date.now()}`;
       }
@@ -3255,6 +3302,11 @@ window.openEditJobModal = function(jobId) {
   form.querySelector('[name="website"]').value = contacts.website || '';
 
   // Set editing job state & load cover + flyer gallery
+  _editFlyersDirty = false;
+  _editCoverDirty = false;
+  _editCoverCleared = false;
+  const modalReqSeq = ++_editModalSeq;
+
   currentEditingJob = job;
   let initialCover = job.cover_image || '';
   if (!initialCover && job.contact_value) {
@@ -3279,6 +3331,33 @@ window.openEditJobModal = function(jobId) {
   window.setDynamicListValues('edit-ben-items', parseStructuredList(job.benefits), 'benefits', 'edit-ben-counter');
 
   modal.classList.add('active');
+
+  // Authoritative background hydration so Edit Modal never drops multi-flyer slides from stale list caches
+  safeFetchJson(getApiEndpoint(`/api/jobs/${job.id}?_t=${Date.now()}`)).then(({ ok, data }) => {
+    if (!ok || !data || _editModalSeq !== modalReqSeq || !modal.classList.contains('active')) return;
+    const fullJob = data.data && data.data.id ? data.data : data;
+    if (!fullJob || Number(fullJob.id) !== Number(job.id)) return;
+    currentEditingJob = { ...currentEditingJob, ...fullJob };
+    if (!_editCoverDirty) {
+      let fullCover = fullJob.cover_image || '';
+      if (!fullCover && fullJob.contact_value) {
+        try {
+          const cv = typeof fullJob.contact_value === 'string' ? JSON.parse(fullJob.contact_value) : fullJob.contact_value;
+          if (cv && cv.cover_image) fullCover = cv.cover_image;
+        } catch (e) {}
+      }
+      currentEditCoverBase64 = fullCover;
+      const prevEl = document.getElementById('edit-current-cover-preview');
+      if (prevEl) prevEl.src = currentEditCoverBase64 || getEffectiveJobCover(fullJob);
+    }
+    if (!_editFlyersDirty) {
+      const fullFlyers = typeof getJobFlyerImages === 'function' ? getJobFlyerImages(fullJob) : [];
+      if (fullFlyers.length > 0) {
+        currentEditFlyers = fullFlyers;
+        window.renderEditFlyerGallery();
+      }
+    }
+  }).catch(() => {});
 };
 
 window.onEditJobStatusChange = function(status) {
@@ -3423,6 +3502,9 @@ function setupEditFormSubmit() {
       formData.set('email', email);
       formData.set('website_url', website);
       formData.set('cover_image', currentEditCoverBase64 || '');
+      if (_editCoverCleared) {
+        formData.set('clear_cover', '1');
+      }
       formData.set('flyer_images', JSON.stringify(currentEditFlyers));
       if (currentEditFlyers.length > 0) {
         formData.set('poster_image', currentEditFlyers[0]);
@@ -3441,7 +3523,10 @@ function setupEditFormSubmit() {
         body: formData
       });
       if (res.ok) {
-        updated = true;
+        const resJson = await res.json().catch(() => ({}));
+        if (resJson.success !== false) {
+          updated = true;
+        }
       }
     } catch (err) {
       console.warn('Backend update unavailable, falling back to direct cloud client:', err);
@@ -6301,6 +6386,8 @@ window.openStudioFromFormWithTheme = function() {
 // -------------------------------------------------------------
 // MULTI-SLIDE FLYER MANAGER FUNCTIONS
 // -------------------------------------------------------------
+let studioCanvasSlideIndices = new Set([0]);
+
 function initFlyerSlidesForStudio(jobData) {
   currentFlyerSlides = [];
   activeFlyerSlideIndex = 0;
@@ -6329,6 +6416,11 @@ function initFlyerSlidesForStudio(jobData) {
       existingSlides.push(jobData.poster_image);
     }
   }
+
+  // Track which slide indices are generated by Studio canvas so external uploaded photos never get overwritten
+  studioCanvasSlideIndices = (jobData && jobData._hasManualUploadedSlides)
+    ? new Set()
+    : new Set(existingSlides.length > 0 ? [0] : [0]);
 
   currentFlyerSlides = existingSlides;
   renderFlyerSlidesStrip();
@@ -6393,10 +6485,13 @@ window.addCurrentCanvasAsNewSlide = function() {
 
   if (currentFlyerSlides.length === 0) {
     currentFlyerSlides.push(dataUrl);
+    studioCanvasSlideIndices.add(0);
   }
 
+  const newIdx = currentFlyerSlides.length;
   currentFlyerSlides.push(dataUrl);
-  activeFlyerSlideIndex = currentFlyerSlides.length - 1;
+  studioCanvasSlideIndices.add(newIdx);
+  activeFlyerSlideIndex = newIdx;
   renderFlyerSlidesStrip();
 
   showAdminToast('Slide Baru Ditambahkan!', `Total saat ini: ${currentFlyerSlides.length} gambar flyer. Pengunjung portal lowongan akan menikmati slider otomatis yang bergulir halus!`, 'success');
@@ -6409,21 +6504,21 @@ window.handleExtraFlyerUpload = function(event) {
   const canvas = document.getElementById('poster-canvas');
   if (currentFlyerSlides.length === 0 && canvas) {
     currentFlyerSlides.push(canvas.toDataURL('image/png'));
+    studioCanvasSlideIndices.add(0);
   }
 
-  const readers = Array.from(files).map(file => {
-    return new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result);
-      reader.readAsDataURL(file);
-    });
-  });
+  const fileList = Array.from(files).filter(f => f.type && f.type.startsWith('image/'));
+  const readers = fileList.map(file => compressImageFileToDataUrl(file));
 
   Promise.all(readers).then(dataUrls => {
-    dataUrls.forEach(url => currentFlyerSlides.push(url));
-    activeFlyerSlideIndex = currentFlyerSlides.length - 1;
+    const valid = dataUrls.filter(Boolean);
+    valid.forEach(url => {
+      const idx = currentFlyerSlides.length;
+      currentFlyerSlides.push(url);
+      studioCanvasSlideIndices.delete(idx);
+    });
     renderFlyerSlidesStrip();
-    showAdminToast('Flyer Ditambahkan!', `${dataUrls.length} gambar flyer baru berhasil ditambahkan ke daftar slide!`, 'success');
+    showAdminToast('Flyer Ditambahkan!', `${valid.length} gambar flyer baru berhasil ditambahkan ke daftar slide (Total ${currentFlyerSlides.length} slide)!`, 'success');
   });
 
   event.target.value = '';
@@ -6436,6 +6531,12 @@ window.deleteFlyerSlide = function(idx, event) {
     return;
   }
   currentFlyerSlides.splice(idx, 1);
+  const shifted = new Set();
+  studioCanvasSlideIndices.forEach(oldIdx => {
+    if (oldIdx < idx) shifted.add(oldIdx);
+    else if (oldIdx > idx) shifted.add(oldIdx - 1);
+  });
+  studioCanvasSlideIndices = shifted;
   if (activeFlyerSlideIndex >= currentFlyerSlides.length) {
     activeFlyerSlideIndex = currentFlyerSlides.length - 1;
   }
@@ -7815,8 +7916,18 @@ window.publishJobFromStudio = async function() {
 
     if (currentFlyerSlides.length === 0) {
       currentFlyerSlides = [currentCanvasDataUrl];
-    } else {
+      studioCanvasSlideIndices.add(0);
+    } else if (studioCanvasSlideIndices.has(activeFlyerSlideIndex)) {
       currentFlyerSlides[activeFlyerSlideIndex] = currentCanvasDataUrl;
+    } else if (studioCanvasSlideIndices.size > 0) {
+      const firstCanvasIdx = Math.min(...studioCanvasSlideIndices);
+      if (firstCanvasIdx >= 0 && firstCanvasIdx < currentFlyerSlides.length) {
+        currentFlyerSlides[firstCanvasIdx] = currentCanvasDataUrl;
+      }
+    } else {
+      // Existing slides are uploaded external images (e.g. from Buat Manual); keep them intact and prepend Studio poster as #1
+      currentFlyerSlides = [currentCanvasDataUrl, ...currentFlyerSlides];
+      studioCanvasSlideIndices = new Set([0]);
     }
 
     const compInp = document.getElementById('poster-input-company');
@@ -7931,18 +8042,7 @@ window.publishJobFromStudio = async function() {
       payload.updated_at = new Date().toISOString();
       const sbPayload = prepareJobPayloadForSupabase(payload);
 
-      if (sbClient) {
-        try {
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000));
-          const updPromise = sbClient.from('jobs').update(sbPayload).eq('id', jobId);
-          const { error } = await Promise.race([updPromise, timeoutPromise]);
-          if (!error) saved = true;
-          else console.warn('Supabase update warning:', error);
-        } catch (e) {
-          console.warn('Supabase update error:', e);
-        }
-      }
-
+      // Try backend PUT first (resolves /api/jobs/... pointers & purges Edge Caches cleanly)
       try {
         const token = getAdminToken();
         const res = await safeFetchJson(getApiEndpoint(`/api/jobs/${jobId}`), {
@@ -7956,9 +8056,32 @@ window.publishJobFromStudio = async function() {
         if (res.ok) saved = true;
       } catch (e) {}
 
+      if (!saved && sbClient) {
+        try {
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000));
+          const updPromise = sbClient.from('jobs').update(sbPayload).eq('id', jobId);
+          const { error } = await Promise.race([updPromise, timeoutPromise]);
+          if (!error) saved = true;
+          else console.warn('Supabase update warning:', error);
+        } catch (e) {
+          console.warn('Supabase update error:', e);
+        }
+      }
+
+      const verTs = Date.now();
+      const lightSlides = currentFlyerSlides.map((src, sIdx) =>
+        (typeof src === 'string' && src.startsWith('data:'))
+          ? `/api/jobs/${jobId}/image/flyer_${sIdx}?v=${verTs}`
+          : src
+      );
       const idx = adminJobs.findIndex(j => Number(j.id) === jobId);
       if (idx >= 0) {
-        adminJobs[idx] = { ...adminJobs[idx], ...payload };
+        adminJobs[idx] = {
+          ...adminJobs[idx],
+          ...payload,
+          poster_image: `/api/jobs/${jobId}/image/poster?v=${verTs}`,
+          flyer_images: lightSlides
+        };
         try {
           safeLocalSet('kerja_admin_jobs_cache_v3', JSON.stringify(adminJobs));
           safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
@@ -8093,8 +8216,17 @@ window.savePosterChangesToJob = async function() {
 
     if (currentFlyerSlides.length === 0) {
       currentFlyerSlides = [posterDataUrl];
-    } else {
+      studioCanvasSlideIndices.add(0);
+    } else if (studioCanvasSlideIndices.has(activeFlyerSlideIndex)) {
       currentFlyerSlides[activeFlyerSlideIndex] = posterDataUrl;
+    } else if (studioCanvasSlideIndices.size > 0) {
+      const firstCanvasIdx = Math.min(...studioCanvasSlideIndices);
+      if (firstCanvasIdx >= 0 && firstCanvasIdx < currentFlyerSlides.length) {
+        currentFlyerSlides[firstCanvasIdx] = posterDataUrl;
+      }
+    } else {
+      currentFlyerSlides = [posterDataUrl, ...currentFlyerSlides];
+      studioCanvasSlideIndices = new Set([0]);
     }
 
     const compInp = document.getElementById('poster-input-company');
@@ -8141,15 +8273,13 @@ window.savePosterChangesToJob = async function() {
       }
       contacts.apply_info = updatedApply;
       contacts.deadline_display = updatedDead;
-      contacts.flyer_images = currentFlyerSlides;
+      delete contacts.flyer_images;
+      delete contacts.cover_image;
 
       const syncCoverCb = document.getElementById('studio-sync-cover-checkbox');
       let studioCover = (currentPosterJobData && currentPosterJobData.cover_image) || '';
       if (syncCoverCb && syncCoverCb.checked) {
-        studioCover = posterDataUrl;
-      }
-      if (studioCover) {
-        contacts.cover_image = studioCover;
+        studioCover = currentFlyerSlides[0] || posterDataUrl;
       }
       const contactValStr = JSON.stringify(contacts);
 
@@ -8162,18 +8292,26 @@ window.savePosterChangesToJob = async function() {
         requirements: reqList,
         benefits: benList,
         cover_image: studioCover || (currentPosterJobData && currentPosterJobData.cover_image) || '',
-        poster_image: posterDataUrl,
+        poster_image: currentFlyerSlides[0] || posterDataUrl,
         flyer_images: currentFlyerSlides,
         contact_value: contactValStr,
         updated_at: new Date().toISOString()
       };
 
-      // 1. Instant Optimistic UI Update (0ms lag!)
+      // 1. Instant Optimistic UI Update (0ms lag, using lightweight slot pointers)
+      const verTs = Date.now();
+      const lightSlides = currentFlyerSlides.map((src, sIdx) =>
+        (typeof src === 'string' && src.startsWith('data:'))
+          ? `/api/jobs/${jobId}/image/flyer_${sIdx}?v=${verTs}`
+          : src
+      );
       const idx = adminJobs.findIndex(j => Number(j.id) === jobId);
       if (idx >= 0) {
         adminJobs[idx] = {
           ...adminJobs[idx],
           ...updatePayload,
+          poster_image: `/api/jobs/${jobId}/image/poster?v=${verTs}`,
+          flyer_images: lightSlides,
           responsibilities: respList,
           requirements: reqList,
           benefits: benList
@@ -8186,8 +8324,8 @@ window.savePosterChangesToJob = async function() {
         renderAdminJobsTable();
       }
 
-      // 2. High-Speed Parallel Database Write (Concurrently to Supabase & Backend API)
-      const supabaseUpdatePayload = prepareJobPayloadForSupabase(updatePayload);
+      // 1. Authoritative Backend API Write first (resolves /api/jobs/... pointers & purges Edge Caches)
+      let apiSaved = false;
       const token = getAdminToken();
       const apiPayload = {
         ...updatePayload,
@@ -8195,28 +8333,28 @@ window.savePosterChangesToJob = async function() {
         website_url: updatedQr || (contacts && contacts.website) || ''
       };
 
-      const tasks = [];
-      if (sbClient) {
-        tasks.push(
-          Promise.race([
-            sbClient.from('jobs').update(supabaseUpdatePayload).eq('id', jobId),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4500))
-          ]).catch(e => console.warn('Supabase update background error:', e))
-        );
-      }
-      tasks.push(
-        safeFetchJson(getApiEndpoint(`/api/jobs/${jobId}`), {
+      try {
+        const apiRes = await safeFetchJson(getApiEndpoint(`/api/jobs/${jobId}`), {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           },
           body: JSON.stringify(apiPayload)
-        }).catch(e => console.warn('Local API update background error:', e))
-      );
+        });
+        if (apiRes.ok) apiSaved = true;
+      } catch (e) {
+        console.warn('Local API update error:', e);
+      }
 
-      // Fire in parallel
-      await Promise.allSettled(tasks);
+      // 2. Fallback to direct Supabase ONLY if backend API failed
+      if (!apiSaved && sbClient) {
+        const supabaseUpdatePayload = prepareJobPayloadForSupabase(updatePayload);
+        await Promise.race([
+          sbClient.from('jobs').update(supabaseUpdatePayload).eq('id', jobId),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4500))
+        ]).catch(e => console.warn('Supabase fallback update error:', e));
+      }
 
       closePosterStudioModal();
       showAdminAttractivePopup({

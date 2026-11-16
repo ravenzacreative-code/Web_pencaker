@@ -976,6 +976,11 @@ function setupCustomDropdowns() {
       if (e.key === 'Escape') {
         document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('open'));
       }
+      const lb = document.getElementById('poster-lightbox');
+      if (lb && lb.classList.contains('active')) {
+        if (e.key === 'ArrowLeft') window.prevLightboxSlide(e);
+        else if (e.key === 'ArrowRight') window.nextLightboxSlide(e);
+      }
     });
   }
 }
@@ -1792,7 +1797,7 @@ function isManualJobFlyer(job) {
   if (p.includes('corporate_worker_mascot') || p.includes('factory_operator_mascot')) {
     return false;
   }
-  if (p.startsWith('/uploads/') || p.startsWith('./uploads/') || p.startsWith('uploads/') || p.startsWith('data:image/')) {
+  if (p.startsWith('/api/jobs/') || p.startsWith('/uploads/') || p.startsWith('./uploads/') || p.startsWith('uploads/') || p.startsWith('data:image/')) {
     return true;
   }
   if (p.startsWith('http://') || p.startsWith('https://')) {
@@ -1942,7 +1947,7 @@ function openJobPosterById(jobId) {
   if (!job) return;
   const flyerList = typeof getJobFlyerImages === 'function' ? getJobFlyerImages(job).filter(src => isManualJobFlyer({ poster_image: src })) : [];
   if (flyerList.length > 0) {
-    openLightbox(flyerList[0], `${job.title} - Flyer Rekrutmen (Slide 1/${flyerList.length})`);
+    openLightbox(flyerList, `${job.title} - Flyer Rekrutmen`, 0);
   } else {
     const coverSrc = getEffectiveJobCover(job);
     openLightbox(coverSrc, job.title);
@@ -2206,19 +2211,61 @@ function showEmptyState() {
   `;
 }
 
-// Lightbox modal for posters
-function openLightbox(imgSrc, title) {
-  const lb = document.getElementById('poster-lightbox');
+// Lightbox modal for posters (supports multi-flyer Prev/Next sliding)
+let lightboxSlides = [];
+let lightboxSlideIndex = 0;
+let lightboxBaseTitle = 'Poster Lowongan';
+
+function renderLightboxSlide() {
   const lbImg = document.getElementById('lightbox-img');
   const lbTitle = document.getElementById('lightbox-title');
   const lbDownload = document.getElementById('lightbox-download');
+  const prevBtn = document.getElementById('lightbox-prev-btn');
+  const nextBtn = document.getElementById('lightbox-next-btn');
 
-  if (lb && lbImg) {
-    lbImg.src = imgSrc;
-    if (lbTitle) lbTitle.textContent = title || 'Poster Lowongan';
-    if (lbDownload) lbDownload.href = imgSrc;
-    lb.classList.add('active');
+  const total = lightboxSlides.length;
+  const src = lightboxSlides[lightboxSlideIndex] || '';
+  if (lbImg && src) lbImg.src = src;
+  if (lbDownload && src) lbDownload.href = src;
+  if (lbTitle) {
+    lbTitle.textContent = total > 1
+      ? `${lightboxBaseTitle} (Slide ${lightboxSlideIndex + 1}/${total})`
+      : lightboxBaseTitle;
   }
+  const showNav = total > 1 ? 'flex' : 'none';
+  if (prevBtn) prevBtn.style.display = showNav;
+  if (nextBtn) nextBtn.style.display = showNav;
+}
+
+window.prevLightboxSlide = function(event) {
+  if (event) event.stopPropagation();
+  if (lightboxSlides.length <= 1) return;
+  lightboxSlideIndex = (lightboxSlideIndex - 1 + lightboxSlides.length) % lightboxSlides.length;
+  renderLightboxSlide();
+};
+
+window.nextLightboxSlide = function(event) {
+  if (event) event.stopPropagation();
+  if (lightboxSlides.length <= 1) return;
+  lightboxSlideIndex = (lightboxSlideIndex + 1) % lightboxSlides.length;
+  renderLightboxSlide();
+};
+
+function openLightbox(imgSrcOrList, title, startIdx = 0) {
+  const lb = document.getElementById('poster-lightbox');
+  if (!lb) return;
+
+  const list = Array.isArray(imgSrcOrList)
+    ? imgSrcOrList.filter(Boolean)
+    : (imgSrcOrList ? [imgSrcOrList] : []);
+  if (list.length === 0) return;
+
+  lightboxSlides = list;
+  lightboxSlideIndex = Math.max(0, Math.min(startIdx || 0, list.length - 1));
+  lightboxBaseTitle = (title || 'Poster Lowongan').replace(/\s*\(Slide \d+(?:\/\d+)?\)$/i, '').trim();
+
+  renderLightboxSlide();
+  lb.classList.add('active');
 }
 
 // ==============================================================
@@ -2232,21 +2279,22 @@ let isJobCarouselPaused = false;
 
 function getJobFlyerImages(job) {
   const images = [];
+  const pushUnique = (img) => {
+    if (!img || typeof img !== 'string') return;
+    let clean = img.trim();
+    if (!clean) return;
+    if (clean.startsWith('/uploads/')) clean = '.' + clean;
+    if (!images.includes(clean)) images.push(clean);
+  };
   if (!job) return images;
 
   // 1. Direct flyer_images array or JSON string
   if (Array.isArray(job.flyer_images) && job.flyer_images.length > 0) {
-    job.flyer_images.forEach(img => {
-      if (img && typeof img === 'string' && img.trim()) images.push(img.trim());
-    });
+    job.flyer_images.forEach(pushUnique);
   } else if (typeof job.flyer_images === 'string' && job.flyer_images.trim().startsWith('[')) {
     try {
       const parsed = JSON.parse(job.flyer_images);
-      if (Array.isArray(parsed)) {
-        parsed.forEach(img => {
-          if (img && typeof img === 'string' && img.trim()) images.push(img.trim());
-        });
-      }
+      if (Array.isArray(parsed)) parsed.forEach(pushUnique);
     } catch (e) {}
   }
 
@@ -2255,9 +2303,7 @@ function getJobFlyerImages(job) {
     try {
       const cv = typeof job.contact_value === 'string' ? JSON.parse(job.contact_value) : job.contact_value;
       if (cv && Array.isArray(cv.flyer_images) && cv.flyer_images.length > 0) {
-        cv.flyer_images.forEach(img => {
-          if (img && typeof img === 'string' && img.trim()) images.push(img.trim());
-        });
+        cv.flyer_images.forEach(pushUnique);
       }
     } catch (e) {}
   }
@@ -2268,24 +2314,20 @@ function getJobFlyerImages(job) {
     if (p.startsWith('[') && p.endsWith(']')) {
       try {
         const parsed = JSON.parse(p);
-        if (Array.isArray(parsed)) {
-          parsed.forEach(img => {
-            if (img && typeof img === 'string' && img.trim()) images.push(img.trim());
-          });
-        }
+        if (Array.isArray(parsed)) parsed.forEach(pushUnique);
       } catch (e) {}
     } else if (p) {
-      images.push(p);
+      pushUnique(p);
     }
   }
 
   // 4. Fallback if still empty
   if (images.length === 0) {
     const fallbackCover = typeof getEffectiveJobCover === 'function' ? getEffectiveJobCover(job) : '';
-    if (fallbackCover) images.push(fallbackCover);
+    if (fallbackCover) pushUnique(fallbackCover);
   }
 
-  return images.filter(Boolean);
+  return images;
 }
 
 function initJobFlyerCarousel(jobId, images) {
@@ -2375,8 +2417,7 @@ function updateJobCarouselDOM(jobId) {
 
 window.openActiveJobLightbox = function(jobId) {
   if (!currentJobFlyerImages || currentJobFlyerImages.length === 0) return;
-  const currentSrc = currentJobFlyerImages[activeJobFlyerSlide] || currentJobFlyerImages[0];
-  openLightbox(currentSrc, `Poster Lowongan (Slide ${activeJobFlyerSlide + 1})`);
+  openLightbox(currentJobFlyerImages, 'Poster Lowongan', activeJobFlyerSlide);
 };
 
 window.downloadActiveJobSlide = function(jobId) {
@@ -2393,8 +2434,7 @@ window.downloadActiveJobSlide = function(jobId) {
 
 window.openLightboxSlide = function(jobId, slideIndex) {
   if (!currentJobFlyerImages || currentJobFlyerImages.length === 0) return;
-  const currentSrc = currentJobFlyerImages[slideIndex] || currentJobFlyerImages[0];
-  openLightbox(currentSrc, `Poster Lowongan (Slide ${slideIndex + 1})`);
+  openLightbox(currentJobFlyerImages, 'Poster Lowongan', slideIndex);
 };
 
 async function openJobDetail(jobId) {
