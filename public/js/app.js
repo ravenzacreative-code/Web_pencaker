@@ -2832,6 +2832,71 @@ window.openLightboxSlide = function(jobId, slideIndex) {
   openLightbox(currentJobFlyerImages, 'Poster Lowongan', slideIndex);
 };
 
+function formatStructuredDescriptionHtml(rawDesc) {
+  const raw = String(rawDesc || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+  if (!raw) {
+    return '<p class="desc-body-text">Tidak ada deskripsi tambahan.</p>';
+  }
+
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const bulletRe = /^(?:[-–—•▪▫●○■□✓✔➤➢►▶*]|\d{1,2}[\.\)])(?:\s+\S|(?=[A-Za-zÀ-ÿ]))|^[•▪▫◦●○■□✓✔➤➢►▶*](?=\S)/;
+  const headingRe = /^(kualifikasi|persyaratan|requirements?|kriteria|tugas(?:\s*&?\s*tanggung\s*jawab)?|deskripsi(?:\s*pekerjaan)?|benefit|fasilitas)\s*:?$/i;
+
+  const hasListLikeStructure = lines.length >= 3 || lines.some(l => bulletRe.test(l) || headingRe.test(l));
+  if (!hasListLikeStructure) {
+    return `<p class="desc-body-text">${escapeHtml(raw)}</p>`;
+  }
+
+  let htmlParts = [];
+  let pendingItems = [];
+  let inListSection = false;
+
+  const flushList = () => {
+    if (pendingItems.length === 0) return;
+    htmlParts.push(`
+      <ol class="auto-numbered-list">
+        ${pendingItems.map((item, idx) => `
+          <li>
+            <span class="num-point-badge">${idx + 1}</span>
+            <span class="num-point-text">${escapeHtml(item)}</span>
+          </li>
+        `).join('')}
+      </ol>
+    `);
+    pendingItems = [];
+  };
+
+  for (const line of lines) {
+    if (headingRe.test(line)) {
+      flushList();
+      inListSection = true;
+      htmlParts.push(`<div class="desc-section-subhead">${escapeHtml(line.replace(/:+$/, ''))}:</div>`);
+      continue;
+    }
+
+    const isBullet = bulletRe.test(line);
+    const cleaned = line
+      .replace(/^[\s•▪▫◦●○■□✓✔➤➢►▶\-–—*]+/, '')
+      .replace(/^\d{1,2}[\.\)]\s+/, '')
+      .trim();
+
+    if (!cleaned) continue;
+
+    if (isBullet || inListSection) {
+      pendingItems.push(cleaned);
+    } else if (lines.some(l => bulletRe.test(l)) && cleaned.length < 130) {
+      // Short requirement-style lines interspersed with dashed lines
+      pendingItems.push(cleaned);
+    } else {
+      flushList();
+      htmlParts.push(`<p class="desc-body-text" style="margin-bottom: 10px;">${escapeHtml(cleaned)}</p>`);
+    }
+  }
+
+  flushList();
+  return htmlParts.join('') || `<p class="desc-body-text">${escapeHtml(raw)}</p>`;
+}
+
 async function openJobDetail(jobId) {
   if (window.getSelection && window.getSelection().toString().trim().length > 0) return;
   let rawJob = rawAllJobs.find(j => Number(j.id) === Number(jobId));
@@ -2880,6 +2945,8 @@ async function openJobDetail(jobId) {
   const heroCoverSrc = getEffectiveJobCover(job);
   const isMultiFlyer = flyerImages.length > 1;
   const companyInitial = (job.company_name || 'K').trim().charAt(0).toUpperCase();
+  const hasRealFlyer = flyerImages.some(src => isManualJobFlyer({ poster_image: src }));
+  const flyerBtnLabel = flyerImages.length > 1 ? `Lihat ${flyerImages.length} Flyer` : (hasRealFlyer ? 'Lihat Flyer' : 'Lihat Sampul');
 
   const contacts = extractJobContacts(job);
   const contactBtnHtml = renderContactButton(job);
@@ -2887,6 +2954,7 @@ async function openJobDetail(jobId) {
   const reqs = parseStructuredList(job.requirements);
   const resps = parseStructuredList(job.responsibilities);
   const bens = parseStructuredList(job.benefits);
+  const formattedDescHtml = formatStructuredDescriptionHtml(job.description);
 
   // Pre-formatted intro template for job seekers
   const waTemplate = `Halo Bapak/Ibu HRD ${job.company_name},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${job.title}.\n\nBersama pesan ini, saya siap melampirkan berkas CV dan Portofolio terbaru saya sebagai bahan pertimbangan.\n\nMohon informasi mengenai tahapan proses seleksi selanjutnya. Terima kasih banyak atas perhatian dan kesempatannya.`;
@@ -2895,15 +2963,24 @@ async function openJobDetail(jobId) {
   const safeCompany = (job.company_name || '').replace(/'/g, "\\'");
 
   content.innerHTML = `
-    <!-- Header Banner Sampul Lowongan (Modern Frosted Glass Header) -->
+    <!-- Sticky Header Banner Sampul Lowongan (Frozen on Scroll, Clean Gradient Backdrop + Lihat Flyer Action) -->
     <div class="modal-hero-banner" id="hero-banner-${job.id}">
-      <img src="${heroCoverSrc}" alt="${escapeHtml(job.title)}" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
       <div class="modal-banner-overlay">
         <div class="modal-hero-top-pills">
-          <span class="mh-pill open"><i class="fa-solid fa-circle-check"></i> Sedang Dibuka</span>
-          <span class="mh-pill type"><i class="fa-regular fa-clock"></i> ${escapeHtml(job._clean_status || job.job_type || 'Full Time')}</span>
-          ${job.salary_display ? `<span class="mh-pill open"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(job.salary_display)}</span>` : ''}
-          <span class="mh-pill views"><i class="fa-regular fa-eye"></i> ${nextViews.toLocaleString('id-ID')}x Dilihat</span>
+          <div class="modal-hero-pills-left">
+            <span class="mh-pill open"><i class="fa-solid fa-circle-check"></i> Sedang Dibuka</span>
+            <span class="mh-pill type"><i class="fa-regular fa-clock"></i> ${escapeHtml(job._clean_status || job.job_type || 'Full Time')}</span>
+            ${job.salary_display ? `<span class="mh-pill open"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(job.salary_display)}</span>` : ''}
+            <span class="mh-pill views"><i class="fa-regular fa-eye"></i> ${nextViews.toLocaleString('id-ID')}x Dilihat</span>
+          </div>
+          <div class="modal-hero-actions-right">
+            <button type="button" class="mh-btn-flyer" onclick="openActiveJobLightbox(${job.id})" title="Buka & Perbesar Flyer Lowongan">
+              <i class="fa-regular fa-images"></i> <span>${flyerBtnLabel}</span>
+            </button>
+            <button type="button" class="modal-close-btn modal-sticky-close" title="Tutup Modal">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
         </div>
         <div class="modal-hero-glass">
           <div class="modal-hero-avatar">${escapeHtml(companyInitial)}</div>
@@ -2942,7 +3019,7 @@ async function openJobDetail(jobId) {
               </div>
             </div>
             <div class="desc-body-box">
-              <p class="desc-body-text">${escapeHtml(job.description)}</p>
+              ${formattedDescHtml}
             </div>
           </div>
 
@@ -2950,18 +3027,23 @@ async function openJobDetail(jobId) {
           ${resps.length > 0 ? `
             <div class="detail-section">
               <h4><i class="fa-solid fa-list-check"></i> Tanggung Jawab Pekerjaan</h4>
-              <ul class="detail-list">
-                ${resps.map(r => `<li>${escapeHtml(r)}</li>`).join('')}
-              </ul>
+              <ol class="auto-numbered-list auto-numbered-emerald">
+                ${resps.map((r, idx) => `
+                  <li>
+                    <span class="num-point-badge">${idx + 1}</span>
+                    <span class="num-point-text">${escapeHtml(r)}</span>
+                  </li>
+                `).join('')}
+              </ol>
             </div>
           ` : ''}
 
-          <!-- Interactive Kualifikasi Checklist (Dynamic Match Meter) -->
+          <!-- Interactive Kualifikasi Checklist (Auto-Numbered Eye-Catching Design) -->
           ${reqs.length > 0 ? `
             <div class="detail-section">
               <h4><i class="fa-solid fa-user-check"></i> Kualifikasi & Persyaratan</h4>
               <div class="interactive-check-box">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">
                     <i class="fa-solid fa-calculator"></i> Evaluasi Kesesuaian Profil Anda:
                   </span>
@@ -2972,11 +3054,12 @@ async function openJobDetail(jobId) {
                 <div class="check-meter-bar">
                   <div class="check-meter-fill" id="match-score-fill" style="width: 0%;"></div>
                 </div>
-                <div style="margin-top: 10px;">
+                <div class="check-list-numbered-grid" style="margin-top: 12px;">
                   ${reqs.map((req, i) => `
-                    <label class="check-list-item" id="check-item-${i}">
+                    <label class="check-list-item check-list-numbered" id="check-item-${i}">
+                      <span class="check-item-num">${i + 1}</span>
+                      <span class="check-item-text">${escapeHtml(req)}</span>
                       <input type="checkbox" onchange="updateMatchScore(${reqs.length})">
-                      <span>${escapeHtml(req)}</span>
                     </label>
                   `).join('')}
                 </div>
@@ -3462,25 +3545,35 @@ function renderContactButton(job) {
   // 1. WhatsApp Button (Direct Web & Mobile trigger)
   if (contacts.whatsapp) {
     buttons.push(`
-      <div style="width: 100%;">
+      <div class="contact-channel-item">
         <button type="button" class="btn-wa-direct" onclick="triggerWhatsAppChat('${contacts.whatsapp}', '${safeCompany}', '${safeTitle}')" title="Hubungi langsung via WhatsApp Web atau Aplikasi">
-          <i class="fa-brands fa-whatsapp" style="font-size: 1.25rem;"></i> Hubungi Rekruter via WhatsApp
+          <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i> <span>Hubungi Rekruter via WhatsApp</span>
         </button>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; font-size: 0.76rem; color: var(--text-muted); padding: 0 4px;">
-          <span>No. WA: <strong>${escapeHtml(contacts.whatsapp)}</strong></span>
-          <a href="javascript:void(0)" onclick="copyToClipboard('${contacts.whatsapp}', 'Nomor WhatsApp berhasil disalin ke clipboard')" style="color: var(--primary); text-decoration: underline; font-weight: 600;">Salin Nomor</a>
+        <div class="contact-address-box">
+          <span class="contact-address-label"><i class="fa-brands fa-whatsapp" style="color: #16a34a;"></i> No. WA:</span>
+          <span class="contact-address-val">${escapeHtml(contacts.whatsapp)}</span>
+          <button type="button" class="contact-address-copy" onclick="copyToClipboard('${contacts.whatsapp}', 'Nomor WhatsApp berhasil disalin ke clipboard')" title="Salin Nomor WA">
+            <i class="fa-regular fa-copy"></i> Salin
+          </button>
         </div>
       </div>
     `);
   }
 
-  // 2. Email Button (Direct into Home Email / Webmail Gmail + Quick Providers)
+  // 2. Email Button (Clean non-overflow label + wrapped email pill + Quick Providers)
   if (contacts.email) {
     buttons.push(`
       <div class="contact-channel-item">
-        <button type="button" class="btn-email-direct" onclick="triggerEmailApplication('${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Klik untuk langsung membuka Gmail Web & mengisi draf lamaran">
-          <i class="fa-solid fa-envelope" style="font-size: 1.15rem;"></i> Kirim Lamaran via Email (${escapeHtml(contacts.email)})
+        <button type="button" class="btn-email-direct" onclick="triggerEmailApplication('${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Klik untuk langsung membuka Gmail Web & mengisi draf lamaran ke ${escapeHtml(contacts.email)}">
+          <i class="fa-solid fa-envelope" style="font-size: 1.1rem;"></i> <span>Kirim Lamaran via Email</span>
         </button>
+        <div class="contact-address-box contact-address-email">
+          <span class="contact-address-label"><i class="fa-regular fa-envelope"></i> Tujuan:</span>
+          <span class="contact-address-val" title="${escapeHtml(contacts.email)}">${escapeHtml(contacts.email)}</span>
+          <button type="button" class="contact-address-copy" onclick="copyToClipboard('${contacts.email}', 'Alamat email rekruter berhasil disalin ke clipboard')" title="Salin Alamat Email">
+            <i class="fa-regular fa-copy"></i> Salin
+          </button>
+        </div>
         <div class="email-providers-quick-row">
           <span class="ep-label"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.68rem;"></i> Buka di:</span>
           <button type="button" class="ep-pill ep-gmail" onclick="openWebmail('gmail', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Gmail Web">
