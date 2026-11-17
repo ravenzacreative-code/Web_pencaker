@@ -350,10 +350,10 @@ export async function getJobImageValue(env, id, slot = 'poster') {
 export async function getJobsVersion(env) {
     const rows = await supabaseFetch(
         env,
-        'jobs?status=not.in.(system_settings,system_master_data,system_flyer_themes,system_company_images,system_uploaded_file)&select=id,status,updated_at,is_featured&order=id.desc&limit=80'
+        'jobs?status=not.in.(system_settings,system_master_data,system_flyer_themes,system_company_images,system_uploaded_file)&select=id,status,is_featured,title,deadline&order=id.desc&limit=80'
     );
     const list = Array.isArray(rows) ? rows : [];
-    return `${list.length}:${list.slice(0, 25).map(r => `${r.id}-${r.status}-${r.is_featured ? 1 : 0}-${r.updated_at || ''}`).join('|')}`;
+    return `${list.length}:${list.slice(0, 25).map(r => `${r.id}-${r.status}-${r.is_featured ? 1 : 0}-${r.title || ''}-${r.deadline || ''}`).join('|')}`;
 }
 
 export async function getJobById(env, id) {

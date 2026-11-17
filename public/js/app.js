@@ -627,9 +627,16 @@ function setupSupabaseRealtimeSync() {
   try {
     const channel = sbClient.channel('public-jobs-realtime-stream')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, async (payload) => {
-        console.log('⚡ [Public Realtime] Realtime job update detected:', payload.eventType);
+        // Ignore view-counter-only updates so page cards never blink/re-render on clicks
+        if (payload && payload.eventType === 'UPDATE' && payload.old && payload.new) {
+          const oldR = payload.old;
+          const newR = payload.new;
+          if (oldR.title === newR.title && oldR.status === newR.status && oldR.deadline === newR.deadline && oldR.is_featured === newR.is_featured) {
+            return;
+          }
+        }
         safeSessionRemove('kerja_public_jobs_cache');
-        await loadJobs();
+        await loadJobs({ silent: true, bypassCache: true });
       })
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
@@ -651,7 +658,7 @@ let _lastJobsSignature = '';
 
 function getJobsSignature(list) {
   if (!Array.isArray(list)) return '';
-  return list.map(j => `${j.id}:${j.status || ''}:${j.updated_at || j.created_at || ''}:${j.is_featured ? 1 : 0}:${j.views_count || 0}`).join('|');
+  return list.map(j => `${j.id}:${j.status || ''}:${j.title || ''}:${j.deadline || ''}:${j.is_featured ? 1 : 0}:${j.category || ''}`).join('|');
 }
 
 function isAnyUserModalOpen() {
@@ -751,7 +758,7 @@ function setupLiveJobsAutoSync() {
   };
 
   checkVersionAndSync();
-  _liveJobsPollTimer = setInterval(checkVersionAndSync, 6000);
+  _liveJobsPollTimer = setInterval(checkVersionAndSync, 25000);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') checkVersionAndSync();
   });
@@ -3003,35 +3010,24 @@ async function openJobDetail(jobId) {
   const safeCompany = (job.company_name || '').replace(/'/g, "\\'");
 
   content.innerHTML = `
-    <!-- Sticky Header Banner Sampul Lowongan (Frozen on Scroll, Clean Gradient Backdrop + Lihat Flyer Action) -->
+    <!-- Sticky Compact Header (Frozen on Scroll: Nama PT + Bagian Loker + Lihat Poster + Tutup) -->
     <div class="modal-hero-banner" id="hero-banner-${job.id}">
       <div class="modal-banner-overlay">
-        <div class="modal-hero-top-pills">
-          <div class="modal-hero-pills-left">
-            <span class="mh-pill open"><i class="fa-solid fa-circle-check"></i> Sedang Dibuka</span>
-            <span class="mh-pill type"><i class="fa-regular fa-clock"></i> ${escapeHtml(job._clean_status || job.job_type || 'Full Time')}</span>
-            ${job.salary_display ? `<span class="mh-pill open"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(job.salary_display)}</span>` : ''}
-            <span class="mh-pill views"><i class="fa-regular fa-eye"></i> ${nextViews.toLocaleString('id-ID')}x Dilihat</span>
+        <div class="modal-hero-compact-row">
+          <div class="modal-hero-identity">
+            <div class="modal-hero-avatar">${escapeHtml(companyInitial)}</div>
+            <div class="modal-header-info">
+              <div class="modal-hero-company"><i class="fa-solid fa-building"></i> ${escapeHtml(job.company_name)}</div>
+              <h2>${escapeHtml(job.title)}</h2>
+            </div>
           </div>
           <div class="modal-hero-actions-right">
-            <button type="button" class="mh-btn-flyer" onclick="openActiveJobLightbox(${job.id})" title="Buka & Perbesar Flyer Lowongan">
+            <button type="button" class="mh-btn-flyer" onclick="openActiveJobLightbox(${job.id})" title="Buka & Perbesar Poster Lowongan">
               <i class="fa-regular fa-images"></i> <span>${flyerBtnLabel}</span>
             </button>
             <button type="button" class="modal-close-btn modal-sticky-close" title="Tutup Modal">
               <i class="fa-solid fa-xmark"></i>
             </button>
-          </div>
-        </div>
-        <div class="modal-hero-glass">
-          <div class="modal-hero-avatar">${escapeHtml(companyInitial)}</div>
-          <div class="modal-header-info">
-            <div class="modal-hero-company"><i class="fa-solid fa-building"></i> ${escapeHtml(job.company_name)}</div>
-            <h2>${escapeHtml(job.title)}</h2>
-            <div class="modal-header-meta">
-              <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(job.location || 'Indonesia')}</span>
-              <span><i class="fa-solid fa-tag"></i> ${escapeHtml(job.category)}</span>
-              ${(job._clean_education || job.experience_level) ? `<span><i class="fa-solid fa-graduation-cap"></i> ${escapeHtml(job._clean_education || job.experience_level)}</span>` : ''}
-            </div>
           </div>
         </div>
       </div>
@@ -3287,6 +3283,19 @@ async function openJobDetail(jobId) {
 
         </div>
       </div>
+    </div>
+
+    <div class="modal-detail-footer">
+      <span class="modal-footer-copy">&copy; 2026 KerjaHub &bull; Portal Lowongan Kerja Resmi</span>
+      <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="daysheet-watermark-pill" title="Kunjungi Daysheet.id">
+        <span class="daysheet-wm-badge">
+          <img src="./uploads/daysheet_logo.png" alt="Daysheet">
+        </span>
+        <span class="daysheet-wm-text">
+          <span class="daysheet-wm-label">@copyright by</span>
+          <span class="daysheet-wm-domain">daysheet<span class="daysheet-wm-tld">.id</span></span>
+        </span>
+      </a>
     </div>
   `;
 
@@ -3614,23 +3623,22 @@ function renderContactButton(job) {
             <i class="fa-regular fa-copy"></i> Salin
           </button>
         </div>
-        <div class="email-providers-quick-row">
-          <span class="ep-label"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.68rem;"></i> Buka di:</span>
-          <button type="button" class="ep-pill ep-gmail" onclick="openWebmail('gmail', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Gmail Web">
-            <i class="fa-brands fa-google" style="color: #ea4335;"></i> Gmail
-          </button>
-          <button type="button" class="ep-pill ep-outlook" onclick="openWebmail('outlook', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Outlook / Hotmail Web">
-            <i class="fa-brands fa-microsoft" style="color: #0078d4;"></i> Outlook
-          </button>
-          <button type="button" class="ep-pill ep-yahoo" onclick="openWebmail('yahoo', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Yahoo Mail">
-            <i class="fa-brands fa-yahoo" style="color: #6001d2;"></i> Yahoo
-          </button>
-          <button type="button" class="ep-pill ep-client" onclick="openWebmail('mailto', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Aplikasi Email Bawaan PC/HP">
-            <i class="fa-solid fa-laptop"></i> App
-          </button>
-          <button type="button" class="ep-pill ep-copy" onclick="copyToClipboard('${contacts.email}', 'Alamat email rekruter berhasil disalin ke clipboard')" title="Salin Alamat Email">
-            <i class="fa-regular fa-copy"></i> Salin
-          </button>
+        <div class="email-providers-box">
+          <span class="ep-label"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.68rem;"></i> Buka cepat di:</span>
+          <div class="email-providers-quick-row">
+            <button type="button" class="ep-pill ep-gmail" onclick="openWebmail('gmail', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Gmail Web">
+              <i class="fa-brands fa-google" style="color: #ea4335;"></i> <span>Gmail</span>
+            </button>
+            <button type="button" class="ep-pill ep-outlook" onclick="openWebmail('outlook', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Outlook / Hotmail Web">
+              <i class="fa-brands fa-microsoft" style="color: #0078d4;"></i> <span>Outlook</span>
+            </button>
+            <button type="button" class="ep-pill ep-yahoo" onclick="openWebmail('yahoo', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Yahoo Mail">
+              <i class="fa-brands fa-yahoo" style="color: #6001d2;"></i> <span>Yahoo</span>
+            </button>
+            <button type="button" class="ep-pill ep-client" onclick="openWebmail('mailto', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Aplikasi Email Bawaan PC/HP">
+              <i class="fa-solid fa-laptop"></i> <span>App</span>
+            </button>
+          </div>
         </div>
       </div>
     `);
