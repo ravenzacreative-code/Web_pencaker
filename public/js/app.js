@@ -3071,7 +3071,8 @@ async function openJobDetail(jobId) {
   const formattedDescHtml = formatStructuredDescriptionHtml(job.description);
 
   // Pre-formatted intro template for job seekers
-  const waTemplate = `Halo Bapak/Ibu HRD ${job.company_name},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${job.title}.\n\nBersama pesan ini, saya siap melampirkan berkas CV dan Portofolio terbaru saya sebagai bahan pertimbangan.\n\nMohon informasi mengenai tahapan proses seleksi selanjutnya. Terima kasih banyak atas perhatian dan kesempatannya.`;
+  const resolvedIntroSubj = (contacts.email_subject || '').trim() || `Lamaran Kerja - ${job.title || job.company_name || 'Posisi'} - [Nama Lengkap]`;
+  const waTemplate = `Subjek: ${resolvedIntroSubj}\n\nHalo Bapak/Ibu HRD ${job.company_name},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${job.title}.\n\nBersama pesan ini, saya siap melampirkan berkas CV dan Portofolio terbaru saya sebagai bahan pertimbangan.\n\nMohon informasi mengenai tahapan proses seleksi selanjutnya. Terima kasih banyak atas perhatian dan kesempatannya.`;
 
   const safeTitle = (job.title || '').replace(/'/g, "\\'");
   const safeCompany = (job.company_name || '').replace(/'/g, "\\'");
@@ -3568,7 +3569,7 @@ function extractJobContacts(job) {
   }
 
   if (!emailSubject && applyInfo) {
-    const subjMatch = String(applyInfo).match(/(?:Subjek|Subject)(?:\s*Email)?\s*[:=]\s*([^\r\n]+)/i);
+    const subjMatch = String(applyInfo).match(/(?:Subjek|Subject)(?:\s*(?:Email|Lamaran))?\s*[:=]\s*([^\r\n]+)/i);
     if (subjMatch && subjMatch[1]) {
       emailSubject = subjMatch[1].trim();
     }
@@ -3639,7 +3640,7 @@ window.directApplyJob = function (jobId, event) {
     openExternalUrlSafely(contacts.website_url);
   } else if (contacts.whatsapp) {
     showToast('info', `Menghubungkan langsung ke WhatsApp HRD ${comp}...`);
-    triggerWhatsAppChat(contacts.whatsapp, comp, title);
+    triggerWhatsAppChat(contacts.whatsapp, comp, title, contacts.email_subject || '');
   } else if (contacts.email) {
     showToast('info', `Membuka draf lamaran email HRD ${comp}...`);
     triggerEmailApplication(contacts.email, comp, title, contacts.email_subject || '');
@@ -3676,17 +3677,26 @@ function renderContactButton(job) {
   const safeTitle = (job.title || '').replace(/'/g, "\\'");
   const safeCompany = (job.company_name || '').replace(/'/g, "\\'");
 
-  // 1. WhatsApp Button (Direct Web & Mobile trigger)
+  // 1. WhatsApp Button (Direct Web & Mobile trigger + auto subject)
   if (contacts.whatsapp) {
+    const resolvedWaSubject = (contacts.email_subject || '').trim() || `Lamaran Kerja - ${job.title || job.company_name || 'Posisi'} - [Nama Lengkap]`;
+    const safeWaSubject = resolvedWaSubject.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     buttons.push(`
       <div class="contact-channel-item">
-        <button type="button" class="btn-wa-direct" onclick="triggerWhatsAppChat('${contacts.whatsapp}', '${safeCompany}', '${safeTitle}')" title="Hubungi langsung via WhatsApp Web atau Aplikasi">
+        <button type="button" class="btn-wa-direct" onclick="triggerWhatsAppChat('${contacts.whatsapp}', '${safeCompany}', '${safeTitle}', '${safeWaSubject}')" title="Hubungi langsung via WhatsApp Web atau Aplikasi">
           <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i> <span>Hubungi Rekruter via WhatsApp</span>
         </button>
         <div class="contact-address-box">
           <span class="contact-address-label"><i class="fa-brands fa-whatsapp" style="color: #16a34a;"></i> No. WA:</span>
           <span class="contact-address-val">${escapeHtml(contacts.whatsapp)}</span>
           <button type="button" class="contact-address-copy" onclick="copyToClipboard('${contacts.whatsapp}', 'Nomor WhatsApp berhasil disalin ke clipboard')" title="Salin Nomor WA">
+            <i class="fa-regular fa-copy"></i> Salin
+          </button>
+        </div>
+        <div class="contact-address-box contact-address-subject">
+          <span class="contact-address-label"><i class="fa-solid fa-tag"></i> Subjek:</span>
+          <span class="contact-address-val" title="${escapeHtml(resolvedWaSubject)}">${escapeHtml(resolvedWaSubject)}</span>
+          <button type="button" class="contact-address-copy" onclick="copyToClipboard('${safeWaSubject}', 'Subjek lamaran berhasil disalin ke clipboard')" title="Salin Subjek Lamaran">
             <i class="fa-regular fa-copy"></i> Salin
           </button>
         </div>
@@ -3797,7 +3807,7 @@ function renderContactButton(job) {
 }
 
 // Reliable WhatsApp Chat Launcher
-window.triggerWhatsAppChat = function (phone, companyName, jobTitle) {
+window.triggerWhatsAppChat = function (phone, companyName, jobTitle, customSubject = '') {
   if (!phone) {
     showToast('error', 'Nomor WhatsApp perekrut tidak tersedia.');
     return;
@@ -3812,8 +3822,9 @@ window.triggerWhatsAppChat = function (phone, companyName, jobTitle) {
     clean = '62' + clean;
   }
 
+  const resolvedSubj = (customSubject && String(customSubject).trim()) || `Lamaran Kerja - ${jobTitle || companyName || 'Posisi'} - [Nama Lengkap]`;
   const textMsg = encodeURIComponent(
-    `Halo Bapak/Ibu HRD ${companyName || 'Perusahaan'},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${jobTitle || 'Pekerjaan'}.\n\nBersama pesan ini, saya siap melampirkan berkas CV dan Portofolio terbaru saya sebagai bahan pertimbangan.\n\nMohon informasi mengenai tahapan proses seleksi selanjutnya. Terima kasih banyak atas perhatian dan kesempatannya.`
+    `*Subjek: ${resolvedSubj}*\n\nHalo Bapak/Ibu HRD ${companyName || 'Perusahaan'},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${jobTitle || 'Pekerjaan'}.\n\nBersama pesan ini, saya siap melampirkan berkas CV dan Portofolio terbaru saya sebagai bahan pertimbangan.\n\nMohon informasi mengenai tahapan proses seleksi selanjutnya. Terima kasih banyak atas perhatian dan kesempatannya.`
   );
 
   const waUrl = `https://api.whatsapp.com/send?phone=${clean}&text=${textMsg}`;

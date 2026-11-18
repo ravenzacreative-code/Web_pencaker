@@ -192,12 +192,18 @@ function buildDefaultEmailSubject(title, companyName) {
 
 function buildApplyInfoText(companyName, email, whatsapp, website, title, emailSubject = '') {
   const parts = [];
-  if (email && String(email).trim()) {
-    const subj = (emailSubject && String(emailSubject).trim()) || buildDefaultEmailSubject(title, companyName);
-    parts.push(`Kirim berkas CV & lamaran lengkap ke email:\n${String(email).trim()}\nSubjek: ${subj}`);
+  const hasEmail = Boolean(email && String(email).trim());
+  const hasWa = Boolean(whatsapp && String(whatsapp).trim());
+  const subj = (emailSubject && String(emailSubject).trim()) || buildDefaultEmailSubject(title, companyName);
+
+  if (hasEmail) {
+    parts.push(`Kirim berkas CV & lamaran lengkap ke email:\n${String(email).trim()}`);
   }
-  if (whatsapp && String(whatsapp).trim()) {
-    parts.push(`Hubungi / kirim lamaran via WhatsApp HRD: ${String(whatsapp).trim()}`);
+  if (hasWa) {
+    parts.push(`Kirim berkas CV & lamaran melalui WhatsApp HRD:\nWhatsApp: ${String(whatsapp).trim()}`);
+  }
+  if (hasEmail || hasWa) {
+    parts.push(`Subjek: ${subj}`);
   }
   const cleanWeb = String(website || '').trim();
   if (cleanWeb && cleanWeb !== '#' && !cleanWeb.startsWith('./') && !cleanWeb.includes('localhost') && !cleanWeb.includes('127.0.0.1')) {
@@ -787,7 +793,7 @@ function extractJobContacts(job) {
     }
   }
   if (!emailSubject && applyInfo) {
-    const m = String(applyInfo).match(/(?:Subjek|Subject)(?:\s*Email)?\s*[:=]\s*([^\r\n]+)/i);
+    const m = String(applyInfo).match(/(?:Subjek|Subject)(?:\s*(?:Email|Lamaran))?\s*[:=]\s*([^\r\n]+)/i);
     if (m && m[1]) emailSubject = m[1].trim();
   }
   return { whatsapp: wa, email, website, apply_info: applyInfo, email_subject: emailSubject };
@@ -1941,7 +1947,7 @@ function setupJobFormSubmit() {
 
     const resolvedEmailSubject = emailSubject
       || (currentPosterJobData && currentPosterJobData.email_subject)
-      || (email ? buildDefaultEmailSubject(title, company) : '');
+      || ((email || whatsapp) ? buildDefaultEmailSubject(title, company) : '');
 
     const contactsObj = {
       whatsapp,
@@ -6884,7 +6890,7 @@ function openPosterStudio(jobData, isPublishIntent = false) {
   if (compWebInp) compWebInp.value = compWebVal;
   const storedApply = contacts.apply_info || jobData.apply_info || '';
   const initialEmailSubject = (contacts.email_subject || jobData.email_subject || '').trim()
-    || (emailVal ? buildDefaultEmailSubject(jobData.title, jobData.company_name) : '');
+    || ((emailVal || waVal) ? buildDefaultEmailSubject(jobData.title, jobData.company_name) : '');
   if (emailSubjInp) emailSubjInp.value = initialEmailSubject;
 
   let initialDeadline = (contacts.deadline_display || jobData.deadline || '').trim();
@@ -6904,7 +6910,7 @@ function openPosterStudio(jobData, isPublishIntent = false) {
   let initialApply = (storedApply || '').trim();
   if (!initialApply) {
     initialApply = buildApplyInfoText(jobData.company_name, emailVal, waVal, compWebVal, jobData.title, initialEmailSubject);
-  } else if (emailVal && initialEmailSubject && !/subjek|subject/i.test(initialApply)) {
+  } else if ((emailVal || waVal) && initialEmailSubject && !/subjek|subject/i.test(initialApply)) {
     initialApply = `${initialApply}\nSubjek: ${initialEmailSubject}`;
   }
   if (applyInp) applyInp.value = initialApply;
@@ -7307,9 +7313,9 @@ function drawPosterApplicationBox(ctx, opts) {
     ];
   }
 
-  const hasSubjLine = rawLines.some(l => /^(?:subjek|subject)(?:\s*email)?\s*[:=]/i.test(l));
-  const hasEmailInText = rawLines.some(l => /[^\s@]+@[^\s@]+\.[^\s@]+/.test(l));
-  if (!hasSubjLine && hasEmailInText && emailSubject && String(emailSubject).trim()) {
+  const hasSubjLine = rawLines.some(l => /^(?:subjek|subject)(?:\s*(?:email|lamaran))?\s*[:=]/i.test(l));
+  const hasDirectContactText = rawLines.some(l => /[^\s@]+@[^\s@]+\.[^\s@]+|\bwhatsapp\b|\bwa\b|(?:\+62|08)[0-9\s-]{7,}/i.test(l));
+  if (!hasSubjLine && hasDirectContactText && emailSubject && String(emailSubject).trim()) {
     rawLines.push(`Subjek: ${String(emailSubject).trim()}`);
   }
 
@@ -7322,11 +7328,11 @@ function drawPosterApplicationBox(ctx, opts) {
     const items = [];
     let totalH = 0;
     for (const line of rawLines) {
-      const subjMatch = line.match(/^(?:subjek|subject)(?:\s*email)?\s*[:=]\s*(.+)$/i);
+      const subjMatch = line.match(/^(?:subjek|subject)(?:\s*(?:email|lamaran))?\s*[:=]\s*(.+)$/i);
       if (subjMatch) {
         const sVal = subjMatch[1].trim();
         ctx.font = `700 ${Math.max(12.5, fs - 0.5)}px "Plus Jakarta Sans", Arial, sans-serif`;
-        const wrapped = measureCanvasWrappedLines(ctx, `Subjek Email: ${sVal}`, innerW - 20);
+        const wrapped = measureCanvasWrappedLines(ctx, `Subjek: ${sVal}`, innerW - 20);
         const boxH = wrapped.length * lh + 12;
         items.push({ kind: 'subject', lines: wrapped, fs: Math.max(12.5, fs - 0.5), lh, boxH });
         totalH += boxH + 6;
@@ -7367,8 +7373,8 @@ function drawPosterApplicationBox(ctx, opts) {
       for (let li = 0; li < item.lines.length; li++) {
         if (lineY > drawY + drawH - 2) break;
         const txt = item.lines[li];
-        if (li === 0 && txt.startsWith('Subjek Email:')) {
-          const prefix = 'Subjek Email: ';
+        if (li === 0 && txt.startsWith('Subjek:')) {
+          const prefix = 'Subjek: ';
           const pw = ctx.measureText(prefix).width;
           ctx.fillStyle = '#4338ca';
           ctx.fillText(prefix, pillX + 10, lineY);
@@ -8980,7 +8986,7 @@ function setupOfficialVacancyGenerator() {
       const subjVal = syncEmailSubjEl.value.trim();
       if (applyEl) {
         const lines = applyEl.value.split(/\r?\n/);
-        const subjLineIdx = lines.findIndex(l => /^(?:subjek|subject)(?:\s*email)?\s*[:=]/i.test(l.trim()));
+        const subjLineIdx = lines.findIndex(l => /^(?:subjek|subject)(?:\s*(?:email|lamaran))?\s*[:=]/i.test(l.trim()));
         if (subjVal) {
           if (subjLineIdx >= 0) {
             lines[subjLineIdx] = `Subjek: ${subjVal}`;
