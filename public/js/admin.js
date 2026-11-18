@@ -7256,6 +7256,10 @@ function drawPosterApplicationBox(ctx, opts) {
   ctx.lineWidth = borderWidth;
   roundRect(ctx, x, y, w, h, radius, false, true);
 
+  ctx.save();
+  roundRect(ctx, x + 2, y + 2, w - 4, h - 4, Math.max(4, radius - 2), false, false);
+  ctx.clip();
+
   const padX = 18;
   const innerW = w - padX * 2;
 
@@ -7337,8 +7341,8 @@ function drawPosterApplicationBox(ctx, opts) {
     return { items, totalH: Math.max(0, totalH - 4) };
   };
 
-  let chosen = layoutAtFont(13);
-  for (const candFs of [17.5, 16.5, 15.5, 14.5, 13.5, 12.5]) {
+  let chosen = layoutAtFont(11);
+  for (const candFs of [17.5, 16, 15, 14, 13, 12, 11]) {
     const res = layoutAtFont(candFs);
     chosen = res;
     if (res.totalH <= availH) break;
@@ -7380,14 +7384,24 @@ function drawPosterApplicationBox(ctx, opts) {
     } else {
       ctx.font = `${item.kind === 'dest' ? '700' : '600'} ${item.fs}px "Plus Jakarta Sans", Arial, sans-serif`;
       ctx.fillStyle = item.kind === 'dest' ? '#0f172a' : '#334155';
-      for (const l of item.lines) {
-        if (drawY + item.lh * 0.8 > contentBottomY) break;
-        ctx.fillText(l, pillX, drawY + Math.round(item.lh * 0.82));
+      for (let li = 0; li < item.lines.length; li++) {
+        if (drawY + item.lh * 0.85 > contentBottomY) break;
+        let lineTxt = item.lines[li];
+        const isLastFitting = (li < item.lines.length - 1) && (drawY + item.lh * 1.85 > contentBottomY);
+        if (isLastFitting) {
+          while (lineTxt.length > 4 && ctx.measureText(lineTxt + '...').width > innerW) {
+            lineTxt = lineTxt.slice(0, -1);
+          }
+          lineTxt += '...';
+        }
+        ctx.fillText(lineTxt, pillX, drawY + Math.round(item.lh * 0.82));
         drawY += item.lh;
+        if (isLastFitting) break;
       }
       drawY += 4;
     }
   }
+  ctx.restore();
 }
 
 // -------------------------------------------------------------
@@ -7994,16 +8008,61 @@ function drawScannableQrCode(ctx, url, x, y, size, withBrackets = false) {
 }
 
 // Helper: wrap text into canvas with multi-line paragraph & word-wrap support
+function splitLongCanvasToken(ctx, token, maxWidth) {
+  const chunks = [];
+  let remaining = String(token || '');
+  while (remaining.length > 0) {
+    if (ctx.measureText(remaining).width <= maxWidth) {
+      chunks.push(remaining);
+      break;
+    }
+    let cut = 1;
+    let lastDelimiterCut = -1;
+    while (cut <= remaining.length) {
+      const sub = remaining.slice(0, cut);
+      if (ctx.measureText(sub).width > maxWidth) {
+        cut = Math.max(1, cut - 1);
+        break;
+      }
+      const ch = remaining[cut - 1];
+      if (ch === '/' || ch === '?' || ch === '&' || ch === '=' || ch === '-' || ch === '_' || ch === '.') {
+        lastDelimiterCut = cut;
+      }
+      cut++;
+    }
+    if (cut > remaining.length) cut = remaining.length;
+    if (lastDelimiterCut >= Math.ceil(cut * 0.45) && lastDelimiterCut < remaining.length) {
+      cut = lastDelimiterCut;
+    }
+    chunks.push(remaining.slice(0, cut));
+    remaining = remaining.slice(cut);
+  }
+  return chunks;
+}
+
 function measureCanvasWrappedLines(ctx, text, maxWidth) {
   const words = String(text || '').trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return [];
   const lines = [];
   let line = '';
   for (let i = 0; i < words.length; i++) {
-    const test = line ? `${line} ${words[i]}` : words[i];
+    const word = words[i];
+    if (ctx.measureText(word).width > maxWidth) {
+      if (line) {
+        lines.push(line);
+        line = '';
+      }
+      const chunks = splitLongCanvasToken(ctx, word, maxWidth);
+      for (let c = 0; c < chunks.length - 1; c++) {
+        lines.push(chunks[c]);
+      }
+      line = chunks[chunks.length - 1] || '';
+      continue;
+    }
+    const test = line ? `${line} ${word}` : word;
     if (ctx.measureText(test).width > maxWidth && line) {
       lines.push(line);
-      line = words[i];
+      line = word;
     } else {
       line = test;
     }
@@ -8036,25 +8095,9 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 5) {
   let lineCount = 0;
 
   for (let p = 0; p < paragraphs.length; p++) {
-    const rawWords = paragraphs[p].split(/\s+/).filter(Boolean);
-    if (rawWords.length === 0) continue;
-    let line = '';
-
-    for (let n = 0; n < rawWords.length; n++) {
-      const testLine = line ? (line + ' ' + rawWords[n]) : rawWords[n];
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && n > 0) {
-        ctx.fillText(line, x, curY);
-        line = rawWords[n];
-        curY += lineHeight;
-        lineCount++;
-        if (lineCount >= maxLines) return curY;
-      } else {
-        line = testLine;
-      }
-    }
-    if (line) {
-      ctx.fillText(line, x, curY);
+    const wrapped = measureCanvasWrappedLines(ctx, paragraphs[p], maxWidth);
+    for (let w = 0; w < wrapped.length; w++) {
+      ctx.fillText(wrapped[w], x, curY);
       curY += lineHeight;
       lineCount++;
       if (lineCount >= maxLines) return curY;
