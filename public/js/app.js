@@ -2292,11 +2292,45 @@ function generateCompanyBannerDataUrl(job) {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
+const _prefetchedJobAssetIds = new Set();
+const _preloadedImageUrls = new Set();
+
+function preloadImageUrl(src) {
+  if (!src || typeof src !== 'string') return;
+  const clean = src.trim();
+  if (!clean || clean.startsWith('data:image/svg') || _preloadedImageUrls.has(clean)) return;
+  _preloadedImageUrls.add(clean);
+  if (_preloadedImageUrls.size > 120) {
+    const firstKey = _preloadedImageUrls.values().next().value;
+    if (firstKey) _preloadedImageUrls.delete(firstKey);
+  }
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = clean;
+}
+
+window.markPosterLoaded = function (imgEl) {
+  if (!imgEl) return;
+  imgEl.classList.add('is-loaded');
+  if (imgEl.parentElement) imgEl.parentElement.classList.add('is-poster-ready');
+};
+
+window.prefetchJobAssets = function (jobId) {
+  const numId = Number(jobId);
+  if (!numId || _prefetchedJobAssetIds.has(numId)) return;
+  _prefetchedJobAssetIds.add(numId);
+  const job = (rawAllJobs || []).find(j => Number(j.id) === numId) || (window.rawAllJobs || []).find(j => Number(j.id) === numId);
+  if (!job || typeof getJobFlyerImages !== 'function') return;
+  const flyers = getJobFlyerImages(job).slice(0, 3);
+  flyers.forEach(preloadImageUrl);
+};
+
 window.handlePublicPosterError = function (imgEl, jobId) {
   if (!imgEl) return;
   imgEl.onerror = null;
   const job = (rawAllJobs || []).find(j => Number(j.id) === Number(jobId)) || (window.rawAllJobs || []).find(j => Number(j.id) === Number(jobId));
   imgEl.src = generateCompanyBannerDataUrl(job || { company_name: 'KerjaHub', title: 'Lowongan Kerja' });
+  window.markPosterLoaded(imgEl);
 };
 
 function getEffectiveJobCover(job) {
@@ -2384,7 +2418,7 @@ function renderJobs(jobs) {
     return;
   }
 
-  const cardsHtml = jobs.map(job => {
+  const cardsHtml = jobs.map((job, idx) => {
     const coverSrc = getEffectiveJobCover(job);
     const rawFlyers = Array.isArray(job.flyer_images) && job.flyer_images.length > 0
       ? job.flyer_images
@@ -2396,6 +2430,9 @@ function renderJobs(jobs) {
     const initial = job.company_name ? job.company_name.charAt(0).toUpperCase() : 'C';
     const timeAgo = formatTimeAgo(job.created_at);
     const urgencyBadge = calculateUrgencyBadge(job.deadline);
+    const isPriorityCard = idx < 4;
+    const loadingAttr = isPriorityCard ? 'eager' : 'lazy';
+    const fetchPriorityAttr = isPriorityCard ? ' fetchpriority="high"' : '';
 
     // Clean official verified pill for users
     const platformPill = '<span class="pill pill-platform pill-official"><i class="fa-solid fa-circle-check"></i> Rekrutmen Resmi</span>';
@@ -2405,11 +2442,11 @@ function renderJobs(jobs) {
     const safeTitle = (job.title || '').replace(/'/g, "\\'");
 
     return `
-      <div class="job-card ${isLocked ? 'job-card-locked' : ''}" data-id="${job.id}">
+      <div class="job-card ${isLocked ? 'job-card-locked' : ''}" data-id="${job.id}" onmouseenter="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})" onpointerdown="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})" onfocusin="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})">
 
         <!-- Foto Sampul Kartu / Poster Preview with Lightbox trigger -->
         <div class="job-poster-preview" onclick="${isLocked ? `showLockedNotice('${safeTitle}')` : `openJobPosterById(${job.id})`}">
-          <img src="${coverSrc}" alt="${escapeHtml(job.title)}" loading="lazy" decoding="async" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
+          <img class="poster-img-fade" src="${coverSrc}" alt="${escapeHtml(job.title)}" loading="${loadingAttr}"${fetchPriorityAttr} decoding="async" onload="window.markPosterLoaded && window.markPosterLoaded(this)" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
           ${isLocked ? '<div class="badge-locked-overlay"><i class="fa-solid fa-lock"></i> TELAH DITUTUP (EXPIRED)</div>' : ''}
           ${job.is_featured && !isLocked ? '<div class="badge-featured"><i class="fa-solid fa-star"></i> Unggulan</div>' : ''}
           ${hasFlyers && !isLocked ? `<div class="badge-card-flyer"><i class="fa-regular fa-image"></i> ${flyerList.length > 1 ? flyerList.length + ' Poster' : 'Poster Loker'}</div>` : ''}
@@ -2492,6 +2529,15 @@ function renderJobs(jobs) {
   ` : '';
 
   container.innerHTML = noticeHtml + cardsHtml;
+  container.querySelectorAll('.job-poster-preview img').forEach(img => {
+    if (img.complete && img.naturalWidth > 0) {
+      window.markPosterLoaded(img);
+    }
+  });
+  // Background-warm flyers for top 3 visible jobs once main cards render
+  const topIds = jobs.slice(0, 3).map(j => j.id);
+  const scheduleWarm = window.requestIdleCallback || ((fn) => setTimeout(fn, 550));
+  scheduleWarm(() => topIds.forEach(id => window.prefetchJobAssets(id)));
 }
 
 // Generate skill pills based on job properties
@@ -2708,6 +2754,7 @@ function openLightbox(imgSrcOrList, title, startIdx = 0) {
 
   renderLightboxSlide();
   lb.classList.add('active');
+  list.forEach(preloadImageUrl);
 }
 
 // ==============================================================
@@ -2779,7 +2826,11 @@ function initJobFlyerCarousel(jobId, images) {
   activeJobFlyerSlide = 0;
   isJobCarouselPaused = false;
 
-  if (!images || images.length <= 1) return;
+  if (!images || images.length <= 1) {
+    if (images && images[0]) preloadImageUrl(images[0]);
+    return;
+  }
+  images.forEach(preloadImageUrl);
 
   // Auto-slide every 3.5 seconds
   jobFlyerCarouselTimer = setInterval(() => {
@@ -3154,7 +3205,7 @@ async function openJobDetail(jobId) {
                 <div class="side-carousel-track">
                   ${flyerImages.map((src, i) => `
                     <div class="side-slide ${i === 0 ? 'active' : ''}" data-index="${i}">
-                      <img src="${src}" alt="Poster Slide ${i + 1}" onclick="openLightboxSlide(${job.id}, ${i})" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
+                      <img src="${src}" alt="Poster Slide ${i + 1}" loading="eager" decoding="async" onclick="openLightboxSlide(${job.id}, ${i})" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
                     </div>
                   `).join('')}
                 </div>
@@ -3165,7 +3216,7 @@ async function openJobDetail(jobId) {
                 ${flyerImages.map((_, i) => `<span class="side-dot ${i === 0 ? 'active' : ''}" onclick="event.stopPropagation(); goToJobSlide(${job.id}, ${i})"></span>`).join('')}
               </div>
             ` : `
-              <img src="${flyerImages[0] || heroCoverSrc}" alt="Foto Lowongan" onclick="openJobPosterById(${job.id})" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
+              <img src="${flyerImages[0] || heroCoverSrc}" alt="Foto Lowongan" loading="eager" decoding="async" fetchpriority="high" onclick="openJobPosterById(${job.id})" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
             `}
             <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
               <button type="button" class="btn btn-outline btn-sm" onclick="openActiveJobLightbox(${job.id})">

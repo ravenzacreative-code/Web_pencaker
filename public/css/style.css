@@ -1082,9 +1082,13 @@ body {
   position: relative;
   width: 100%;
   height: 200px;
-  background: #0f172a;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
   overflow: hidden;
   cursor: pointer;
+}
+
+.job-poster-preview.is-poster-ready {
+  background: #0f172a;
 }
 
 .job-poster-preview img {
@@ -1092,7 +1096,15 @@ body {
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, opacity 0.2s ease-out;
+}
+
+.job-poster-preview img.poster-img-fade {
+  opacity: 0;
+}
+
+.job-poster-preview img.poster-img-fade.is-loaded {
+  opacity: 1;
 }
 
 .job-card:hover .job-poster-preview img {

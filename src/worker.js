@@ -351,11 +351,23 @@ async function withEdgeCache(c, ttlSeconds, fetcher) {
     return res;
 }
 
-function purgeEdgeCaches(c) {
+function purgeEdgeCaches(c, jobId = null) {
     const cache = typeof caches !== 'undefined' ? caches.default : null;
     if (!cache) return;
     const origin = new URL(c.req.url).origin;
-    const tasks = EDGE_CACHE_PATHS.map(p => cache.delete(new Request(origin + p, { method: 'GET' })).catch(() => false));
+    const paths = [...EDGE_CACHE_PATHS];
+    if (jobId !== null && jobId !== undefined && String(jobId).trim()) {
+        const cleanId = encodeURIComponent(String(jobId).trim());
+        paths.push(
+            `/api/jobs/${cleanId}/image/cover`,
+            `/api/jobs/${cleanId}/image/poster`,
+            `/api/jobs/${cleanId}/image/flyer_0`,
+            `/api/jobs/${cleanId}/image/flyer_1`,
+            `/api/jobs/${cleanId}/image/flyer_2`,
+            `/api/jobs/${cleanId}/image/flyer_3`
+        );
+    }
+    const tasks = paths.map(p => cache.delete(new Request(origin + p, { method: 'GET' })).catch(() => false));
     c.executionCtx?.waitUntil(Promise.all(tasks));
 }
 
@@ -553,24 +565,117 @@ function decodeBase64DataUrl(dataUrl) {
     return { contentType, bytes };
 }
 
+function computeQuickEtag(versionHint, bytesOrStr) {
+    let hash = 2166136261;
+    const len = typeof bytesOrStr === 'string' ? bytesOrStr.length : (bytesOrStr?.byteLength || 0);
+    if (typeof bytesOrStr === 'string') {
+        const step = Math.max(1, Math.floor(len / 96));
+        for (let i = 0; i < len; i += step) {
+            hash ^= bytesOrStr.charCodeAt(i);
+            hash = Math.imul(hash, 16777619);
+        }
+    } else if (bytesOrStr && len > 0) {
+        const step = Math.max(1, Math.floor(len / 96));
+        for (let i = 0; i < len; i += step) {
+            hash ^= bytesOrStr[i];
+            hash = Math.imul(hash, 16777619);
+        }
+    }
+    const cleanHint = String(versionHint || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24);
+    return `"img-${cleanHint ? cleanHint + '-' : ''}${len}-${(hash >>> 0).toString(36)}"`;
+}
+
 app.get('/api/jobs/:id/image/:slot', async (c) => {
     try {
         const id = c.req.param('id');
         const slot = c.req.param('slot') || 'poster';
+        const reqUrl = new URL(c.req.url);
+        const versionParam = reqUrl.searchParams.get('v') || '';
+        const bypass = reqUrl.searchParams.has('_t') || (c.req.header('cache-control') || '').includes('no-cache');
+        const ifNoneMatch = (c.req.header('if-none-match') || '').trim();
+        const cache = typeof caches !== 'undefined' ? caches.default : null;
+        const cacheKey = new Request(reqUrl.toString(), { method: 'GET' });
+
+        if (cache && !bypass) {
+            const cachedRes = await cache.match(cacheKey);
+            if (cachedRes) {
+                const cachedEtag = cachedRes.headers.get('etag');
+                if (ifNoneMatch && cachedEtag && ifNoneMatch === cachedEtag) {
+                    return new Response(null, { status: 304, headers: cachedRes.headers });
+                }
+                const hitHeaders = new Headers(cachedRes.headers);
+                hitHeaders.set('X-Worker-Cache', 'HIT');
+                return new Response(cachedRes.body, {
+                    status: cachedRes.status,
+                    headers: hitHeaders
+                });
+            }
+        }
+
         const val = await getJobImageValue(c.env, id, slot);
         if (!val) return c.json({ error: 'Gambar tidak ditemukan' }, 404);
+
+        const cacheControl = versionParam
+            ? 'public, max-age=31536000, s-maxage=31536000, immutable'
+            : 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800';
 
         if (val.startsWith('data:')) {
             const decoded = decodeBase64DataUrl(val);
             if (!decoded) return c.json({ error: 'Format gambar tidak valid' }, 400);
-            return new Response(decoded.bytes, {
-                status: 200,
-                headers: {
-                    'Content-Type': decoded.contentType,
-                    'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
-                    'X-Content-Type-Options': 'nosniff'
+
+            const etag = computeQuickEtag(versionParam || slot, decoded.bytes);
+            const headers = {
+                'Content-Type': decoded.contentType,
+                'Cache-Control': cacheControl,
+                'ETag': etag,
+                'X-Content-Type-Options': 'nosniff',
+                'X-Worker-Cache': 'MISS'
+            };
+
+            if (ifNoneMatch && ifNoneMatch === etag) {
+                return new Response(null, { status: 304, headers });
+            }
+
+            const res = new Response(decoded.bytes, { status: 200, headers });
+            if (cache && !bypass) {
+                c.executionCtx?.waitUntil(cache.put(cacheKey, res.clone()));
+            }
+            return res;
+        }
+
+        if (val.startsWith('/uploads/')) {
+            const key = val.slice('/uploads/'.length).split('?')[0].trim();
+            if (key) {
+                let directRes = await getUploadResponseFromR2(c.env, key);
+                if (!directRes && c.env?.ASSETS) {
+                    const assetUrl = new URL(val, c.req.url).toString();
+                    const assetCandidate = await c.env.ASSETS.fetch(new Request(assetUrl, { method: 'GET' }));
+                    if (assetCandidate.status !== 404) {
+                        directRes = assetCandidate;
+                    }
                 }
-            });
+                if (directRes) {
+                    const outHeaders = new Headers(directRes.headers);
+                    outHeaders.set('Cache-Control', cacheControl);
+                    outHeaders.set('X-Content-Type-Options', 'nosniff');
+                    outHeaders.set('X-Worker-Cache', 'MISS');
+                    if (!outHeaders.get('etag')) {
+                        outHeaders.set('ETag', computeQuickEtag(versionParam || key, val));
+                    }
+                    const etag = outHeaders.get('etag');
+                    if (ifNoneMatch && etag && ifNoneMatch === etag) {
+                        return new Response(null, { status: 304, headers: outHeaders });
+                    }
+                    const res = new Response(directRes.body, {
+                        status: directRes.status,
+                        headers: outHeaders
+                    });
+                    if (cache && !bypass && res.status === 200) {
+                        c.executionCtx?.waitUntil(cache.put(cacheKey, res.clone()));
+                    }
+                    return res;
+                }
+            }
         }
 
         if (val.startsWith('/') || val.startsWith('http://') || val.startsWith('https://')) {
@@ -701,7 +806,7 @@ app.put('/api/jobs/:id', requireAdminAuth, async (c) => {
         }
 
         const updated = await updateJob(c.env, id, payload);
-        purgeEdgeCaches(c);
+        purgeEdgeCaches(c, id);
         return c.json({ success: true, data: updated, job: updated, message: 'Lowongan berhasil diperbarui!' });
     } catch (err) {
         return c.json({ error: err.message }, err.status || 500);
@@ -714,7 +819,7 @@ app.delete('/api/jobs/:id', requireAdminAuth, async (c) => {
         const existing = await getJobById(c.env, id);
 
         await deleteJob(c.env, id);
-        purgeEdgeCaches(c);
+        purgeEdgeCaches(c, id);
 
         // Clean up R2 / Storage files attached to this job
         if (existing) {
@@ -735,13 +840,14 @@ app.delete('/api/jobs/:id', requireAdminAuth, async (c) => {
 
 app.patch('/api/jobs/:id/status', requireAdminAuth, async (c) => {
     try {
+        const id = c.req.param('id');
         const body = await c.req.json();
         const status = body?.status;
         if (!['published', 'active', 'expired', 'draft', 'scheduled', 'closed'].includes(status)) {
             return c.json({ error: 'Status tidak valid!' }, 400);
         }
-        const updated = await toggleStatus(c.env, c.req.param('id'), status);
-        purgeEdgeCaches(c);
+        const updated = await toggleStatus(c.env, id, status);
+        purgeEdgeCaches(c, id);
         return c.json({ success: true, job: updated, message: `Status diubah ke ${status}` });
     } catch (err) {
         return c.json({ error: err.message }, 500);
@@ -941,7 +1047,14 @@ app.get('/uploads/:key', async (c) => {
     if (c.env?.ASSETS) {
         const assetRes = await c.env.ASSETS.fetch(c.req.raw);
         if (assetRes.status !== 404) {
-            return assetRes;
+            const outHeaders = new Headers(assetRes.headers);
+            if (!outHeaders.get('cache-control')) {
+                outHeaders.set('Cache-Control', 'public, max-age=2592000, s-maxage=2592000, stale-while-revalidate=604800');
+            }
+            return new Response(assetRes.body, {
+                status: assetRes.status,
+                headers: outHeaders
+            });
         }
     }
 

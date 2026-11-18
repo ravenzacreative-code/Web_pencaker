@@ -1019,13 +1019,42 @@ function switchSection(sectionName) {
 // -------------------------------------------------------------
 let manualUploadedFlyers = [];
 
-function compressImageFileToDataUrl(file, maxDim = 1600, quality = 0.86) {
+function exportCanvasOptimizedDataUrl(canvas, maxWidth = 1080, quality = 0.85) {
+  if (!canvas) return '';
+  try {
+    let targetCanvas = canvas;
+    if (maxWidth > 0 && canvas.width > maxWidth) {
+      const scale = maxWidth / canvas.width;
+      const off = document.createElement('canvas');
+      off.width = Math.max(1, Math.round(canvas.width * scale));
+      off.height = Math.max(1, Math.round(canvas.height * scale));
+      const octx = off.getContext('2d');
+      octx.imageSmoothingEnabled = true;
+      octx.imageSmoothingQuality = 'high';
+      octx.drawImage(canvas, 0, 0, off.width, off.height);
+      targetCanvas = off;
+    }
+    const webpUrl = targetCanvas.toDataURL('image/webp', quality);
+    if (webpUrl && webpUrl.startsWith('data:image/webp')) {
+      return webpUrl;
+    }
+    const jpegUrl = targetCanvas.toDataURL('image/jpeg', quality);
+    if (jpegUrl && jpegUrl.startsWith('data:image/jpeg')) {
+      return jpegUrl;
+    }
+    return canvas.toDataURL('image/png');
+  } catch (e) {
+    try { return canvas.toDataURL('image/png'); } catch (_) { return ''; }
+  }
+}
+
+function compressImageFileToDataUrl(file, maxDim = 1280, quality = 0.82) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onerror = () => resolve('');
     reader.onload = (evt) => {
       const rawDataUrl = evt.target.result;
-      if (!file || !file.type || !file.type.startsWith('image/') || file.type === 'image/svg+xml' || file.size <= 450 * 1024) {
+      if (!file || !file.type || !file.type.startsWith('image/') || file.type === 'image/svg+xml' || file.size <= 100 * 1024) {
         resolve(rawDataUrl);
         return;
       }
@@ -1041,9 +1070,13 @@ function compressImageFileToDataUrl(file, maxDim = 1600, quality = 0.86) {
           canvas.width = targetW;
           canvas.height = targetH;
           const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(img, 0, 0, targetW, targetH);
-          const outMime = (file.type === 'image/png' && file.size <= 900 * 1024) ? 'image/png' : 'image/jpeg';
-          const compressed = canvas.toDataURL(outMime, quality);
+          let compressed = canvas.toDataURL('image/webp', quality);
+          if (!compressed || !compressed.startsWith('data:image/webp')) {
+            compressed = canvas.toDataURL('image/jpeg', quality);
+          }
           resolve(compressed && compressed.length < rawDataUrl.length ? compressed : rawDataUrl);
         } catch (err) {
           resolve(rawDataUrl);
@@ -5624,11 +5657,7 @@ function generateFlyerPosterDataUrl(jobData) {
   // Render directly on canvas
   renderPosterCanvas();
 
-  try {
-    return canvas.toDataURL('image/png');
-  } catch(e) {
-    return '';
-  }
+  return exportCanvasOptimizedDataUrl(canvas, 1080, 0.85);
 }
 
 // -------------------------------------------------------------
@@ -6592,7 +6621,7 @@ window.addCurrentCanvasAsNewSlide = function() {
   const canvas = document.getElementById('poster-canvas');
   if (!canvas) return;
 
-  const dataUrl = canvas.toDataURL('image/png');
+  const dataUrl = exportCanvasOptimizedDataUrl(canvas, 1080, 0.85);
 
   if (currentFlyerSlides.length === 0) {
     currentFlyerSlides.push(dataUrl);
@@ -6614,7 +6643,7 @@ window.handleExtraFlyerUpload = function(event) {
 
   const canvas = document.getElementById('poster-canvas');
   if (currentFlyerSlides.length === 0 && canvas) {
-    currentFlyerSlides.push(canvas.toDataURL('image/png'));
+    currentFlyerSlides.push(exportCanvasOptimizedDataUrl(canvas, 1080, 0.85));
     studioCanvasSlideIndices.add(0);
   }
 
@@ -7781,7 +7810,7 @@ function renderPosterCanvas() {
 
   // Synchronize current canvas to current active slide thumbnail
   try {
-    const currentDataUrl = canvas.toDataURL('image/png');
+    const currentDataUrl = exportCanvasOptimizedDataUrl(canvas, 1080, 0.85);
     if (currentFlyerSlides.length === 0) {
       currentFlyerSlides.push(currentDataUrl);
       renderFlyerSlidesStrip();
@@ -7988,7 +8017,7 @@ function copyPosterToClipboard() {
 window.setStudioCanvasAsCover = function() {
   const canvas = document.getElementById('poster-canvas');
   if (!canvas) return;
-  const dataUrl = canvas.toDataURL('image/png');
+  const dataUrl = exportCanvasOptimizedDataUrl(canvas, 1080, 0.85);
   currentManualCoverBase64 = dataUrl;
   currentCoverMode = 'upload';
   updateCoverPreviewUI('desain_studio_sampul.png');
@@ -8023,7 +8052,7 @@ window.publishJobFromStudio = async function() {
   }
 
   try {
-    const currentCanvasDataUrl = canvas.toDataURL('image/png');
+    const currentCanvasDataUrl = exportCanvasOptimizedDataUrl(canvas, 1080, 0.85);
 
     if (currentFlyerSlides.length === 0) {
       currentFlyerSlides = [currentCanvasDataUrl];
@@ -8249,7 +8278,7 @@ window.publishJobFromStudio = async function() {
         if (qrInp && qrInp.value !== exactPublicUrl) {
           qrInp.value = exactPublicUrl;
           renderPosterCanvas();
-          const syncedFlyer = canvas.toDataURL('image/png');
+          const syncedFlyer = exportCanvasOptimizedDataUrl(canvas, 1080, 0.85);
           currentFlyerSlides[0] = syncedFlyer;
           const token = getAdminToken();
           safeFetchJson(getApiEndpoint(`/api/jobs/${createdJobId}`), {
@@ -8323,7 +8352,7 @@ window.savePosterChangesToJob = async function() {
   }
 
   try {
-    const posterDataUrl = canvas.toDataURL('image/png');
+    const posterDataUrl = exportCanvasOptimizedDataUrl(canvas, 1080, 0.85);
 
     if (currentFlyerSlides.length === 0) {
       currentFlyerSlides = [posterDataUrl];
@@ -8554,7 +8583,7 @@ function usePosterForJob() {
   const canvas = document.getElementById('poster-canvas');
   if (!canvas) return;
 
-  const dataUrl = canvas.toDataURL('image/png');
+  const dataUrl = exportCanvasOptimizedDataUrl(canvas, 1080, 0.85);
   currentSelectedFileBase64 = dataUrl;
 
   if (currentFlyerSlides && currentFlyerSlides.length > 0) {

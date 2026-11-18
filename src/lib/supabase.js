@@ -309,32 +309,44 @@ export async function getJobs(env, { status = 'all', category = 'all', location 
 }
 
 export async function getJobImageValue(env, id, slot = 'poster') {
-    const rows = await supabaseFetch(env, `jobs?id=eq.${encodeURIComponent(id)}&select=poster_image,cover_image,flyer_images`);
-    if (!Array.isArray(rows) || rows.length === 0) return '';
-    const row = rows[0];
+    const cleanSlot = String(slot || 'poster').trim() || 'poster';
+    const columnForSlot = (targetSlot) => {
+        if (targetSlot === 'cover') return 'cover_image';
+        if (targetSlot.startsWith('flyer_')) return 'flyer_images';
+        return 'poster_image';
+    };
 
-    let flyerArr = row.flyer_images;
-    if (typeof flyerArr === 'string') {
-        try { flyerArr = JSON.parse(flyerArr); } catch { flyerArr = []; }
-    }
-    if (!Array.isArray(flyerArr)) flyerArr = [];
+    const rowCache = {};
+    const queriedCols = new Set();
+    const readSlotRaw = async (targetSlot) => {
+        const col = columnForSlot(targetSlot);
+        if (!queriedCols.has(col)) {
+            queriedCols.add(col);
+            const rows = await supabaseFetch(env, `jobs?id=eq.${encodeURIComponent(id)}&select=${col}`);
+            if (!Array.isArray(rows) || rows.length === 0) return '';
+            Object.assign(rowCache, rows[0]);
+        }
 
-    const readSlotRaw = (targetSlot) => {
-        if (targetSlot === 'cover') return row.cover_image || '';
+        if (targetSlot === 'cover') return rowCache.cover_image || '';
         if (targetSlot.startsWith('flyer_')) {
+            let flyerArr = rowCache.flyer_images;
+            if (typeof flyerArr === 'string') {
+                try { flyerArr = JSON.parse(flyerArr); } catch { flyerArr = []; }
+            }
+            if (!Array.isArray(flyerArr)) flyerArr = [];
             const idx = parseInt(targetSlot.replace('flyer_', ''), 10) || 0;
             return flyerArr[idx] || '';
         }
-        return row.poster_image || '';
+        return rowCache.poster_image || '';
     };
 
     const proxyPrefix = `/api/jobs/${String(id)}/image/`;
     const visited = new Set();
-    let currentSlot = slot;
+    let currentSlot = cleanSlot;
     for (let hop = 0; hop < 4; hop++) {
         if (visited.has(currentSlot)) return '';
         visited.add(currentSlot);
-        const val = readSlotRaw(currentSlot);
+        const val = await readSlotRaw(currentSlot);
         if (!val || typeof val !== 'string') return '';
         if (val.startsWith(proxyPrefix)) {
             const nextPart = val.slice(proxyPrefix.length).split('?')[0].trim();
