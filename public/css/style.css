@@ -1322,6 +1322,46 @@ body {
   color: #34d399;
 }
 
+/* Application Channel Pills on Job Cards (Via Email / Via Website / Via WhatsApp) */
+.pill-channel-email {
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
+  border: 1px solid rgba(79, 70, 229, 0.25);
+  font-weight: 700;
+}
+
+.pill-channel-web {
+  background: rgba(2, 132, 199, 0.12);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  font-weight: 700;
+}
+
+.pill-channel-wa {
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  font-weight: 700;
+}
+
+[data-theme="dark"] .pill-channel-email {
+  background: rgba(99, 102, 241, 0.22);
+  color: #a5b4fc;
+  border-color: rgba(129, 140, 248, 0.35);
+}
+
+[data-theme="dark"] .pill-channel-web {
+  background: rgba(14, 165, 233, 0.22);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+[data-theme="dark"] .pill-channel-wa {
+  background: rgba(34, 197, 94, 0.22);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
 /* Platform Pills (LinkedIn, Instagram, Facebook, Resmi) */
 .pill-platform {
   font-weight: 700;
@@ -3170,6 +3210,46 @@ textarea.form-control {
   color: #34d399;
 }
 
+/* Application Channel Pills on Job Cards (Via Email / Via Website / Via WhatsApp) */
+.pill-channel-email {
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
+  border: 1px solid rgba(79, 70, 229, 0.25);
+  font-weight: 700;
+}
+
+.pill-channel-web {
+  background: rgba(2, 132, 199, 0.12);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  font-weight: 700;
+}
+
+.pill-channel-wa {
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  font-weight: 700;
+}
+
+[data-theme="dark"] .pill-channel-email {
+  background: rgba(99, 102, 241, 0.22);
+  color: #a5b4fc;
+  border-color: rgba(129, 140, 248, 0.35);
+}
+
+[data-theme="dark"] .pill-channel-web {
+  background: rgba(14, 165, 233, 0.22);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+[data-theme="dark"] .pill-channel-wa {
+  background: rgba(34, 197, 94, 0.22);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
 /* Interactive Checklist in Modal */
 .interactive-check-box {
   background: var(--bg-surface-alt);
@@ -4448,6 +4528,22 @@ textarea.form-control {
 [data-theme="dark"] .contact-address-email {
   background: rgba(234, 67, 53, 0.12);
   border-color: rgba(248, 113, 113, 0.25);
+}
+
+.contact-address-subject {
+  background: rgba(79, 70, 229, 0.06);
+  border-color: rgba(79, 70, 229, 0.22);
+}
+
+.contact-address-subject .contact-address-val {
+  overflow-wrap: break-word;
+  word-break: normal;
+  font-size: 0.76rem;
+}
+
+[data-theme="dark"] .contact-address-subject {
+  background: rgba(99, 102, 241, 0.14);
+  border-color: rgba(129, 140, 248, 0.28);
 }
 
 .contact-address-label {

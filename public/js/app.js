@@ -2440,6 +2440,21 @@ function renderJobs(jobs) {
     // Dynamic skill pills from category & job
     const skillTags = generateSkillPills(job);
     const safeTitle = (job.title || '').replace(/'/g, "\\'");
+    const cardContacts = extractJobContacts(job);
+    const channelBadges = [];
+    if (cardContacts.email) {
+      channelBadges.push('<span class="pill pill-channel-email" title="Lamaran dikirim melalui Email HRD"><i class="fa-solid fa-envelope"></i> Via Email</span>');
+    }
+    if (cardContacts.website_url) {
+      channelBadges.push('<span class="pill pill-channel-web" title="Lamaran melalui Website / Link Resmi"><i class="fa-solid fa-globe"></i> Via Website</span>');
+    }
+    if (cardContacts.whatsapp) {
+      channelBadges.push('<span class="pill pill-channel-wa" title="Lamaran melalui WhatsApp HRD"><i class="fa-brands fa-whatsapp"></i> Via WhatsApp</span>');
+    }
+    const channelPillsHtml = channelBadges.join('');
+    const exactCreatedTitle = job.created_at
+      ? `Diposting pada ${new Date(job.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+      : 'Tanggal posting';
 
     return `
       <div class="job-card ${isLocked ? 'job-card-locked' : ''}" data-id="${job.id}" onmouseenter="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})" onpointerdown="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})" onfocusin="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})">
@@ -2471,6 +2486,7 @@ function renderJobs(jobs) {
             ${platformPill}
             <span class="pill pill-type"><i class="fa-regular fa-clock"></i> ${escapeHtml(job.job_type)}</span>
             ${job.salary_display ? `<span class="pill pill-salary"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(job.salary_display)}</span>` : ''}
+            ${channelPillsHtml}
             ${isLocked ? '<span class="pill pill-expired"><i class="fa-solid fa-ban"></i> Lowongan Berakhir / Terkunci</span>' : urgencyBadge}
           </div>
 
@@ -2495,7 +2511,7 @@ function renderJobs(jobs) {
           <p class="job-excerpt">${escapeHtml(job.description)}</p>
 
           <div class="job-card-footer">
-            <span class="posted-time"><i class="fa-regular fa-calendar"></i> ${timeAgo}</span>
+            <span class="posted-time" title="${escapeHtml(exactCreatedTitle)}"><i class="fa-regular fa-calendar"></i> ${timeAgo}</span>
             <div class="card-actions" style="width: ${isLocked ? '100%' : 'auto'};">
               ${isLocked ? `
                 <button type="button" class="btn-locked-disabled" onclick="showLockedNotice('${safeTitle}')" title="Lowongan sudah kedaluwarsa">
@@ -3264,6 +3280,14 @@ async function openJobDetail(jobId) {
               </div>
             </div>
 
+            <div class="info-item">
+              <i class="fa-regular fa-calendar-check" style="color: var(--primary);"></i>
+              <div>
+                <div class="info-label">Tanggal Posting</div>
+                <div class="info-val">${escapeHtml(formatTimeAgo(job.created_at))}</div>
+              </div>
+            </div>
+
             ${contacts.apply_info ? `
               <div class="info-item apply-guide-box">
                 <div class="info-label">
@@ -3410,6 +3434,7 @@ function extractJobContacts(job) {
   let website = (job.website_url || job.official_url || job.url || job.website || '').trim();
   let applyInfo = job.apply_info || '';
   let deadlineDisplay = job.deadline_display || '';
+  let emailSubject = (job.email_subject || '').trim();
 
   // Helper to parse JSON safely
   function parseJsonSafely(val) {
@@ -3447,6 +3472,7 @@ function extractJobContacts(job) {
       if (parsedContact.email && !email) email = parsedContact.email.trim();
       if (parsedContact.apply_info && !applyInfo) applyInfo = parsedContact.apply_info;
       if (parsedContact.deadline_display && !deadlineDisplay) deadlineDisplay = parsedContact.deadline_display;
+      if (parsedContact.email_subject && !emailSubject) emailSubject = String(parsedContact.email_subject).trim();
     } else {
       const raw = String(job.contact_value).trim();
       const type = job.contact_type || '';
@@ -3541,9 +3567,17 @@ function extractJobContacts(job) {
     directType = 'email';
   }
 
+  if (!emailSubject && applyInfo) {
+    const subjMatch = String(applyInfo).match(/(?:Subjek|Subject)(?:\s*Email)?\s*[:=]\s*([^\r\n]+)/i);
+    if (subjMatch && subjMatch[1]) {
+      emailSubject = subjMatch[1].trim();
+    }
+  }
+
   return {
     whatsapp: wa,
     email: email,
+    email_subject: emailSubject,
     website_url: website,
     direct_apply_url: directApplyUrl,
     direct_type: directType,
@@ -3608,7 +3642,7 @@ window.directApplyJob = function (jobId, event) {
     triggerWhatsAppChat(contacts.whatsapp, comp, title);
   } else if (contacts.email) {
     showToast('info', `Membuka draf lamaran email HRD ${comp}...`);
-    triggerEmailApplication(contacts.email, comp, title);
+    triggerEmailApplication(contacts.email, comp, title, contacts.email_subject || '');
   } else {
     // Fallback to detail modal if no contact channel found
     openJobDetail(jobId);
@@ -3660,11 +3694,13 @@ function renderContactButton(job) {
     `);
   }
 
-  // 2. Email Button (Clean non-overflow label + wrapped email pill + Quick Providers)
+  // 2. Email Button (Clean non-overflow label + wrapped email pill + subject pill + Quick Providers)
   if (contacts.email) {
+    const resolvedEmailSubject = (contacts.email_subject || '').trim() || `Lamaran Kerja - ${job.title || job.company_name || 'Posisi'} - [Nama Lengkap]`;
+    const safeEmailSubject = resolvedEmailSubject.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     buttons.push(`
       <div class="contact-channel-item">
-        <button type="button" class="btn-email-direct" onclick="triggerEmailApplication('${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Klik untuk langsung membuka Gmail Web & mengisi draf lamaran ke ${escapeHtml(contacts.email)}">
+        <button type="button" class="btn-email-direct" onclick="triggerEmailApplication('${contacts.email}', '${safeCompany}', '${safeTitle}', '${safeEmailSubject}')" title="Klik untuk langsung membuka Gmail Web & mengisi draf lamaran ke ${escapeHtml(contacts.email)}">
           <i class="fa-solid fa-envelope" style="font-size: 1.1rem;"></i> <span>Kirim Lamaran via Email</span>
         </button>
         <div class="contact-address-box contact-address-email">
@@ -3674,19 +3710,26 @@ function renderContactButton(job) {
             <i class="fa-regular fa-copy"></i> Salin
           </button>
         </div>
+        <div class="contact-address-box contact-address-subject">
+          <span class="contact-address-label"><i class="fa-solid fa-tag"></i> Subjek:</span>
+          <span class="contact-address-val" title="${escapeHtml(resolvedEmailSubject)}">${escapeHtml(resolvedEmailSubject)}</span>
+          <button type="button" class="contact-address-copy" onclick="copyToClipboard('${safeEmailSubject}', 'Subjek email lamaran berhasil disalin ke clipboard')" title="Salin Subjek Email">
+            <i class="fa-regular fa-copy"></i> Salin
+          </button>
+        </div>
         <div class="email-providers-box">
           <span class="ep-label"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.68rem;"></i> Buka cepat di:</span>
           <div class="email-providers-quick-row">
-            <button type="button" class="ep-pill ep-gmail" onclick="openWebmail('gmail', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Gmail Web">
+            <button type="button" class="ep-pill ep-gmail" onclick="openWebmail('gmail', '${contacts.email}', '${safeCompany}', '${safeTitle}', '${safeEmailSubject}')" title="Buka Gmail Web">
               <i class="fa-brands fa-google" style="color: #ea4335;"></i> <span>Gmail</span>
             </button>
-            <button type="button" class="ep-pill ep-outlook" onclick="openWebmail('outlook', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Outlook / Hotmail Web">
+            <button type="button" class="ep-pill ep-outlook" onclick="openWebmail('outlook', '${contacts.email}', '${safeCompany}', '${safeTitle}', '${safeEmailSubject}')" title="Buka Outlook / Hotmail Web">
               <i class="fa-brands fa-microsoft" style="color: #0078d4;"></i> <span>Outlook</span>
             </button>
-            <button type="button" class="ep-pill ep-yahoo" onclick="openWebmail('yahoo', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Yahoo Mail">
+            <button type="button" class="ep-pill ep-yahoo" onclick="openWebmail('yahoo', '${contacts.email}', '${safeCompany}', '${safeTitle}', '${safeEmailSubject}')" title="Buka Yahoo Mail">
               <i class="fa-brands fa-yahoo" style="color: #6001d2;"></i> <span>Yahoo</span>
             </button>
-            <button type="button" class="ep-pill ep-client" onclick="openWebmail('mailto', '${contacts.email}', '${safeCompany}', '${safeTitle}')" title="Buka Aplikasi Email Bawaan PC/HP">
+            <button type="button" class="ep-pill ep-client" onclick="openWebmail('mailto', '${contacts.email}', '${safeCompany}', '${safeTitle}', '${safeEmailSubject}')" title="Buka Aplikasi Email Bawaan PC/HP">
               <i class="fa-solid fa-laptop"></i> <span>App</span>
             </button>
           </div>
@@ -3777,16 +3820,17 @@ window.triggerWhatsAppChat = function (phone, companyName, jobTitle) {
   openExternalUrlSafely(waUrl);
 };
 
-function buildEmailApplyDraft(companyName, jobTitle) {
-  const subject = `Lamaran Pekerjaan: ${jobTitle || 'Posisi'} - [Nama Anda]`;
+function buildEmailApplyDraft(companyName, jobTitle, customSubject = '') {
+  const cleanCustomSubject = customSubject && String(customSubject).trim();
+  const subject = cleanCustomSubject || `Lamaran Pekerjaan: ${jobTitle || 'Posisi'} - [Nama Anda]`;
   const body = `Halo Tim HRD / Rekrutmen ${companyName || 'Perusahaan'},\n\nPerkenalkan saya [Nama Anda]. Saya bermaksud mengajukan lamaran kerja untuk posisi ${jobTitle || 'Pekerjaan'}.\n\nBersama email ini saya melampirkan berkas Curriculum Vitae (CV) dan Portofolio terbaru saya untuk dijadikan bahan pertimbangan.\n\nBesar harapan saya untuk dapat mengikuti tahapan proses seleksi selanjutnya. Terima kasih banyak atas waktu dan kesempatan yang diberikan.\n\nSalam hormat,\n[Nama Anda]\n[Nomor WhatsApp / Kontak]`;
   return { subject, body };
 }
 
-function openNativeMailtoClient(email, companyName, jobTitle) {
+function openNativeMailtoClient(email, companyName, jobTitle, customSubject = '') {
   const cleanEmail = String(email || '').trim();
   if (!cleanEmail) return;
-  const { subject, body } = buildEmailApplyDraft(companyName, jobTitle);
+  const { subject, body } = buildEmailApplyDraft(companyName, jobTitle, customSubject);
   const mailtoUrl = `mailto:${cleanEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   const link = document.createElement('a');
   link.href = mailtoUrl;
@@ -3802,7 +3846,7 @@ function openNativeMailtoClient(email, companyName, jobTitle) {
 }
 
 // Direct Webmail Home Launcher (Gmail Desktop, Native Mailto on Mobile/HP, Outlook, Yahoo)
-window.openWebmail = function (provider, email, companyName, jobTitle) {
+window.openWebmail = function (provider, email, companyName, jobTitle, customSubject = '') {
   const cleanEmail = String(email || '').trim();
   if (!cleanEmail) {
     showToast('error', 'Alamat email rekruter tidak tersedia.');
@@ -3811,11 +3855,11 @@ window.openWebmail = function (provider, email, companyName, jobTitle) {
 
   // Native Mailto: reliable on mobile phones (where desktop Gmail Web ?view=cm fails) or when 'mailto' chosen
   if (provider === 'mailto' || (provider === 'gmail' && isMobileDeviceClient())) {
-    openNativeMailtoClient(cleanEmail, companyName, jobTitle);
+    openNativeMailtoClient(cleanEmail, companyName, jobTitle, customSubject);
     return;
   }
 
-  const { subject, body } = buildEmailApplyDraft(companyName, jobTitle);
+  const { subject, body } = buildEmailApplyDraft(companyName, jobTitle, customSubject);
   const encEmail = encodeURIComponent(cleanEmail);
   const encSub = encodeURIComponent(subject);
   const encBody = encodeURIComponent(body);
@@ -3840,12 +3884,12 @@ window.openWebmail = function (provider, email, companyName, jobTitle) {
   }
 };
 
-window.triggerEmailApplication = function (email, companyName, jobTitle) {
+window.triggerEmailApplication = function (email, companyName, jobTitle, customSubject = '') {
   // Mobile/HP -> Native Mailto (Gmail App / Apple Mail); Desktop/PC -> Gmail Web Compose
   if (isMobileDeviceClient()) {
-    window.openWebmail('mailto', email, companyName, jobTitle);
+    window.openWebmail('mailto', email, companyName, jobTitle, customSubject);
   } else {
-    window.openWebmail('gmail', email, companyName, jobTitle);
+    window.openWebmail('gmail', email, companyName, jobTitle, customSubject);
   }
 };
 
@@ -3880,20 +3924,27 @@ function copyJobLink(id) {
 }
 
 function formatTimeAgo(dateString) {
-  if (!dateString) return 'Baru saja';
+  if (!dateString) return 'Hari ini';
   const now = new Date();
   const date = new Date(dateString);
-  const diffInSec = Math.floor((now - date) / 1000);
+  if (isNaN(date.getTime())) return 'Hari ini';
 
-  if (diffInSec < 60) return 'Baru saja';
+  const dateText = date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  const diffInSec = Math.max(0, Math.floor((now - date) / 1000));
+  if (diffInSec < 60) return `${dateText} · Baru saja`;
   const diffInMin = Math.floor(diffInSec / 60);
-  if (diffInMin < 60) return `${diffInMin} mnt lalu`;
-  const diffInHour = Math.floor(diffInSec / 60);
-  if (diffInHour < 24) return `${diffInHour} jam lalu`;
+  if (diffInMin < 60) return `${dateText} · ${diffInMin} mnt lalu`;
+  const diffInHour = Math.floor(diffInSec / 3600);
+  if (diffInHour < 24) return `${dateText} · ${diffInHour} jam lalu`;
   const diffInDays = Math.floor(diffInHour / 24);
-  if (diffInDays === 1) return 'Kemarin';
-  if (diffInDays < 30) return `${diffInDays} hari lalu`;
-  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  if (diffInDays === 1) return `${dateText} · Kemarin`;
+  if (diffInDays <= 7) return `${dateText} · ${diffInDays} hari lalu`;
+  return dateText;
 }
 
 function escapeHtml(str) {

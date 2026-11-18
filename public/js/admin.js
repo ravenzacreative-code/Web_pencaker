@@ -184,10 +184,17 @@ function formatManualDescription(val) {
   return formattedParagraphs.filter(Boolean).join('\n\n');
 }
 
-function buildApplyInfoText(companyName, email, whatsapp, website, title) {
+function buildDefaultEmailSubject(title, companyName) {
+  const cleanTitle = String(title || '').trim();
+  const cleanComp = String(companyName || '').trim();
+  return `Lamaran Kerja - ${cleanTitle || cleanComp || 'Posisi Terkait'} - [Nama Lengkap]`;
+}
+
+function buildApplyInfoText(companyName, email, whatsapp, website, title, emailSubject = '') {
   const parts = [];
   if (email && String(email).trim()) {
-    parts.push(`Kirim berkas CV & lamaran lengkap ke email:\n${String(email).trim()}\nSubjek : Lamaran Kerja - ${title || companyName || 'Posisi Terkait'}`);
+    const subj = (emailSubject && String(emailSubject).trim()) || buildDefaultEmailSubject(title, companyName);
+    parts.push(`Kirim berkas CV & lamaran lengkap ke email:\n${String(email).trim()}\nSubjek: ${subj}`);
   }
   if (whatsapp && String(whatsapp).trim()) {
     parts.push(`Hubungi / kirim lamaran via WhatsApp HRD: ${String(whatsapp).trim()}`);
@@ -756,6 +763,7 @@ function extractJobContacts(job) {
   let email = job.email || '';
   let website = job.website_url || job.website || '';
   let applyInfo = job.apply_info || '';
+  let emailSubject = (job.email_subject || '').trim();
 
   if (job.contact_value) {
     const raw = String(job.contact_value).trim();
@@ -766,6 +774,7 @@ function extractJobContacts(job) {
         email = parsed.email || email;
         website = parsed.website || parsed.website_url || website;
         applyInfo = parsed.apply_info || applyInfo;
+        emailSubject = (parsed.email_subject || emailSubject || '').trim();
       } catch (e) {}
     } else if (raw.length > 0) {
       if (job.contact_type === 'whatsapp' || raw.match(/^(\+?62|08|\+?[0-9]{8,})/)) {
@@ -777,7 +786,11 @@ function extractJobContacts(job) {
       }
     }
   }
-  return { whatsapp: wa, email, website, apply_info: applyInfo };
+  if (!emailSubject && applyInfo) {
+    const m = String(applyInfo).match(/(?:Subjek|Subject)(?:\s*Email)?\s*[:=]\s*([^\r\n]+)/i);
+    if (m && m[1]) emailSubject = m[1].trim();
+  }
+  return { whatsapp: wa, email, website, apply_info: applyInfo, email_subject: emailSubject };
 }
 
 // -------------------------------------------------------------
@@ -1844,6 +1857,7 @@ function setupJobFormSubmit() {
     const website = uploadForm.querySelector('[name="website"]')?.value.trim() || '';
     const whatsapp = uploadForm.querySelector('[name="whatsapp"]')?.value.trim() || '';
     const email = uploadForm.querySelector('[name="email"]')?.value.trim() || '';
+    const emailSubject = uploadForm.querySelector('[name="email_subject"]')?.value.trim() || '';
 
     // Smart fallback: if user typed description text but didn't fill the 3 bulk boxes, extract structured lines
     if (reqLines.length === 0 && respLines.length === 0 && benLines.length === 0 && desc) {
@@ -1853,18 +1867,7 @@ function setupJobFormSubmit() {
       }
     }
 
-    let applyInfo = '';
-    if (email && whatsapp) {
-      applyInfo = `Kirim berkas CV & lamaran via email: ${email} atau WhatsApp: ${whatsapp}`;
-    } else if (email) {
-      applyInfo = `Kirim berkas CV & lamaran lengkap ke email: ${email}`;
-    } else if (whatsapp) {
-      applyInfo = `Kirim berkas CV & lamaran melalui WhatsApp: ${whatsapp}`;
-    } else if (website) {
-      applyInfo = `Kirim CV/Lamaran melalui website resmi ${company || 'perusahaan'} atau scan QR Code di samping.`;
-    } else {
-      applyInfo = `Kirim CV/Lamaran melalui tautan resmi ${company || 'perusahaan'} atau scan QR Code di samping.`;
-    }
+    const applyInfo = buildApplyInfoText(company, email, whatsapp, website, title, emailSubject);
 
     let formattedDeadline = deadline;
     if (formattedDeadline && /^\d{4}-\d{2}-\d{2}$/.test(formattedDeadline)) {
@@ -1890,6 +1893,10 @@ function setupJobFormSubmit() {
       deadline: formattedDeadline || 'Pendaftaran Terbuka',
       official_url: getPublicJobPageUrl(),
       apply_info: applyInfo,
+      email,
+      whatsapp,
+      email_subject: emailSubject,
+      company_website: website,
       hashtag: '@Lokersmasmkjabodetabek #Lowongankerja2026',
       theme: 'factory',
       mascot: 'factory',
@@ -1919,6 +1926,7 @@ function setupJobFormSubmit() {
 
     const whatsapp = form.querySelector('[name="whatsapp"]')?.value.trim() || '';
     const email = form.querySelector('[name="email"]')?.value.trim() || '';
+    const emailSubject = form.querySelector('[name="email_subject"]')?.value.trim() || '';
     const website = form.querySelector('[name="website"]')?.value.trim() || '';
 
     const primaryFlyer = (manualUploadedFlyers && manualUploadedFlyers.length > 0)
@@ -1928,12 +1936,17 @@ function setupJobFormSubmit() {
       ? [...manualUploadedFlyers]
       : (primaryFlyer ? [primaryFlyer] : []);
 
-    const customApplyInfo = ((currentPosterJobData && currentPosterJobData.apply_info) || '').trim() || buildApplyInfoText(company, email, whatsapp, website, title);
+    const customApplyInfo = ((currentPosterJobData && currentPosterJobData.apply_info) || '').trim() || buildApplyInfoText(company, email, whatsapp, website, title, emailSubject);
     const customDeadlineDisplay = (currentPosterJobData && currentPosterJobData.deadline) || form.querySelector('[name="deadline"]')?.value || '';
+
+    const resolvedEmailSubject = emailSubject
+      || (currentPosterJobData && currentPosterJobData.email_subject)
+      || (email ? buildDefaultEmailSubject(title, company) : '');
 
     const contactsObj = {
       whatsapp,
       email,
+      email_subject: resolvedEmailSubject,
       website,
       apply_info: customApplyInfo,
       deadline_display: customDeadlineDisplay
@@ -3410,6 +3423,9 @@ window.openEditJobModal = function(jobId) {
   // 3 Distinct contact inputs
   form.querySelector('[name="whatsapp"]').value = contacts.whatsapp || '';
   form.querySelector('[name="email"]').value = contacts.email || '';
+  if (form.querySelector('[name="email_subject"]')) {
+    form.querySelector('[name="email_subject"]').value = contacts.email_subject || '';
+  }
   form.querySelector('[name="website"]').value = contacts.website || '';
 
   // Set editing job state & load cover + flyer gallery
@@ -3536,11 +3552,13 @@ function setupEditFormSubmit() {
 
     const whatsapp = form.querySelector('[name="whatsapp"]')?.value.trim() || '';
     const email = form.querySelector('[name="email"]')?.value.trim() || '';
+    const emailSubject = form.querySelector('[name="email_subject"]')?.value.trim() || '';
     const website = form.querySelector('[name="website"]')?.value.trim() || '';
     const existingContacts = currentEditingJob ? extractJobContacts(currentEditingJob) : {};
     const contactsObj = {
       whatsapp,
       email,
+      email_subject: emailSubject || existingContacts.email_subject || '',
       website,
       apply_info: existingContacts.apply_info || '',
       deadline_display: form.querySelector('[name="deadline"]')?.value.trim() || existingContacts.deadline_display || ''
@@ -3751,6 +3769,16 @@ function toIsoDate(d) {
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function resolveOptionalIsoDeadline(deadlineStr) {
+  const raw = String(deadlineStr || '').trim();
+  if (!raw) return '';
+  if (/^(pendaftaran\s*(terbuka|dibuka)|tanpa\s*batas|aktif\s*(real-?time|terbit|di\s*portal)|terbuka|sesuai\s*kuota|-)$/i.test(raw)) {
+    return '';
+  }
+  const d = parseDateSafe(raw);
+  return d ? toIsoDate(d) : '';
 }
 
 function getDeadlineMeta(deadlineStr, fallbackDaysAhead = 30) {
@@ -5540,7 +5568,8 @@ window.publishJobDataDirectly = function(job) {
     formData.append('whatsapp', job.contact_whatsapp || '');
     formData.append('email', job.contact_email || '');
     formData.append('website', job.official_url || '');
-    formData.append('deadline', '2026-11-30');
+    const optionalIsoDeadline = resolveOptionalIsoDeadline(job.deadline);
+    formData.append('deadline', optionalIsoDeadline);
     formData.append('is_featured', '1');
 
     safeFetchJson(getApiEndpoint('/api/jobs'), {
@@ -5569,9 +5598,9 @@ window.openPosterStudioWithData = function(job) {
       company_name: job.company_name,
       location: job.location,
       salary_display: job.salary_display,
-      deadline: '30 November 2026',
+      deadline: resolveOptionalIsoDeadline(job.deadline) ? job.deadline : '',
       requirements: job.requirements || [],
-      apply_info: `Kirim lamaran via email ${job.contact_email || 'rekrutmen'}`
+      apply_info: buildApplyInfoText(job.company_name, job.contact_email || '', job.contact_whatsapp || '', job.official_url || '', job.title)
     };
     const modal = document.getElementById('poster-studio-modal');
     if (modal) {
@@ -5734,6 +5763,7 @@ window.bulkPublishAllOfficialJobs = async function() {
 
       const dMeta = getDeadlineMeta(job.deadline, 30);
       if (dMeta.isExpired) continue;
+      const optionalDeadlineIso = resolveOptionalIsoDeadline(job.deadline);
 
       const payload = {
         title: job.title,
@@ -5753,7 +5783,7 @@ window.bulkPublishAllOfficialJobs = async function() {
         website_url: websiteVal || '',
         contact_type: 'link',
         contact_value: contactsJson,
-        deadline: dMeta.isoDate || toIsoDate(new Date(Date.now() + 30 * 86400000)),
+        deadline: optionalDeadlineIso,
         status: 'active',
         is_featured: true,
         views_count: 0
@@ -5801,8 +5831,7 @@ window.applyJobTemplateToForm = function(templateId) {
   if (form.elements['experience_level']) form.elements['experience_level'].value = job.experience_level || 'Fresh Graduate';
   
   if (form.elements['deadline']) {
-    const dMeta = getDeadlineMeta(job.deadline, 30);
-    form.elements['deadline'].value = dMeta.isoDate || '2026-12-31';
+    form.elements['deadline'].value = resolveOptionalIsoDeadline(job.deadline);
   }
 
   if (form.elements['description']) form.elements['description'].value = job.description;
@@ -6774,15 +6803,7 @@ window.openPosterStudioFromExistingId = function(jobId) {
 
   let customApplyInfo = contacts.apply_info || job.apply_info || '';
   if (!customApplyInfo) {
-    if (contacts.email) {
-      customApplyInfo = `Kirim berkas CV & lamaran via email: ${contacts.email}`;
-    } else if (compWeb) {
-      customApplyInfo = `Kirim CV/Lamaran melalui website resmi ${job.company_name} atau scan QR Code di samping.`;
-    } else if (contacts.whatsapp) {
-      customApplyInfo = `Kirim berkas CV & lamaran melalui WhatsApp: ${contacts.whatsapp}`;
-    } else {
-      customApplyInfo = `Kirim lamaran melalui portal resmi KerjaHub atau scan QR Code di samping.`;
-    }
+    customApplyInfo = buildApplyInfoText(job.company_name, contacts.email, contacts.whatsapp, compWeb, job.title, contacts.email_subject || '');
   }
 
   let formattedDeadline = job.deadline || '';
@@ -6808,7 +6829,11 @@ window.openPosterStudioFromExistingId = function(jobId) {
     responsibilities: parseJsonList(job.responsibilities),
     requirements: parseJsonList(job.requirements),
     benefits: parseJsonList(job.benefits),
-    deadline: formattedDeadline || 'Pendaftaran Terbuka',
+    deadline: formattedDeadline,
+    email: contacts.email || '',
+    whatsapp: contacts.whatsapp || '',
+    email_subject: contacts.email_subject || '',
+    contact_value: job.contact_value,
     company_website: compWeb,
     official_url: getPublicJobPageUrl(job.id),
     apply_info: customApplyInfo,
@@ -6835,6 +6860,7 @@ function openPosterStudio(jobData, isPublishIntent = false) {
   const compInp = document.getElementById('poster-input-company');
   const titleInp = document.getElementById('poster-input-title');
   const deadInp = document.getElementById('poster-input-deadline');
+  const emailSubjInp = document.getElementById('poster-input-email-subject');
   const applyInp = document.getElementById('poster-input-apply-info');
   const qrInp = document.getElementById('poster-input-qr-url');
   const compWebInp = document.getElementById('poster-input-company-website');
@@ -6857,6 +6883,9 @@ function openPosterStudio(jobData, isPublishIntent = false) {
   }
   if (compWebInp) compWebInp.value = compWebVal;
   const storedApply = contacts.apply_info || jobData.apply_info || '';
+  const initialEmailSubject = (contacts.email_subject || jobData.email_subject || '').trim()
+    || (emailVal ? buildDefaultEmailSubject(jobData.title, jobData.company_name) : '');
+  if (emailSubjInp) emailSubjInp.value = initialEmailSubject;
 
   let initialDeadline = (contacts.deadline_display || jobData.deadline || '').trim();
   if (initialDeadline && /^\d{4}-\d{2}-\d{2}$/.test(initialDeadline)) {
@@ -6866,20 +6895,17 @@ function openPosterStudio(jobData, isPublishIntent = false) {
       initialDeadline = `${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]} ${y}`;
     } catch (e) {}
   }
-  if (!initialDeadline) initialDeadline = 'Pendaftaran Terbuka';
+  // Keep deadline optional when sourced from Scout or left open without explicit closing date
+  if (/^(aktif\s*(real-?time|terbit\s*di\s*web|di\s*portal)|pendaftaran\s*terbuka|tanpa\s*batas.*)$/i.test(initialDeadline)) {
+    initialDeadline = '';
+  }
   if (deadInp) deadInp.value = initialDeadline;
 
   let initialApply = (storedApply || '').trim();
   if (!initialApply) {
-    if (emailVal && !emailVal.toLowerCase().includes('chocomory')) {
-      initialApply = `Kirim berkas CV & lamaran via email: ${emailVal}`;
-    } else if (waVal) {
-      initialApply = `Kirim berkas CV & lamaran melalui WhatsApp: ${waVal}`;
-    } else if (compWebVal && !compWebVal.startsWith('{')) {
-      initialApply = `Kirim CV & lamaran melalui website resmi ${jobData.company_name || 'perusahaan'} atau scan QR Code di samping.`;
-    } else {
-      initialApply = `Kirim CV & lamaran melalui tautan resmi ${jobData.company_name || 'perusahaan'} atau scan QR Code di samping.`;
-    }
+    initialApply = buildApplyInfoText(jobData.company_name, emailVal, waVal, compWebVal, jobData.title, initialEmailSubject);
+  } else if (emailVal && initialEmailSubject && !/subjek|subject/i.test(initialApply)) {
+    initialApply = `${initialApply}\nSubjek: ${initialEmailSubject}`;
   }
   if (applyInp) applyInp.value = initialApply;
 
@@ -7200,6 +7226,170 @@ function drawMegaphoneMascotIllustration(ctx, x, y, w, h) {
   ctx.restore();
 }
 
+function drawPosterApplicationBox(ctx, opts) {
+  const {
+    x, y, w, h,
+    radius = 18,
+    borderWidth = 3.5,
+    shadowColor = '',
+    borderColor = '#0f172a',
+    bgColor = '#ffffff',
+    deadline = '',
+    deadlineBg = '#eff6ff',
+    deadlineBorder = '#3b82f6',
+    deadlineColor = '#1d4ed8',
+    headingColor = '#0f172a',
+    accentBarColor = '#1d4ed8',
+    applyInfo = '',
+    emailSubject = '',
+    company = ''
+  } = opts;
+
+  if (shadowColor) {
+    ctx.fillStyle = shadowColor;
+    roundRect(ctx, x + 9, y + 9, w, h, radius, true, false);
+  }
+
+  ctx.fillStyle = bgColor;
+  roundRect(ctx, x, y, w, h, radius, true, false);
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = borderWidth;
+  roundRect(ctx, x, y, w, h, radius, false, true);
+
+  const padX = 18;
+  const innerW = w - padX * 2;
+
+  // 1. Clean Deadline / Status Banner Pill
+  const pillX = x + padX;
+  const pillY = y + 14;
+  const pillH = 34;
+  ctx.fillStyle = deadlineBg;
+  roundRect(ctx, pillX, pillY, innerW, pillH, 9, true, false);
+  ctx.strokeStyle = deadlineBorder;
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, pillX, pillY, innerW, pillH, 9, false, true);
+
+  const rawDead = String(deadline || '').trim();
+  const isOpenEnded = !rawDead || /^(pendaftaran\s*(terbuka|dibuka)|tanpa\s*batas|aktif\s*(real-?time|terbit|di\s*portal)|terbuka|-)$/i.test(rawDead);
+  const deadLabel = isOpenEnded
+    ? 'PENDAFTARAN: Terbuka (Segera Kirim Lamaran)'
+    : `BATAS WAKTU: ${rawDead}`;
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = deadlineColor;
+  let deadFs = 16.5;
+  while (deadFs > 12) {
+    ctx.font = `800 ${deadFs}px "Plus Jakarta Sans", Arial, sans-serif`;
+    if (ctx.measureText(deadLabel).width <= innerW - 24) break;
+    deadFs -= 0.5;
+  }
+  ctx.fillText(deadLabel, pillX + 12, pillY + Math.round(pillH / 2) + 5.5);
+
+  // 2. Section Title Badge ("CARA MELAMAR")
+  const headerTopY = pillY + pillH + 14;
+  ctx.fillStyle = accentBarColor;
+  roundRect(ctx, pillX, headerTopY, 5, 19, 2.5, true, false);
+  ctx.fillStyle = headingColor;
+  ctx.font = '800 15.5px "Plus Jakarta Sans", Arial, sans-serif';
+  ctx.fillText('CARA MELAMAR', pillX + 12, headerTopY + 15.5);
+
+  // 3. Structured Apply Info Lines (with crisp Subject Pill if email subject present)
+  let rawLines = String(applyInfo || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  if (rawLines.length === 0) {
+    rawLines = [
+      company
+        ? `Kirim CV & lamaran melalui tautan resmi ${company} atau scan QR Code di samping.`
+        : 'Kirim CV & lamaran melalui link pendaftaran resmi atau scan QR Code di samping.'
+    ];
+  }
+
+  const hasSubjLine = rawLines.some(l => /^(?:subjek|subject)(?:\s*email)?\s*[:=]/i.test(l));
+  const hasEmailInText = rawLines.some(l => /[^\s@]+@[^\s@]+\.[^\s@]+/.test(l));
+  if (!hasSubjLine && hasEmailInText && emailSubject && String(emailSubject).trim()) {
+    rawLines.push(`Subjek: ${String(emailSubject).trim()}`);
+  }
+
+  const contentTopY = headerTopY + 26;
+  const contentBottomY = y + h - 14;
+  const availH = Math.max(48, contentBottomY - contentTopY);
+
+  const layoutAtFont = (fs) => {
+    const lh = Math.round(fs * 1.32);
+    const items = [];
+    let totalH = 0;
+    for (const line of rawLines) {
+      const subjMatch = line.match(/^(?:subjek|subject)(?:\s*email)?\s*[:=]\s*(.+)$/i);
+      if (subjMatch) {
+        const sVal = subjMatch[1].trim();
+        ctx.font = `700 ${Math.max(12.5, fs - 0.5)}px "Plus Jakarta Sans", Arial, sans-serif`;
+        const wrapped = measureCanvasWrappedLines(ctx, `Subjek Email: ${sVal}`, innerW - 20);
+        const boxH = wrapped.length * lh + 12;
+        items.push({ kind: 'subject', lines: wrapped, fs: Math.max(12.5, fs - 0.5), lh, boxH });
+        totalH += boxH + 6;
+      } else {
+        const isDest = /[^\s@]+@[^\s@]+\.[^\s@]+|https?:\/\/|www\.|(?:\+62|08)[0-9\s-]{7,}/i.test(line);
+        ctx.font = `${isDest ? '700' : '600'} ${fs}px "Plus Jakarta Sans", Arial, sans-serif`;
+        const wrapped = measureCanvasWrappedLines(ctx, line, innerW);
+        items.push({ kind: isDest ? 'dest' : 'normal', lines: wrapped, fs, lh });
+        totalH += wrapped.length * lh + 4;
+      }
+    }
+    return { items, totalH: Math.max(0, totalH - 4) };
+  };
+
+  let chosen = layoutAtFont(13);
+  for (const candFs of [17.5, 16.5, 15.5, 14.5, 13.5, 12.5]) {
+    const res = layoutAtFont(candFs);
+    chosen = res;
+    if (res.totalH <= availH) break;
+  }
+
+  const extraSpace = Math.max(0, availH - chosen.totalH);
+  let drawY = contentTopY + Math.min(18, Math.round(extraSpace * 0.28));
+
+  for (const item of chosen.items) {
+    if (drawY > contentBottomY) break;
+    if (item.kind === 'subject') {
+      const drawH = Math.min(item.boxH, contentBottomY - drawY);
+      if (drawH < 20) break;
+      ctx.fillStyle = '#eef2ff';
+      roundRect(ctx, pillX, drawY, innerW, drawH, 8, true, false);
+      ctx.strokeStyle = '#c7d2fe';
+      ctx.lineWidth = 1.25;
+      roundRect(ctx, pillX, drawY, innerW, drawH, 8, false, true);
+
+      let lineY = drawY + Math.round(item.lh * 0.85) + 4;
+      ctx.font = `700 ${item.fs}px "Plus Jakarta Sans", Arial, sans-serif`;
+      for (let li = 0; li < item.lines.length; li++) {
+        if (lineY > drawY + drawH - 2) break;
+        const txt = item.lines[li];
+        if (li === 0 && txt.startsWith('Subjek Email:')) {
+          const prefix = 'Subjek Email: ';
+          const pw = ctx.measureText(prefix).width;
+          ctx.fillStyle = '#4338ca';
+          ctx.fillText(prefix, pillX + 10, lineY);
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText(txt.slice(prefix.length), pillX + 10 + pw, lineY);
+        } else {
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText(txt, pillX + 10, lineY);
+        }
+        lineY += item.lh;
+      }
+      drawY += drawH + 6;
+    } else {
+      ctx.font = `${item.kind === 'dest' ? '700' : '600'} ${item.fs}px "Plus Jakarta Sans", Arial, sans-serif`;
+      ctx.fillStyle = item.kind === 'dest' ? '#0f172a' : '#334155';
+      for (const l of item.lines) {
+        if (drawY + item.lh * 0.8 > contentBottomY) break;
+        ctx.fillText(l, pillX, drawY + Math.round(item.lh * 0.82));
+        drawY += item.lh;
+      }
+      drawY += 4;
+    }
+  }
+}
+
 // -------------------------------------------------------------
 // RENDER POSTER CANVAS (HIGH RESOLUTION 1080 x 1350)
 // -------------------------------------------------------------
@@ -7220,6 +7410,7 @@ function renderPosterCanvas() {
   const requirements = window.getDynamicListValues ? window.getDynamicListValues('poster-req-items') : [];
   const benefits = window.getDynamicListValues ? window.getDynamicListValues('poster-ben-items') : [];
   const deadline = (document.getElementById('poster-input-deadline')?.value || '').trim();
+  const emailSubject = (document.getElementById('poster-input-email-subject')?.value || '').trim();
   const applyInfo = (document.getElementById('poster-input-apply-info')?.value || '').trim();
   const qrUrl = (document.getElementById('poster-input-qr-url')?.value || window.location.href).trim();
   const hashtag = (document.getElementById('poster-input-hashtag')?.value || '@Lokersmasmkjabodetabek #Lowongankerja2026').trim();
@@ -7412,73 +7603,26 @@ function renderPosterCanvas() {
       curItemY += bulletFit.itemGap;
     }
 
-    // Solid blue 3D offset shadow underneath
-    ctx.fillStyle = '#0052cc';
-    roundRect(ctx, appBoxX + 9, appBoxY + 9, appBoxW, appBoxH, 18, true, false);
-
-    // Main white box on top
-    ctx.fillStyle = '#ffffff';
-    roundRect(ctx, appBoxX, appBoxY, appBoxW, appBoxH, 18, true, false);
-
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 3.5;
-    roundRect(ctx, appBoxX, appBoxY, appBoxW, appBoxH, 18, false, true);
-
-    // 1. BATAS WAKTU / DEADLINE PILL BANNER
-    const deadPillX = appBoxX + 16;
-    const deadPillY = appBoxY + 14;
-    const deadPillW = appBoxW - 32;
-    const deadPillH = 38;
-
-    ctx.fillStyle = '#eff6ff';
-    roundRect(ctx, deadPillX, deadPillY, deadPillW, deadPillH, 10, true, false);
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 1.5;
-    roundRect(ctx, deadPillX, deadPillY, deadPillW, deadPillH, 10, false, true);
-
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#1d4ed8';
-    const deadlineVal = (deadline || 'Pendaftaran Dibuka (Segera Apply)').trim();
-    const deadText = `BATAS WAKTU: ${deadlineVal}`;
-    let deadFs = 18;
-    while (deadFs > 13.5) {
-      ctx.font = `800 ${deadFs}px "Plus Jakarta Sans", Arial, sans-serif`;
-      if (ctx.measureText(deadText).width <= deadPillW - 28) break;
-      deadFs -= 1;
-    }
-    ctx.fillText(deadText, deadPillX + 14, deadPillY + 25);
-
-    // 2. CARA MELAMAR (CUSTOM TEXT WITH AUTO-FIT & LINE-BREAK PRESERVATION)
-    const applyHeaderY = deadPillY + deadPillH + 24;
-    ctx.fillStyle = '#0f172a';
-    ctx.font = '800 17px "Plus Jakarta Sans", Arial, sans-serif';
-    ctx.fillText('CARA MELAMAR:', appBoxX + 18, applyHeaderY);
-
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillRect(appBoxX + 18, applyHeaderY + 6, appBoxW - 36, 1.5);
-
-    const customApplyText = (applyInfo || (company ? `Kirim CV/Lamaran melalui tautan resmi ${company} atau scan QR Code di samping.` : 'Kirim CV/Lamaran melalui tautan pendaftaran resmi atau scan QR Code di samping.')).trim();
-
-    let applyFontSize = 18.5;
-    let applyLineH = 25;
-    const availApplyH = (appBoxY + appBoxH - 12) - (applyHeaderY + 14);
-    for (const candidateFs of [18.5, 17, 16, 15, 14, 13]) {
-      const candidateLh = Math.round(candidateFs * 1.35);
-      ctx.font = `600 ${candidateFs}px "Plus Jakarta Sans", Arial, sans-serif`;
-      const wrappedParagraphs = customApplyText.split(/\r?\n/).flatMap(p => p.trim() ? measureCanvasWrappedLines(ctx, p.trim(), appBoxW - 36) : []);
-      if (wrappedParagraphs.length * candidateLh <= availApplyH) {
-        applyFontSize = candidateFs;
-        applyLineH = candidateLh;
-        break;
-      }
-      applyFontSize = candidateFs;
-      applyLineH = candidateLh;
-    }
-
-    ctx.font = `600 ${applyFontSize}px "Plus Jakarta Sans", Arial, sans-serif`;
-    ctx.fillStyle = '#334155';
-    const maxApplyLines = Math.max(3, Math.floor(availApplyH / applyLineH));
-    wrapCanvasText(ctx, customApplyText, appBoxX + 18, applyHeaderY + applyLineH + 6, appBoxW - 36, applyLineH, maxApplyLines);
+    drawPosterApplicationBox(ctx, {
+      x: appBoxX,
+      y: appBoxY,
+      w: appBoxW,
+      h: appBoxH,
+      radius: 18,
+      borderWidth: 3.5,
+      shadowColor: '#0052cc',
+      borderColor: '#000000',
+      bgColor: '#ffffff',
+      deadline,
+      deadlineBg: '#eff6ff',
+      deadlineBorder: '#3b82f6',
+      deadlineColor: '#1d4ed8',
+      headingColor: '#0f172a',
+      accentBarColor: '#0052cc',
+      applyInfo,
+      emailSubject,
+      company
+    });
 
     // 8. BOTTOM-LEFT FOOTER (TIKTOK & HASHTAG - SYMMETRICAL 56PX MARGIN)
     const footLeftX = 56;
@@ -7731,51 +7875,26 @@ function renderPosterCanvas() {
     const appBoxW = 600;
     const appBoxH = 205;
 
-    ctx.fillStyle = p.applyBoxBg;
-    roundRect(ctx, appBoxX, appBoxY, appBoxW, appBoxH, 20, true, false);
-    ctx.strokeStyle = p.applyBoxBorder;
-    ctx.lineWidth = 4;
-    roundRect(ctx, appBoxX, appBoxY, appBoxW, appBoxH, 20, false, true);
-
-    // 1. DEADLINE PILL
-    const deadPillX = appBoxX + 18;
-    const deadPillY = appBoxY + 16;
-    const deadPillW = appBoxW - 36;
-    const deadPillH = 36;
-
-    ctx.fillStyle = '#f8fafc';
-    roundRect(ctx, deadPillX, deadPillY, deadPillW, deadPillH, 10, true, false);
-    ctx.strokeStyle = p.applyBoxBorder;
-    ctx.lineWidth = 1.5;
-    roundRect(ctx, deadPillX, deadPillY, deadPillW, deadPillH, 10, false, true);
-
-    ctx.textAlign = 'left';
-    ctx.fillStyle = p.accentOrange;
-    ctx.font = '800 18px "Plus Jakarta Sans", Arial, sans-serif';
-    const deadlineVal = (deadline || 'Pendaftaran Dibuka (Segera Apply)').trim();
-    ctx.fillText(`BATAS WAKTU: ${deadlineVal}`, deadPillX + 14, deadPillY + 24);
-
-    // 2. CARA MELAMAR (CUSTOM TEXT)
-    const applyHeaderY = deadPillY + deadPillH + 24;
-    ctx.fillStyle = p.primary;
-    ctx.font = '800 18px "Plus Jakarta Sans", Arial, sans-serif';
-    ctx.fillText('CARA MELAMAR:', appBoxX + 20, applyHeaderY);
-
-    const customApplyText = (applyInfo || (company ? `Kirim CV & lamaran melalui website resmi ${company} atau scan QR Code di samping.` : 'Kirim CV & lamaran melalui link pendaftaran resmi atau scan QR Code di samping.')).trim();
-    const textLen = customApplyText.length;
-    let applyFontSize = 18;
-    let applyLineH = 25;
-    if (textLen > 180) {
-      applyFontSize = 15;
-      applyLineH = 20;
-    } else if (textLen > 110) {
-      applyFontSize = 16.5;
-      applyLineH = 22.5;
-    }
-
-    ctx.font = `600 ${applyFontSize}px "Plus Jakarta Sans", Arial, sans-serif`;
-    ctx.fillStyle = '#334155';
-    wrapCanvasText(ctx, customApplyText, appBoxX + 20, applyHeaderY + applyLineH + 6, appBoxW - 40, applyLineH, 4);
+    drawPosterApplicationBox(ctx, {
+      x: appBoxX,
+      y: appBoxY,
+      w: appBoxW,
+      h: appBoxH,
+      radius: 20,
+      borderWidth: 4,
+      shadowColor: '',
+      borderColor: p.applyBoxBorder,
+      bgColor: p.applyBoxBg,
+      deadline,
+      deadlineBg: '#f8fafc',
+      deadlineBorder: p.applyBoxBorder,
+      deadlineColor: p.accentOrange,
+      headingColor: p.primary,
+      accentBarColor: p.accentOrange,
+      applyInfo,
+      emailSubject,
+      company
+    });
 
     const qrSize = 220;
     const qrBoxX = 735;
@@ -8073,13 +8192,15 @@ window.publishJobFromStudio = async function() {
     const compInp = document.getElementById('poster-input-company');
     const titleInp = document.getElementById('poster-input-title');
     const deadInp = document.getElementById('poster-input-deadline');
+    const emailSubjInp = document.getElementById('poster-input-email-subject');
     const applyInp = document.getElementById('poster-input-apply-info');
     const qrInp = document.getElementById('poster-input-qr-url');
     const compWebInp = document.getElementById('poster-input-company-website');
 
     const updatedComp = (compInp ? compInp.value.trim() : '') || currentPosterJobData.company_name || 'Perusahaan';
     const updatedTitle = (titleInp ? titleInp.value.trim() : '') || currentPosterJobData.title || 'Lowongan Kerja';
-    const updatedDead = (deadInp ? deadInp.value.trim() : '') || currentPosterJobData.deadline || '';
+    const updatedDead = deadInp ? deadInp.value.trim() : '';
+    const updatedEmailSubj = emailSubjInp ? emailSubjInp.value.trim() : '';
     const updatedApply = (applyInp ? applyInp.value.trim() : '') || currentPosterJobData.apply_info || '';
     const updatedQr = (qrInp ? qrInp.value.trim() : '') || getPublicJobPageUrl(currentPosterJobData.id);
 
@@ -8107,6 +8228,7 @@ window.publishJobFromStudio = async function() {
     }
     contacts.website = updatedCompWeb;
     contacts.website_url = updatedCompWeb;
+    contacts.email_subject = updatedEmailSubj || contacts.email_subject || '';
     contacts.apply_info = updatedApply;
     contacts.deadline_display = updatedDead;
     contacts.source_platform = currentPosterJobData.platform || 'official';
@@ -8123,7 +8245,7 @@ window.publishJobFromStudio = async function() {
     }
 
     const contactsJson = JSON.stringify(contacts);
-    const dMeta = getDeadlineMeta(updatedDead, 30);
+    const optionalDeadlineIso = resolveOptionalIsoDeadline(updatedDead);
 
     const isStudioSched = document.getElementById('studio-enable-schedule-cb')?.checked;
     const rawStudioSched = (document.getElementById('studio-schedule-datetime')?.value || '').trim();
@@ -8158,7 +8280,7 @@ window.publishJobFromStudio = async function() {
       apply_info: updatedApply,
       contact_type: contacts.whatsapp ? 'whatsapp' : (contacts.email ? 'email' : 'link'),
       contact_value: contactsJson,
-      deadline: dMeta.isoDate || toIsoDate(new Date(Date.now() + 30 * 86400000)),
+      deadline: optionalDeadlineIso,
       status: studioStatus,
       scheduled_at: (studioStatus === 'scheduled') ? studioSchedIso : null,
       is_featured: true,
@@ -8372,6 +8494,7 @@ window.savePosterChangesToJob = async function() {
     const compInp = document.getElementById('poster-input-company');
     const titleInp = document.getElementById('poster-input-title');
     const deadInp = document.getElementById('poster-input-deadline');
+    const emailSubjInp = document.getElementById('poster-input-email-subject');
     const applyInp = document.getElementById('poster-input-apply-info');
     const qrInp = document.getElementById('poster-input-qr-url');
     const hashInp = document.getElementById('poster-input-hashtag');
@@ -8379,6 +8502,7 @@ window.savePosterChangesToJob = async function() {
     const updatedComp = compInp ? compInp.value.trim() : '';
     const updatedTitle = titleInp ? titleInp.value.trim() : '';
     const updatedDead = deadInp ? deadInp.value.trim() : '';
+    const updatedEmailSubj = emailSubjInp ? emailSubjInp.value.trim() : '';
     const updatedApply = applyInp ? applyInp.value.trim() : '';
     const updatedQr = qrInp ? qrInp.value.trim() : '';
     const updatedHash = hashInp ? hashInp.value.trim() : '';
@@ -8411,6 +8535,7 @@ window.savePosterChangesToJob = async function() {
       if (updatedQr) {
         contacts.website = updatedQr;
       }
+      contacts.email_subject = updatedEmailSubj || contacts.email_subject || '';
       contacts.apply_info = updatedApply;
       contacts.deadline_display = updatedDead;
       delete contacts.flyer_images;
@@ -8805,6 +8930,29 @@ function setupOfficialVacancyGenerator() {
   }
 
   // Poster studio inputs realtime update
+  const syncEmailSubjEl = document.getElementById('poster-input-email-subject');
+  if (syncEmailSubjEl) {
+    syncEmailSubjEl.addEventListener('input', () => {
+      const applyEl = document.getElementById('poster-input-apply-info');
+      const subjVal = syncEmailSubjEl.value.trim();
+      if (applyEl) {
+        const lines = applyEl.value.split(/\r?\n/);
+        const subjLineIdx = lines.findIndex(l => /^(?:subjek|subject)(?:\s*email)?\s*[:=]/i.test(l.trim()));
+        if (subjVal) {
+          if (subjLineIdx >= 0) {
+            lines[subjLineIdx] = `Subjek: ${subjVal}`;
+          } else {
+            lines.push(`Subjek: ${subjVal}`);
+          }
+        } else if (subjLineIdx >= 0) {
+          lines.splice(subjLineIdx, 1);
+        }
+        applyEl.value = lines.filter(Boolean).join('\n');
+      }
+      renderPosterCanvas();
+    });
+  }
+
   [
     'poster-input-company',
     'poster-input-title',

@@ -732,8 +732,9 @@
                         Rekruter
                       </label>
                       <input type="email" name="email" class="form-input" placeholder="Contoh: careers@perusahaan.com">
-                      <div class="form-hint">Pelamar dapat mengirim resume dan portofolio resmi langsung ke inbox
-                        rekruter.</div>
+                      <input type="text" name="email_subject" class="form-input" style="margin-top: 8px; font-size: 0.82rem;"
+                        placeholder="Subjek Email (Opsional), mis: Lamaran Operator - [Nama]">
+                      <div class="form-hint">Pelamar dapat mengirim resume langsung ke inbox rekruter beserta subjek emailnya.</div>
                     </div>
 
                     <!-- Website Link Column -->
@@ -2161,6 +2162,7 @@
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label"><i class="fa-solid fa-envelope" style="color: #6366f1;"></i> Email HRD</label>
                 <input type="email" name="email" class="form-input" placeholder="hr@perusahaan.com">
+                <input type="text" name="email_subject" class="form-input" style="margin-top: 6px; font-size: 0.8rem;" placeholder="Subjek Email (Opsional)">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label"><i class="fa-solid fa-globe" style="color: #0284c7;"></i> Link Website</label>
@@ -2646,12 +2648,24 @@
                 <label class="form-label"
                   style="font-weight: 800; color: #1e293b; display: flex; align-items: center; justify-content: space-between;">
                   <span><i class="fa-solid fa-calendar-xmark" style="color: #ef4444;"></i> Batas Waktu / Deadline
-                    (Digambar ke Poster)</span>
+                    (Opsional)</span>
                   <span style="font-size: 0.72rem; color: #059669; font-weight: 600;"><i class="fa-solid fa-bolt"></i>
                     Realtime Update</span>
                 </label>
                 <input type="text" id="poster-input-deadline" class="form-input"
-                  placeholder="Contoh: 30 November 2026 atau Aktif Real-Time" style="font-weight: 700;">
+                  placeholder="Opsional — kosongkan jika tanpa batas waktu" style="font-weight: 700;">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label"
+                  style="font-weight: 800; color: #1e293b; display: flex; align-items: center; justify-content: space-between;">
+                  <span><i class="fa-solid fa-tag" style="color: #4f46e5;"></i> Subjek Email Lamaran
+                    (Opsional)</span>
+                  <span style="font-size: 0.72rem; color: #059669; font-weight: 600;"><i class="fa-solid fa-bolt"></i>
+                    Sync Poster &amp; User</span>
+                </label>
+                <input type="text" id="poster-input-email-subject" class="form-input"
+                  placeholder="Contoh: Lamaran Operator Produksi - [Nama Lengkap]" style="font-weight: 700; font-size: 0.82rem;">
               </div>
 
               <div class="form-group" style="margin-bottom: 12px;">
@@ -2748,7 +2762,7 @@
     </div>
   </div>
 
-  <script src="./js/admin.js?v=20261118_01" defer></script>
+  <script src="./js/admin.js?v=20261118_02" defer></script>
   <script src="./js/cv-builder.js?v=20261116_04" defer></script>
 </body>
 
