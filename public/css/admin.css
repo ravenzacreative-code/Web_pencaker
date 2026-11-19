@@ -5680,6 +5680,48 @@ body::before {
 .swatch.sw-emerald { background: linear-gradient(135deg, #059669, #0d9488, #0284c7); }
 .swatch.sw-sunset { background: linear-gradient(135deg, #ff7e5f, #f43f5e, #a855f7); }
 .swatch.sw-midnight { background: linear-gradient(135deg, #090d1f, #312e81, #164e63); }
+.swatch.sw-royal { background: linear-gradient(135deg, #1c1917, #f59e0b, #fbbf24); }
+.swatch.sw-sakura { background: linear-gradient(135deg, #fbcfe8, #f472b6, #e9d5ff); }
+.swatch.sw-cyberpunk { background: linear-gradient(135deg, #3b0764, #ec4899, #22d3ee); }
+.swatch.sw-custom { background: conic-gradient(#ef4444, #f59e0b, #10b981, #3b82f6, #8b5cf6, #ef4444); }
+
+.bio-custom-colors-box {
+  background: #f8fafc;
+  border: 1.5px dashed #c4b5fd;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.bio-color-pickers-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.bio-color-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 5px 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+}
+
+.bio-color-chip input[type="color"] {
+  width: 28px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
 
 .bio-item-form-box {
   background: #f8fafc;
@@ -5898,6 +5940,48 @@ body::before {
   background: linear-gradient(135deg, #090d1f 0%, #1e1b4b 36%, #0f172a 68%, #164e63 100%);
   background-size: 240% 240%;
   color: #f8fafc;
+}
+.bio-phone-screen[data-bio-theme="royal"] {
+  background: linear-gradient(135deg, #0c0a09 0%, #292524 36%, #1c1917 65%, #451a03 100%);
+  background-size: 240% 240%;
+  color: #fef3c7;
+}
+.bio-phone-screen[data-bio-theme="sakura"] {
+  background: linear-gradient(125deg, #fff1f2 0%, #fce7f3 30%, #f3e8ff 64%, #ffedd5 100%);
+  background-size: 240% 240%;
+  color: #831843;
+}
+.bio-phone-screen[data-bio-theme="cyberpunk"] {
+  background: linear-gradient(135deg, #0f0728 0%, #3b0764 36%, #1e1b4b 68%, #083344 100%);
+  background-size: 240% 240%;
+  color: #ffffff;
+}
+
+.bio-phone-screen[data-bio-theme="royal"] .bio-pv-card {
+  background: rgba(28, 25, 23, 0.82);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fefce8;
+}
+.bio-phone-screen[data-bio-theme="cyberpunk"] .bio-pv-card {
+  background: rgba(17, 12, 46, 0.78);
+  border-color: rgba(34, 211, 238, 0.45);
+  color: #f8fafc;
+}
+.bio-phone-screen[data-card-style="solid"] .bio-pv-card {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+.bio-phone-screen[data-card-style="outline"] .bio-pv-card {
+  background: rgba(15, 23, 42, 0.16) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.55) !important;
+  color: inherit !important;
+}
+.bio-phone-screen[data-card-style="pill"] .bio-pv-card {
+  border-radius: 999px !important;
+}
+.bio-phone-screen[data-card-style="pill"] .bio-pv-thumb {
+  border-radius: 50% !important;
 }
 
 .bio-pv-profile {

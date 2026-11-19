@@ -12,182 +12,252 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     :root {
-      /* Default: Aurora Mix Gradient */
+      /* 1. Aurora Mix (Default) */
       --bg-page: linear-gradient(125deg, #dbeafe 0%, #e0e7ff 28%, #fce7f3 58%, #cffafe 84%, #ede9fe 100%);
       --orb-1: rgba(59, 130, 246, 0.42);
       --orb-2: rgba(168, 85, 247, 0.36);
       --orb-3: rgba(6, 182, 212, 0.38);
       --grid-color: rgba(37, 99, 235, 0.08);
-      --particle-color: rgba(255, 255, 255, 0.85);
+      --particle-color: rgba(255, 255, 255, 0.88);
       --particle-glow: rgba(99, 102, 241, 0.45);
-      --card-bg: rgba(255, 255, 255, 0.8);
-      --card-border: rgba(255, 255, 255, 0.85);
-      --card-outer-ring: rgba(37, 99, 235, 0.12);
+      --wave-1: rgba(37, 99, 235, 0.14);
+      --wave-2: rgba(124, 58, 237, 0.12);
+      --card-bg: rgba(255, 255, 255, 0.82);
+      --card-border: rgba(255, 255, 255, 0.9);
       --card-shadow: 0 10px 28px -10px rgba(30, 58, 138, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-      --card-hover-shadow: 0 18px 36px -10px rgba(79, 70, 229, 0.28), inset 0 1px 0 rgba(255, 255, 255, 1);
+      --card-hover-shadow: 0 18px 36px -10px rgba(79, 70, 229, 0.28);
       --text-main: #0f172a;
       --text-muted: #475569;
+      --header-text: #0f172a;
+      --header-sub: #475569;
       --accent: #2563eb;
       --accent-2: #7c3aed;
       --accent-soft: rgba(37, 99, 235, 0.12);
       --pill-bg: rgba(255, 255, 255, 0.78);
+      --pill-border: rgba(255, 255, 255, 0.85);
       --avatar-ring: rgba(99, 102, 241, 0.38);
     }
 
+    /* 2. Cyber Ocean */
     body[data-bio-theme="ocean"] {
-      --bg-page: linear-gradient(125deg, #0284c7 0%, #2563eb 30%, #4f46e5 62%, #06b6d4 100%);
+      --bg-page: linear-gradient(125deg, #0284c7 0%, #2563eb 32%, #4f46e5 65%, #06b6d4 100%);
       --orb-1: rgba(56, 189, 248, 0.55);
       --orb-2: rgba(129, 140, 248, 0.5);
       --orb-3: rgba(45, 212, 191, 0.48);
-      --grid-color: rgba(255, 255, 255, 0.12);
+      --grid-color: rgba(255, 255, 255, 0.13);
       --particle-color: rgba(224, 242, 254, 0.9);
       --particle-glow: rgba(56, 189, 248, 0.65);
+      --wave-1: rgba(255, 255, 255, 0.16);
+      --wave-2: rgba(56, 189, 248, 0.22);
       --card-bg: rgba(255, 255, 255, 0.88);
-      --card-border: rgba(255, 255, 255, 0.92);
-      --card-outer-ring: rgba(15, 23, 42, 0.12);
+      --card-border: rgba(255, 255, 255, 0.95);
       --card-shadow: 0 14px 32px -10px rgba(2, 6, 23, 0.3);
-      --card-hover-shadow: 0 20px 38px -8px rgba(2, 6, 23, 0.4);
+      --card-hover-shadow: 0 20px 38px -8px rgba(2, 6, 23, 0.42);
       --text-main: #0f172a;
       --text-muted: #475569;
+      --header-text: #ffffff;
+      --header-sub: rgba(241, 245, 249, 0.92);
       --accent: #0284c7;
       --accent-2: #4f46e5;
-      --accent-soft: rgba(2, 132, 199, 0.13);
+      --accent-soft: rgba(2, 132, 199, 0.14);
       --pill-bg: rgba(255, 255, 255, 0.22);
+      --pill-border: rgba(255, 255, 255, 0.36);
       --avatar-ring: rgba(56, 189, 248, 0.55);
     }
 
-    body[data-bio-theme="ocean"] .bio-name,
-    body[data-bio-theme="ocean"] .bio-top-pill,
-    body[data-bio-theme="ocean"] .bio-footer,
-    body[data-bio-theme="ocean"] .bio-footer strong {
-      color: #ffffff;
-    }
-    body[data-bio-theme="ocean"] .bio-subtitle {
-      color: rgba(241, 245, 249, 0.92);
-    }
-    body[data-bio-theme="ocean"] .bio-badge-tag {
-      background: rgba(255, 255, 255, 0.2);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-    }
-    body[data-bio-theme="ocean"] .bio-top-pill {
-      border-color: rgba(255, 255, 255, 0.35);
-    }
-
+    /* 3. Neon Mint */
     body[data-bio-theme="emerald"] {
-      --bg-page: linear-gradient(125deg, #059669 0%, #0d9488 34%, #0284c7 68%, #10b981 100%);
+      --bg-page: linear-gradient(125deg, #059669 0%, #0d9488 35%, #0284c7 68%, #10b981 100%);
       --orb-1: rgba(52, 211, 153, 0.52);
       --orb-2: rgba(56, 189, 248, 0.48);
-      --orb-3: rgba(163, 230, 53, 0.35);
-      --grid-color: rgba(255, 255, 255, 0.12);
-      --particle-color: rgba(236, 253, 245, 0.9);
-      --particle-glow: rgba(52, 211, 153, 0.65);
+      --orb-3: rgba(163, 230, 53, 0.36);
+      --grid-color: rgba(255, 255, 255, 0.14);
+      --particle-color: rgba(236, 253, 245, 0.92);
+      --particle-glow: rgba(52, 211, 153, 0.7);
+      --wave-1: rgba(255, 255, 255, 0.14);
+      --wave-2: rgba(110, 231, 183, 0.2);
       --card-bg: rgba(255, 255, 255, 0.9);
       --card-border: rgba(255, 255, 255, 0.95);
-      --card-outer-ring: rgba(6, 78, 59, 0.14);
       --card-shadow: 0 14px 32px -10px rgba(6, 78, 59, 0.28);
       --card-hover-shadow: 0 20px 38px -8px rgba(6, 78, 59, 0.38);
       --text-main: #0f172a;
       --text-muted: #475569;
+      --header-text: #ffffff;
+      --header-sub: rgba(236, 253, 245, 0.94);
       --accent: #059669;
       --accent-2: #0284c7;
-      --accent-soft: rgba(5, 150, 105, 0.13);
+      --accent-soft: rgba(5, 150, 105, 0.14);
       --pill-bg: rgba(255, 255, 255, 0.22);
+      --pill-border: rgba(255, 255, 255, 0.36);
       --avatar-ring: rgba(52, 211, 153, 0.55);
     }
 
-    body[data-bio-theme="emerald"] .bio-name,
-    body[data-bio-theme="emerald"] .bio-top-pill,
-    body[data-bio-theme="emerald"] .bio-footer,
-    body[data-bio-theme="emerald"] .bio-footer strong {
-      color: #ffffff;
-    }
-    body[data-bio-theme="emerald"] .bio-subtitle {
-      color: rgba(236, 253, 245, 0.94);
-    }
-    body[data-bio-theme="emerald"] .bio-badge-tag {
-      background: rgba(255, 255, 255, 0.2);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-    }
-    body[data-bio-theme="emerald"] .bio-top-pill {
-      border-color: rgba(255, 255, 255, 0.35);
-    }
-
+    /* 4. Sunset Glow */
     body[data-bio-theme="sunset"] {
-      --bg-page: linear-gradient(125deg, #ff7e5f 0%, #f43f5e 35%, #a855f7 70%, #f59e0b 100%);
-      --orb-1: rgba(251, 191, 36, 0.5);
+      --bg-page: linear-gradient(125deg, #ff7e5f 0%, #f43f5e 36%, #a855f7 70%, #f59e0b 100%);
+      --orb-1: rgba(251, 191, 36, 0.55);
       --orb-2: rgba(244, 114, 182, 0.55);
       --orb-3: rgba(167, 139, 250, 0.5);
-      --grid-color: rgba(255, 255, 255, 0.12);
+      --grid-color: rgba(255, 255, 255, 0.13);
       --particle-color: rgba(255, 247, 237, 0.92);
-      --particle-glow: rgba(251, 146, 60, 0.65);
+      --particle-glow: rgba(251, 146, 60, 0.7);
+      --wave-1: rgba(255, 255, 255, 0.16);
+      --wave-2: rgba(253, 186, 116, 0.22);
       --card-bg: rgba(255, 255, 255, 0.9);
       --card-border: rgba(255, 255, 255, 0.95);
-      --card-outer-ring: rgba(136, 19, 55, 0.14);
       --card-shadow: 0 14px 32px -10px rgba(136, 19, 55, 0.28);
       --card-hover-shadow: 0 20px 38px -8px rgba(136, 19, 55, 0.38);
       --text-main: #0f172a;
       --text-muted: #475569;
+      --header-text: #ffffff;
+      --header-sub: rgba(255, 247, 237, 0.94);
       --accent: #e11d48;
       --accent-2: #f97316;
-      --accent-soft: rgba(225, 29, 72, 0.12);
+      --accent-soft: rgba(225, 29, 72, 0.13);
       --pill-bg: rgba(255, 255, 255, 0.22);
+      --pill-border: rgba(255, 255, 255, 0.36);
       --avatar-ring: rgba(251, 146, 60, 0.55);
     }
 
-    body[data-bio-theme="sunset"] .bio-name,
-    body[data-bio-theme="sunset"] .bio-top-pill,
-    body[data-bio-theme="sunset"] .bio-footer,
-    body[data-bio-theme="sunset"] .bio-footer strong {
-      color: #ffffff;
-    }
-    body[data-bio-theme="sunset"] .bio-subtitle {
-      color: rgba(255, 247, 237, 0.94);
-    }
-    body[data-bio-theme="sunset"] .bio-badge-tag {
-      background: rgba(255, 255, 255, 0.22);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-    }
-    body[data-bio-theme="sunset"] .bio-top-pill {
-      border-color: rgba(255, 255, 255, 0.35);
-    }
-
+    /* 5. Cosmic Dark */
     body[data-bio-theme="midnight"] {
-      --bg-page: linear-gradient(135deg, #090d1f 0%, #1e1b4b 35%, #0f172a 68%, #164e63 100%);
+      --bg-page: linear-gradient(135deg, #090d1f 0%, #1e1b4b 36%, #0f172a 68%, #164e63 100%);
       --orb-1: rgba(56, 189, 248, 0.42);
       --orb-2: rgba(168, 85, 247, 0.45);
       --orb-3: rgba(236, 72, 153, 0.34);
-      --grid-color: rgba(148, 163, 184, 0.1);
-      --particle-color: rgba(186, 230, 253, 0.9);
-      --particle-glow: rgba(56, 189, 248, 0.75);
+      --grid-color: rgba(148, 163, 184, 0.11);
+      --particle-color: rgba(224, 242, 254, 0.95);
+      --particle-glow: rgba(56, 189, 248, 0.8);
+      --wave-1: rgba(56, 189, 248, 0.16);
+      --wave-2: rgba(168, 85, 247, 0.18);
       --card-bg: rgba(15, 23, 42, 0.68);
-      --card-border: rgba(148, 163, 184, 0.24);
-      --card-outer-ring: rgba(56, 189, 248, 0.18);
+      --card-border: rgba(148, 163, 184, 0.26);
       --card-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      --card-hover-shadow: 0 18px 40px -8px rgba(56, 189, 248, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      --card-hover-shadow: 0 18px 40px -8px rgba(56, 189, 248, 0.35);
       --text-main: #f8fafc;
       --text-muted: #cbd5e1;
+      --header-text: #f8fafc;
+      --header-sub: #cbd5e1;
       --accent: #38bdf8;
       --accent-2: #a855f7;
       --accent-soft: rgba(56, 189, 248, 0.18);
       --pill-bg: rgba(30, 41, 59, 0.68);
-      --avatar-ring: rgba(56, 189, 248, 0.5);
+      --pill-border: rgba(148, 163, 184, 0.28);
+      --avatar-ring: rgba(56, 189, 248, 0.55);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    /* 6. Royal Gold (Luxury) */
+    body[data-bio-theme="royal"] {
+      --bg-page: linear-gradient(135deg, #0c0a09 0%, #292524 34%, #1c1917 64%, #451a03 100%);
+      --orb-1: rgba(245, 158, 11, 0.42);
+      --orb-2: rgba(251, 191, 36, 0.34);
+      --orb-3: rgba(180, 83, 9, 0.4);
+      --grid-color: rgba(251, 191, 36, 0.1);
+      --particle-color: rgba(254, 243, 199, 0.95);
+      --particle-glow: rgba(245, 158, 11, 0.85);
+      --wave-1: rgba(245, 158, 11, 0.16);
+      --wave-2: rgba(251, 191, 36, 0.14);
+      --card-bg: rgba(28, 25, 23, 0.78);
+      --card-border: rgba(251, 191, 36, 0.38);
+      --card-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(254, 243, 199, 0.12);
+      --card-hover-shadow: 0 18px 40px -8px rgba(245, 158, 11, 0.34);
+      --text-main: #fefce8;
+      --text-muted: #d6d3d1;
+      --header-text: #fef3c7;
+      --header-sub: #e7e5e4;
+      --accent: #f59e0b;
+      --accent-2: #fbbf24;
+      --accent-soft: rgba(245, 158, 11, 0.18);
+      --pill-bg: rgba(41, 37, 36, 0.75);
+      --pill-border: rgba(251, 191, 36, 0.35);
+      --avatar-ring: rgba(251, 191, 36, 0.55);
     }
+
+    /* 7. Sakura Pastel */
+    body[data-bio-theme="sakura"] {
+      --bg-page: linear-gradient(125deg, #fff1f2 0%, #fce7f3 30%, #f3e8ff 64%, #ffedd5 100%);
+      --orb-1: rgba(244, 114, 182, 0.42);
+      --orb-2: rgba(192, 132, 252, 0.36);
+      --orb-3: rgba(251, 146, 60, 0.34);
+      --grid-color: rgba(219, 39, 119, 0.08);
+      --particle-color: rgba(255, 255, 255, 0.92);
+      --particle-glow: rgba(244, 114, 182, 0.55);
+      --wave-1: rgba(244, 114, 182, 0.16);
+      --wave-2: rgba(192, 132, 252, 0.14);
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(251, 207, 232, 0.9);
+      --card-shadow: 0 10px 28px -10px rgba(190, 24, 93, 0.16);
+      --card-hover-shadow: 0 18px 36px -10px rgba(219, 39, 119, 0.28);
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --header-text: #831843;
+      --header-sub: #6b7280;
+      --accent: #db2777;
+      --accent-2: #a855f7;
+      --accent-soft: rgba(219, 39, 119, 0.12);
+      --pill-bg: rgba(255, 255, 255, 0.82);
+      --pill-border: rgba(251, 207, 232, 0.9);
+      --avatar-ring: rgba(236, 72, 153, 0.45);
+    }
+
+    /* 8. Cyber Neon (Synthwave) */
+    body[data-bio-theme="cyberpunk"] {
+      --bg-page: linear-gradient(135deg, #0f0728 0%, #3b0764 36%, #1e1b4b 68%, #083344 100%);
+      --orb-1: rgba(236, 72, 153, 0.5);
+      --orb-2: rgba(34, 211, 238, 0.46);
+      --orb-3: rgba(168, 85, 247, 0.5);
+      --grid-color: rgba(34, 211, 238, 0.18);
+      --particle-color: rgba(244, 114, 182, 0.95);
+      --particle-glow: rgba(34, 211, 238, 0.85);
+      --wave-1: rgba(236, 72, 153, 0.2);
+      --wave-2: rgba(34, 211, 238, 0.18);
+      --card-bg: rgba(17, 12, 46, 0.72);
+      --card-border: rgba(34, 211, 238, 0.42);
+      --card-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.65), 0 0 18px rgba(236, 72, 153, 0.18);
+      --card-hover-shadow: 0 18px 40px -8px rgba(34, 211, 238, 0.36), 0 0 24px rgba(236, 72, 153, 0.32);
+      --text-main: #f8fafc;
+      --text-muted: #e2e8f0;
+      --header-text: #ffffff;
+      --header-sub: #e9d5ff;
+      --accent: #22d3ee;
+      --accent-2: #ec4899;
+      --accent-soft: rgba(34, 211, 238, 0.18);
+      --pill-bg: rgba(24, 16, 64, 0.72);
+      --pill-border: rgba(34, 211, 238, 0.42);
+      --avatar-ring: rgba(236, 72, 153, 0.65);
+    }
+
+    /* 9. Custom Theme Light/Dark text mode helpers */
+    body[data-bio-theme="custom"][data-text-mode="light"] {
+      --header-text: #ffffff;
+      --header-sub: rgba(248, 250, 252, 0.92);
+      --pill-bg: rgba(255, 255, 255, 0.22);
+      --pill-border: rgba(255, 255, 255, 0.38);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(255, 255, 255, 0.95);
+      --text-main: #0f172a;
+      --text-muted: #475569;
+    }
+
+    body[data-bio-theme="custom"][data-text-mode="dark"] {
+      --header-text: #0f172a;
+      --header-sub: #334155;
+      --pill-bg: rgba(255, 255, 255, 0.78);
+      --pill-border: rgba(15, 23, 42, 0.12);
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(255, 255, 255, 0.92);
+      --text-main: #0f172a;
+      --text-muted: #475569;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       min-height: 100dvh;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg-page);
       background-size: 240% 240%;
-      animation: bioGradientShift 16s ease-in-out infinite;
+      animation: bioGradientShift 15s ease-in-out infinite;
       color: var(--text-main);
       display: flex;
       justify-content: center;
@@ -198,7 +268,7 @@
     }
 
     /* ============================================================
-       LIVING ANIMATED BACKDROP (AURORA ORBS + GRID + FLOATING SPARKS)
+       MODULAR LIVING BACKDROP EFFECTS (AURORA, WAVES, STARS, BUBBLES, GRID)
        ============================================================ */
     .bio-bg-stage {
       position: fixed;
@@ -208,16 +278,21 @@
       overflow: hidden;
     }
 
-    .bio-bg-grid {
+    .fx-layer {
       position: absolute;
-      inset: -40px;
-      background-image:
-        radial-gradient(var(--grid-color) 1.5px, transparent 1.5px);
-      background-size: 28px 28px;
-      animation: bioGridFloat 22s linear infinite;
-      opacity: 0.9;
+      inset: 0;
+      display: none;
     }
 
+    body[data-bg-effect="aurora"] .fx-aurora,
+    body[data-bg-effect="waves"] .fx-waves,
+    body[data-bg-effect="stars"] .fx-stars,
+    body[data-bg-effect="bubbles"] .fx-bubbles,
+    body[data-bg-effect="grid"] .fx-grid {
+      display: block;
+    }
+
+    /* Shared soft ambient orbs */
     .bio-orb {
       position: absolute;
       border-radius: 50%;
@@ -225,130 +300,147 @@
       will-change: transform;
       opacity: 0.85;
     }
+    .bio-orb-1 { width: 340px; height: 340px; top: -90px; left: -80px; background: var(--orb-1); animation: bioOrbDrift1 14s ease-in-out infinite; }
+    .bio-orb-2 { width: 360px; height: 360px; top: 28%; right: -120px; background: var(--orb-2); animation: bioOrbDrift2 18s ease-in-out infinite; }
+    .bio-orb-3 { width: 310px; height: 310px; bottom: -90px; left: 12%; background: var(--orb-3); animation: bioOrbDrift3 16s ease-in-out infinite; }
 
-    .bio-orb-1 {
-      width: 340px;
-      height: 340px;
-      top: -90px;
-      left: -80px;
-      background: var(--orb-1);
-      animation: bioOrbDrift1 14s ease-in-out infinite;
-    }
-
-    .bio-orb-2 {
-      width: 360px;
-      height: 360px;
-      top: 28%;
-      right: -120px;
-      background: var(--orb-2);
-      animation: bioOrbDrift2 18s ease-in-out infinite;
-    }
-
-    .bio-orb-3 {
-      width: 310px;
-      height: 310px;
-      bottom: -90px;
-      left: 12%;
-      background: var(--orb-3);
-      animation: bioOrbDrift3 16s ease-in-out infinite;
-    }
-
-    .bio-particles {
+    /* FX 1: Aurora Dot Grid + Orbit */
+    .bio-dot-grid {
       position: absolute;
-      inset: 0;
+      inset: -40px;
+      background-image: radial-gradient(var(--grid-color) 1.5px, transparent 1.5px);
+      background-size: 28px 28px;
+      animation: bioGridFloat 22s linear infinite;
     }
-
-    .bio-particle {
-      position: absolute;
-      bottom: -24px;
-      border-radius: 50%;
-      background: var(--particle-color);
-      box-shadow: 0 0 14px var(--particle-glow);
-      opacity: 0;
-      will-change: transform, opacity;
-      animation: bioParticleRise var(--dur, 11s) linear var(--delay, 0s) infinite;
-    }
-
     .bio-ring-deco {
       position: absolute;
       width: 460px;
       height: 460px;
       top: -160px;
       left: 50%;
-      transform: translateX(-50%);
       border-radius: 50%;
-      border: 1.5px dashed rgba(255, 255, 255, 0.22);
-      animation: bioSpinSlow 46s linear infinite;
+      border: 1.5px dashed rgba(255, 255, 255, 0.25);
+      animation: bioSpinSlow 42s linear infinite;
     }
 
-    @keyframes bioGradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    /* FX 2: Animated Ocean Waves */
+    .bio-wave-svg {
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 200%;
+      height: 210px;
+      will-change: transform;
+    }
+    .bio-wave-svg.wave-back {
+      fill: var(--wave-2);
+      animation: bioWaveSlide 14s linear infinite;
+      bottom: 8px;
+    }
+    .bio-wave-svg.wave-front {
+      fill: var(--wave-1);
+      animation: bioWaveSlideRev 10s linear infinite;
     }
 
-    @keyframes bioGridFloat {
-      0% { transform: translate3d(0, 0, 0); }
-      100% { transform: translate3d(28px, 28px, 0); }
+    /* FX 3: Starfield + Shooting Meteors */
+    .bio-star {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--particle-color);
+      box-shadow: 0 0 10px var(--particle-glow);
+      animation: bioTwinkle var(--dur, 4s) ease-in-out var(--delay, 0s) infinite;
+    }
+    .bio-meteor {
+      position: absolute;
+      width: 110px;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--particle-color), transparent);
+      transform: rotate(-32deg);
+      opacity: 0;
+      animation: bioMeteorShoot var(--dur, 7s) linear var(--delay, 0s) infinite;
     }
 
-    @keyframes bioOrbDrift1 {
-      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-      33% { transform: translate3d(60px, 45px, 0) scale(1.12); }
-      66% { transform: translate3d(20px, 90px, 0) scale(0.94); }
+    /* FX 4: Floating Bokeh Bubbles */
+    .bio-bubble {
+      position: absolute;
+      bottom: -60px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), var(--orb-1) 70%);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      opacity: 0;
+      will-change: transform, opacity;
+      animation: bioParticleRise var(--dur, 13s) linear var(--delay, 0s) infinite;
     }
 
-    @keyframes bioOrbDrift2 {
-      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-      40% { transform: translate3d(-75px, -50px, 0) scale(1.14); }
-      75% { transform: translate3d(-35px, 65px, 0) scale(0.92); }
+    /* FX 5: Cyber Geometric Grid */
+    .bio-cyber-lines {
+      position: absolute;
+      inset: -60px;
+      background-image:
+        linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+      background-size: 42px 42px;
+      animation: bioGridFloat 18s linear infinite;
+    }
+    .bio-cyber-pulse {
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1.5px solid var(--grid-color);
+      animation: bioRingExpand 8s ease-out infinite;
+    }
+    .bio-cyber-pulse.p2 { animation-delay: -4s; }
+
+    /* Subtle rising sparks shared across light effects */
+    .bio-particle {
+      position: absolute;
+      bottom: -24px;
+      border-radius: 50%;
+      background: var(--particle-color);
+      box-shadow: 0 0 12px var(--particle-glow);
+      opacity: 0;
+      will-change: transform, opacity;
+      animation: bioParticleRise var(--dur, 11s) linear var(--delay, 0s) infinite;
     }
 
-    @keyframes bioOrbDrift3 {
-      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-      50% { transform: translate3d(70px, -60px, 0) scale(1.15); }
+    @keyframes bioGradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    @keyframes bioGridFloat { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(42px, 42px, 0); } }
+    @keyframes bioOrbDrift1 { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 33% { transform: translate3d(60px, 45px, 0) scale(1.12); } 66% { transform: translate3d(20px, 90px, 0) scale(0.94); } }
+    @keyframes bioOrbDrift2 { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 40% { transform: translate3d(-75px, -50px, 0) scale(1.14); } 75% { transform: translate3d(-35px, 65px, 0) scale(0.92); } }
+    @keyframes bioOrbDrift3 { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(70px, -60px, 0) scale(1.15); } }
+    @keyframes bioSpinSlow { from { transform: translateX(-50%) rotate(0deg); } to { transform: translateX(-50%) rotate(360deg); } }
+    @keyframes bioAvatarHalo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes bioWaveSlide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes bioWaveSlideRev { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+    @keyframes bioTwinkle { 0%, 100% { opacity: 0.25; transform: scale(0.85); } 50% { opacity: 0.95; transform: scale(1.25); } }
+    @keyframes bioMeteorShoot {
+      0% { transform: translate3d(0, 0, 0) rotate(-32deg); opacity: 0; }
+      6% { opacity: 0.95; }
+      24% { transform: translate3d(-360px, 230px, 0) rotate(-32deg); opacity: 0; }
+      100% { transform: translate3d(-360px, 230px, 0) rotate(-32deg); opacity: 0; }
     }
-
+    @keyframes bioRingExpand {
+      0% { transform: translate(-50%, -50%) scale(0.45); opacity: 0.65; }
+      100% { transform: translate(-50%, -50%) scale(2.1); opacity: 0; }
+    }
     @keyframes bioParticleRise {
-      0% {
-        transform: translate3d(0, 0, 0) scale(0.6);
-        opacity: 0;
-      }
-      12% {
-        opacity: 0.72;
-      }
-      85% {
-        opacity: 0.55;
-      }
-      100% {
-        transform: translate3d(var(--drift, 28px), -108vh, 0) scale(1.15);
-        opacity: 0;
-      }
+      0% { transform: translate3d(0, 0, 0) scale(0.65); opacity: 0; }
+      12% { opacity: 0.72; }
+      85% { opacity: 0.52; }
+      100% { transform: translate3d(var(--drift, 24px), -108vh, 0) scale(1.15); opacity: 0; }
     }
-
-    @keyframes bioSpinSlow {
-      from { transform: translateX(-50%) rotate(0deg); }
-      to { transform: translateX(-50%) rotate(360deg); }
-    }
-
-    @keyframes bioAvatarHalo {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
     @keyframes bioCardEnter {
-      from {
-        opacity: 0;
-        transform: translateY(14px) scale(0.985);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+      from { opacity: 0; transform: translateY(14px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     /* ============================================================
-       CONTENT SHELL
+       MAIN CONTENT SHELL & CARD STYLE VARIANTS
        ============================================================ */
     .bio-shell {
       position: relative;
@@ -376,8 +468,8 @@
       padding: 8px 14px;
       border-radius: 999px;
       background: var(--pill-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
+      border: 1px solid var(--pill-border);
+      color: var(--header-text);
       text-decoration: none;
       font-size: 0.78rem;
       font-weight: 700;
@@ -437,11 +529,7 @@
       border: 3px solid rgba(255, 255, 255, 0.95);
     }
 
-    .bio-avatar-inner img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .bio-avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
 
     .bio-name-row {
       display: inline-flex;
@@ -456,7 +544,7 @@
       font-size: 1.36rem;
       font-weight: 800;
       letter-spacing: -0.02em;
-      color: var(--text-main);
+      color: var(--header-text);
     }
 
     .bio-verified {
@@ -480,8 +568,9 @@
       gap: 5px;
       padding: 4px 12px;
       border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
+      background: var(--pill-bg);
+      border: 1px solid var(--pill-border);
+      color: var(--header-text);
       font-size: 0.72rem;
       font-weight: 700;
       backdrop-filter: blur(8px);
@@ -492,7 +581,7 @@
       margin-top: 9px;
       font-size: 0.87rem;
       line-height: 1.5;
-      color: var(--text-muted);
+      color: var(--header-sub);
       max-width: 410px;
       font-weight: 500;
     }
@@ -525,6 +614,32 @@
       animation-delay: calc(var(--card-idx, 0) * 65ms);
     }
 
+    /* Card Style Variants */
+    body[data-card-style="solid"] .bio-link-card {
+      background: #ffffff;
+      border: 1.5px solid rgba(15, 23, 42, 0.1);
+      color: #0f172a;
+      backdrop-filter: none;
+    }
+    body[data-card-style="solid"] .bio-link-title { color: #0f172a; }
+    body[data-card-style="solid"] .bio-link-sub { color: #64748b; }
+
+    body[data-card-style="outline"] .bio-link-card {
+      background: rgba(15, 23, 42, 0.16);
+      border: 2px solid var(--pill-border);
+      color: var(--header-text);
+    }
+    body[data-card-style="outline"] .bio-link-title { color: var(--header-text); }
+    body[data-card-style="outline"] .bio-link-sub { color: var(--header-sub); }
+
+    body[data-card-style="pill"] .bio-link-card {
+      border-radius: 999px;
+      padding: 10px 18px 10px 10px;
+    }
+    body[data-card-style="pill"] .bio-link-thumb {
+      border-radius: 50%;
+    }
+
     .bio-link-card::after {
       content: '';
       position: absolute;
@@ -532,24 +647,13 @@
       left: -110%;
       width: 60%;
       height: 100%;
-      background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.45) 50%, transparent 80%);
+      background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.42) 50%, transparent 80%);
       transition: left 0.55s ease;
       pointer-events: none;
     }
-
-    .bio-link-card:hover::after {
-      left: 135%;
-    }
-
-    .bio-link-card:hover {
-      transform: translateY(-3px) scale(1.01);
-      box-shadow: var(--card-hover-shadow);
-      border-color: var(--accent);
-    }
-
-    .bio-link-card:active {
-      transform: scale(0.985);
-    }
+    .bio-link-card:hover::after { left: 135%; }
+    .bio-link-card:hover { transform: translateY(-3px) scale(1.01); box-shadow: var(--card-hover-shadow); border-color: var(--accent); }
+    .bio-link-card:active { transform: scale(0.985); }
 
     .bio-link-thumb {
       width: 54px;
@@ -566,14 +670,7 @@
       color: #2563eb;
       box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
     }
-
-    .bio-link-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
+    .bio-link-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .bio-link-thumb.tone-briefcase { background: linear-gradient(135deg, #fff7ed, #fed7aa); color: #ea580c; }
     .bio-link-thumb.tone-globe { background: linear-gradient(135deg, #eff6ff, #bfdbfe); color: #2563eb; }
     .bio-link-thumb.tone-whatsapp { background: linear-gradient(135deg, #ecfdf5, #a7f3d0); color: #16a34a; }
@@ -584,45 +681,11 @@
     .bio-link-thumb.tone-envelope { background: linear-gradient(135deg, #fef2f2, #fecaca); color: #dc2626; }
     .bio-link-thumb.tone-link { background: linear-gradient(135deg, #f8fafc, #e2e8f0); color: #334155; }
 
-    .bio-link-body {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .bio-link-title-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .bio-link-title {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 0.96rem;
-      font-weight: 700;
-      color: var(--text-main);
-      line-height: 1.3;
-      overflow-wrap: break-word;
-    }
-
-    .bio-link-badge {
-      font-size: 0.65rem;
-      font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      white-space: nowrap;
-    }
-
-    .bio-link-sub {
-      margin-top: 3px;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .bio-link-body { flex: 1; min-width: 0; }
+    .bio-link-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .bio-link-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.96rem; font-weight: 700; color: var(--text-main); line-height: 1.3; overflow-wrap: break-word; }
+    .bio-link-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+    .bio-link-sub { margin-top: 3px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .bio-link-arrow {
       width: 32px;
@@ -636,22 +699,9 @@
       flex-shrink: 0;
       transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
     }
+    .bio-link-card:hover .bio-link-arrow { background: var(--accent-soft); color: var(--accent); transform: translateX(3px); }
 
-    .bio-link-card:hover .bio-link-arrow {
-      background: var(--accent-soft);
-      color: var(--accent);
-      transform: translateX(3px);
-    }
-
-    .bio-socials {
-      margin-top: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
+    .bio-socials { margin-top: 26px; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
     .bio-social-btn {
       display: inline-flex;
       align-items: center;
@@ -669,33 +719,14 @@
       box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
       transition: transform 0.18s ease;
     }
-
-    .bio-social-btn:hover {
-      transform: translateY(-2px);
-    }
-
+    .bio-social-btn:hover { transform: translateY(-2px); }
     .bio-social-btn.ig i { color: #e1306c; }
     .bio-social-btn.tt i { color: var(--text-main); }
 
-    .bio-footer {
-      margin-top: 34px;
-      text-align: center;
-      font-size: 0.76rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
+    .bio-footer { margin-top: 34px; text-align: center; font-size: 0.76rem; color: var(--header-sub); font-weight: 500; }
+    .bio-footer strong { color: var(--header-text); }
 
-    .bio-footer strong {
-      color: var(--text-main);
-    }
-
-    .bio-skeleton {
-      height: 78px;
-      border-radius: 22px;
-      background: rgba(255, 255, 255, 0.32);
-      backdrop-filter: blur(8px);
-      width: 100%;
-    }
+    .bio-skeleton { height: 78px; border-radius: 22px; background: rgba(255, 255, 255, 0.32); backdrop-filter: blur(8px); width: 100%; }
 
     .bio-toast {
       position: fixed;
@@ -714,11 +745,7 @@
       z-index: 999;
       box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
     }
-
-    .bio-toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .bio-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     @media (max-width: 420px) {
       body { padding: 14px 12px 36px; }
@@ -728,39 +755,87 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      body, .bio-bg-grid, .bio-orb, .bio-particle, .bio-ring-deco, .bio-avatar-wrap::before, .bio-link-card {
+      body, .bio-dot-grid, .bio-cyber-lines, .bio-cyber-pulse, .bio-orb, .bio-particle, .bio-bubble, .bio-star, .bio-meteor, .bio-wave-svg, .bio-ring-deco, .bio-avatar-wrap::before, .bio-link-card {
         animation: none !important;
       }
     }
   </style>
 </head>
 
-<body data-bio-theme="clean">
-  <!-- Living Animated Gradient & Particle Backdrop -->
+<body data-bio-theme="clean" data-bg-effect="aurora" data-card-style="glass">
+  <!-- Modular Living Backdrop Stage -->
   <div class="bio-bg-stage" aria-hidden="true">
-    <div class="bio-bg-grid"></div>
-    <div class="bio-ring-deco"></div>
     <div class="bio-orb bio-orb-1"></div>
     <div class="bio-orb bio-orb-2"></div>
     <div class="bio-orb bio-orb-3"></div>
-    <div class="bio-particles">
-      <span class="bio-particle" style="left:8%;  width:8px;  height:8px;  --dur:11s; --delay:0s;    --drift:24px;"></span>
-      <span class="bio-particle" style="left:19%; width:12px; height:12px; --dur:14s; --delay:-3s;   --drift:-22px;"></span>
-      <span class="bio-particle" style="left:31%; width:7px;  height:7px;  --dur:10s; --delay:-6s;   --drift:18px;"></span>
-      <span class="bio-particle" style="left:44%; width:10px; height:10px; --dur:13s; --delay:-2s;   --drift:-28px;"></span>
-      <span class="bio-particle" style="left:57%; width:14px; height:14px; --dur:16s; --delay:-8s;   --drift:32px;"></span>
-      <span class="bio-particle" style="left:68%; width:8px;  height:8px;  --dur:11s; --delay:-4.5s; --drift:-18px;"></span>
-      <span class="bio-particle" style="left:79%; width:11px; height:11px; --dur:15s; --delay:-9.5s; --drift:20px;"></span>
-      <span class="bio-particle" style="left:89%; width:9px;  height:9px;  --dur:12s; --delay:-1.5s; --drift:-26px;"></span>
-      <span class="bio-particle" style="left:24%; width:6px;  height:6px;  --dur:9.5s; --delay:-7s;  --drift:14px;"></span>
-      <span class="bio-particle" style="left:74%; width:7px;  height:7px;  --dur:12.5s; --delay:-5s; --drift:-16px;"></span>
+
+    <!-- FX 1: Aurora Dots + Orbit + Sparks -->
+    <div class="fx-layer fx-aurora">
+      <div class="bio-dot-grid"></div>
+      <div class="bio-ring-deco"></div>
+      <span class="bio-particle" style="left:10%; width:8px; height:8px; --dur:11s; --delay:0s; --drift:24px;"></span>
+      <span class="bio-particle" style="left:25%; width:11px; height:11px; --dur:14s; --delay:-4s; --drift:-22px;"></span>
+      <span class="bio-particle" style="left:45%; width:9px; height:9px; --dur:12s; --delay:-2s; --drift:18px;"></span>
+      <span class="bio-particle" style="left:66%; width:12px; height:12px; --dur:15s; --delay:-7s; --drift:-26px;"></span>
+      <span class="bio-particle" style="left:84%; width:8px; height:8px; --dur:10s; --delay:-3s; --drift:20px;"></span>
+    </div>
+
+    <!-- FX 2: Animated Ocean Waves + Aqua Sparks -->
+    <div class="fx-layer fx-waves">
+      <span class="bio-particle" style="left:14%; width:10px; height:10px; --dur:10s; --delay:-1s; --drift:16px;"></span>
+      <span class="bio-particle" style="left:38%; width:7px; height:7px; --dur:13s; --delay:-5s; --drift:-18px;"></span>
+      <span class="bio-particle" style="left:64%; width:11px; height:11px; --dur:11s; --delay:-3s; --drift:22px;"></span>
+      <span class="bio-particle" style="left:82%; width:8px; height:8px; --dur:14s; --delay:-8s; --drift:-16px;"></span>
+      <svg class="bio-wave-svg wave-back" viewBox="0 0 1200 180" preserveAspectRatio="none">
+        <path d="M0,70 C150,140 350,10 600,80 C850,150 1050,20 1200,70 L1200,180 L0,180 Z"></path>
+      </svg>
+      <svg class="bio-wave-svg wave-front" viewBox="0 0 1200 180" preserveAspectRatio="none">
+        <path d="M0,100 C200,30 400,150 600,90 C800,30 1000,150 1200,100 L1200,180 L0,180 Z"></path>
+      </svg>
+    </div>
+
+    <!-- FX 3: Starfield + Shooting Meteors -->
+    <div class="fx-layer fx-stars">
+      <span class="bio-star" style="top:10%; left:14%; width:3px; height:3px; --dur:3.4s; --delay:0s;"></span>
+      <span class="bio-star" style="top:18%; left:76%; width:4px; height:4px; --dur:4.2s; --delay:-1.2s;"></span>
+      <span class="bio-star" style="top:28%; left:34%; width:3px; height:3px; --dur:3.8s; --delay:-2.1s;"></span>
+      <span class="bio-star" style="top:42%; left:88%; width:3px; height:3px; --dur:4.6s; --delay:-0.8s;"></span>
+      <span class="bio-star" style="top:54%; left:18%; width:4px; height:4px; --dur:3.5s; --delay:-2.6s;"></span>
+      <span class="bio-star" style="top:68%; left:62%; width:3px; height:3px; --dur:4.1s; --delay:-1.7s;"></span>
+      <span class="bio-star" style="top:78%; left:26%; width:3px; height:3px; --dur:3.9s; --delay:-0.5s;"></span>
+      <span class="bio-star" style="top:84%; left:80%; width:4px; height:4px; --dur:4.4s; --delay:-3.0s;"></span>
+      <span class="bio-star" style="top:12%; left:52%; width:2.5px; height:2.5px; --dur:3.2s; --delay:-1.9s;"></span>
+      <span class="bio-star" style="top:36%; left:64%; width:3px; height:3px; --dur:4.5s; --delay:-2.3s;"></span>
+      <span class="bio-meteor" style="top:12%; left:82%; --dur:6.5s; --delay:0s;"></span>
+      <span class="bio-meteor" style="top:32%; left:96%; --dur:8.5s; --delay:-3.2s;"></span>
+      <span class="bio-meteor" style="top:6%;  left:55%; --dur:9.5s; --delay:-6.1s;"></span>
+    </div>
+
+    <!-- FX 4: Floating Bokeh Bubbles -->
+    <div class="fx-layer fx-bubbles">
+      <span class="bio-bubble" style="left:8%;  width:38px; height:38px; --dur:14s; --delay:0s;    --drift:34px;"></span>
+      <span class="bio-bubble" style="left:24%; width:24px; height:24px; --dur:11s; --delay:-3.5s; --drift:-26px;"></span>
+      <span class="bio-bubble" style="left:42%; width:52px; height:52px; --dur:17s; --delay:-7s;   --drift:28px;"></span>
+      <span class="bio-bubble" style="left:60%; width:30px; height:30px; --dur:13s; --delay:-2s;   --drift:-32px;"></span>
+      <span class="bio-bubble" style="left:76%; width:44px; height:44px; --dur:15s; --delay:-9s;   --drift:24px;"></span>
+      <span class="bio-bubble" style="left:89%; width:22px; height:22px; --dur:12s; --delay:-5s;   --drift:-20px;"></span>
+    </div>
+
+    <!-- FX 5: Cyber Geometric Grid + Pulse Rings -->
+    <div class="fx-layer fx-grid">
+      <div class="bio-cyber-lines"></div>
+      <div class="bio-cyber-pulse"></div>
+      <div class="bio-cyber-pulse p2"></div>
+      <span class="bio-particle" style="left:18%; width:7px; height:7px; --dur:10s; --delay:-1s; --drift:18px;"></span>
+      <span class="bio-particle" style="left:52%; width:9px; height:9px; --dur:12s; --delay:-5s; --drift:-20px;"></span>
+      <span class="bio-particle" style="left:78%; width:8px; height:8px; --dur:11s; --delay:-3s; --drift:16px;"></span>
     </div>
   </div>
 
   <main class="bio-shell">
     <div class="bio-topbar">
       <a href="/" class="bio-top-pill" title="Buka Portal Lowongan Kerja">
-        <i class="fa-solid fa-briefcase" style="color: var(--accent);"></i>
+        <i class="fa-solid fa-briefcase"></i>
         <span>Portal Loker</span>
       </a>
       <button type="button" class="bio-top-pill" id="btn-share-bio" title="Bagikan halaman Link Bio">
@@ -813,6 +888,18 @@
         link: 'fa-solid fa-link'
       };
 
+      const THEME_DEFAULT_EFFECT = {
+        clean: 'aurora',
+        ocean: 'waves',
+        emerald: 'grid',
+        sunset: 'bubbles',
+        midnight: 'stars',
+        royal: 'stars',
+        sakura: 'bubbles',
+        cyberpunk: 'grid',
+        custom: 'aurora'
+      };
+
       const yearEl = document.getElementById('bio-year');
       if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
@@ -823,6 +910,26 @@
           .replace(/>/g, '&gt;')
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#39;');
+      }
+
+      function hexToRgb(hex) {
+        const clean = String(hex || '').replace('#', '');
+        if (clean.length !== 6) return { r: 37, g: 99, b: 235 };
+        return {
+          r: parseInt(clean.slice(0, 2), 16) || 0,
+          g: parseInt(clean.slice(2, 4), 16) || 0,
+          b: parseInt(clean.slice(4, 6), 16) || 0
+        };
+      }
+
+      function hexLuminance(hex) {
+        const { r, g, b } = hexToRgb(hex);
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      }
+
+      function hexRgba(hex, alpha) {
+        const { r, g, b } = hexToRgb(hex);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
       }
 
       function getDomainLabel(url) {
@@ -855,11 +962,50 @@
         fetch(endpoint, { method: 'POST', keepalive: true }).catch(() => {});
       }
 
+      function applyThemeAndEffects(profile) {
+        const theme = profile.theme || 'clean';
+        const rawEffect = profile.bg_effect || 'auto';
+        const resolvedEffect = (rawEffect === 'auto' || !rawEffect)
+          ? (THEME_DEFAULT_EFFECT[theme] || 'aurora')
+          : rawEffect;
+        const cardStyle = profile.card_style || 'glass';
+
+        document.body.setAttribute('data-bio-theme', theme);
+        document.body.setAttribute('data-bg-effect', resolvedEffect);
+        document.body.setAttribute('data-card-style', cardStyle);
+
+        if (theme === 'custom') {
+          const c1 = /^#[0-9a-fA-F]{6}$/.test(profile.custom_c1 || '') ? profile.custom_c1 : '#2563eb';
+          const c2 = /^#[0-9a-fA-F]{6}$/.test(profile.custom_c2 || '') ? profile.custom_c2 : '#7c3aed';
+          const c3 = /^#[0-9a-fA-F]{6}$/.test(profile.custom_c3 || '') ? profile.custom_c3 : '#06b6d4';
+          const avgLum = (hexLuminance(c1) + hexLuminance(c2) + hexLuminance(c3)) / 3;
+          const mode = profile.custom_text_mode && profile.custom_text_mode !== 'auto'
+            ? profile.custom_text_mode
+            : (avgLum < 0.56 ? 'light' : 'dark');
+          document.body.setAttribute('data-text-mode', mode);
+          document.body.style.setProperty('--bg-page', `linear-gradient(125deg, ${c1} 0%, ${c2} 50%, ${c3} 100%)`);
+          document.body.style.setProperty('--orb-1', hexRgba(c1, 0.5));
+          document.body.style.setProperty('--orb-2', hexRgba(c2, 0.5));
+          document.body.style.setProperty('--orb-3', hexRgba(c3, 0.45));
+          document.body.style.setProperty('--accent', c1);
+          document.body.style.setProperty('--accent-2', c2);
+          document.body.style.setProperty('--accent-soft', hexRgba(c1, 0.14));
+          document.body.style.setProperty('--wave-1', mode === 'light' ? 'rgba(255,255,255,0.16)' : hexRgba(c1, 0.16));
+          document.body.style.setProperty('--wave-2', mode === 'light' ? 'rgba(255,255,255,0.12)' : hexRgba(c2, 0.14));
+        } else {
+          document.body.removeAttribute('data-text-mode');
+          ['--bg-page', '--orb-1', '--orb-2', '--orb-3', '--accent', '--accent-2', '--accent-soft', '--wave-1', '--wave-2'].forEach(v => {
+            document.body.style.removeProperty(v);
+          });
+        }
+      }
+
       function renderBioPage(data) {
         const profile = (data && data.profile) || {};
         const links = Array.isArray(data && data.links) ? data.links.filter(l => l && l.active !== false && l.url) : [];
 
-        document.body.setAttribute('data-bio-theme', profile.theme || 'clean');
+        applyThemeAndEffects(profile);
+
         if (profile.name) {
           document.title = `${profile.name} · Link Resmi`;
           document.getElementById('bio-name').textContent = profile.name;
@@ -887,7 +1033,7 @@
 
         const listEl = document.getElementById('bio-links-list');
         if (!links.length) {
-          listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:24px;font-size:0.88rem;">Belum ada tautan aktif.</div>';
+          listEl.innerHTML = '<div style="text-align:center;color:var(--header-sub);padding:24px;font-size:0.88rem;">Belum ada tautan aktif.</div>';
         } else {
           listEl.innerHTML = links.map((item, idx) => {
             const iconKey = ICON_MAP[item.icon] ? item.icon : 'link';

@@ -14,7 +14,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/admin.css?v=20261119_03">
+  <link rel="stylesheet" href="./css/admin.css?v=20261119_04">
   <link rel="stylesheet" href="./css/cv-builder.css?v=20261116_04">
   <!-- Start Admin Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialAdminJobsPrefetch = fetch('/api/jobs?status=all').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
@@ -1959,14 +1959,70 @@
                       </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 0;">
-                      <label class="form-label">Tema Warna Halaman</label>
+                    <div class="form-group">
+                      <label class="form-label">Tema Warna &amp; Nuansa Halaman (8 Preset + Custom Mix)</label>
                       <div class="bio-theme-pills" id="bio-theme-pills">
                         <button type="button" class="bio-theme-pill active" data-theme="clean"><span class="swatch sw-clean"></span> Aurora Mix</button>
                         <button type="button" class="bio-theme-pill" data-theme="ocean"><span class="swatch sw-ocean"></span> Cyber Ocean</button>
                         <button type="button" class="bio-theme-pill" data-theme="emerald"><span class="swatch sw-emerald"></span> Neon Mint</button>
                         <button type="button" class="bio-theme-pill" data-theme="sunset"><span class="swatch sw-sunset"></span> Sunset Glow</button>
                         <button type="button" class="bio-theme-pill" data-theme="midnight"><span class="swatch sw-midnight"></span> Cosmic Dark</button>
+                        <button type="button" class="bio-theme-pill" data-theme="royal"><span class="swatch sw-royal"></span> Royal Gold</button>
+                        <button type="button" class="bio-theme-pill" data-theme="sakura"><span class="swatch sw-sakura"></span> Sakura Pastel</button>
+                        <button type="button" class="bio-theme-pill" data-theme="cyberpunk"><span class="swatch sw-cyberpunk"></span> Cyber Neon</button>
+                        <button type="button" class="bio-theme-pill" data-theme="custom"><span class="swatch sw-custom"></span> Custom Mix</button>
+                      </div>
+                    </div>
+
+                    <!-- Custom Mix 3-Color Builder (appears when Custom Mix selected) -->
+                    <div id="bio-custom-colors-panel" class="bio-custom-colors-box" style="display: none;">
+                      <div style="font-size: 0.78rem; font-weight: 800; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-swatchbook" style="color: #7c3aed;"></i> Racik Mix 3 Warna Gradient Sendiri
+                      </div>
+                      <div class="bio-color-pickers-row">
+                        <label class="bio-color-chip">
+                          <span>Warna 1</span>
+                          <input type="color" id="bio-custom-c1" value="#2563eb">
+                        </label>
+                        <label class="bio-color-chip">
+                          <span>Warna 2</span>
+                          <input type="color" id="bio-custom-c2" value="#7c3aed">
+                        </label>
+                        <label class="bio-color-chip">
+                          <span>Warna 3</span>
+                          <input type="color" id="bio-custom-c3" value="#06b6d4">
+                        </label>
+                        <label class="bio-color-chip" style="flex: 1.4;">
+                          <span>Teks</span>
+                          <select id="bio-custom-text-mode" class="form-select" style="padding: 4px 8px; font-size: 0.78rem; height: 32px;">
+                            <option value="auto">Otomatis</option>
+                            <option value="light">Putih (Latar Gelap)</option>
+                            <option value="dark">Hitam (Latar Terang)</option>
+                          </select>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="form-grid-2" style="margin-bottom: 0; margin-top: 10px;">
+                      <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label"><i class="fa-solid fa-wand-magic-sparkles" style="color: #7c3aed;"></i> Efek Animasi Latar Belakang</label>
+                        <select id="bio-select-effect" class="form-select">
+                          <option value="auto">Otomatis Sesuai Tema (Rekomendasi)</option>
+                          <option value="aurora">Aurora Orbs + Dot Grid + Orbit</option>
+                          <option value="waves">Gelombang Laut Bergerak (Waves)</option>
+                          <option value="stars">Bintang Berkelip + Meteor Jatuh</option>
+                          <option value="bubbles">Gelembung Bokeh Melayang</option>
+                          <option value="grid">Cyber Grid + Pulse Radar</option>
+                        </select>
+                      </div>
+                      <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label"><i class="fa-solid fa-shapes" style="color: #0284c7;"></i> Gaya Kartu Link</label>
+                        <select id="bio-select-card-style" class="form-select">
+                          <option value="glass">Glass Transparan (Modern)</option>
+                          <option value="solid">Putih Solid (Bersih)</option>
+                          <option value="outline">Outline Transparan (Minimalis)</option>
+                          <option value="pill">Kapsul Bulat Penuh (Pill)</option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -2982,7 +3038,7 @@
     </div>
   </div>
 
-  <script src="./js/admin.js?v=20261119_02" defer></script>
+  <script src="./js/admin.js?v=20261119_04" defer></script>
   <script src="./js/cv-builder.js?v=20261116_04" defer></script>
 </body>
 

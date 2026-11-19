@@ -9751,6 +9751,12 @@ let bioLinksState = {
     subtitle: 'Portal Lowongan Kerja Resmi Terverifikasi, Grup Loker Aktif & Layanan CV ATS',
     avatar: '',
     theme: 'clean',
+    bg_effect: 'auto',
+    card_style: 'glass',
+    custom_c1: '#2563eb',
+    custom_c2: '#7c3aed',
+    custom_c3: '#06b6d4',
+    custom_text_mode: 'auto',
     badge: 'Terverifikasi',
     instagram_url: '',
     tiktok_url: ''
@@ -9795,6 +9801,18 @@ function bindBioLinksEventsOnce() {
       document.querySelectorAll('#bio-theme-pills .bio-theme-pill').forEach(b => {
         b.classList.toggle('active', b === btn);
       });
+      const customBox = document.getElementById('bio-custom-colors-panel');
+      if (customBox) customBox.style.display = (theme === 'custom') ? 'block' : 'none';
+      renderBioLivePreview();
+    });
+  });
+
+  ['bio-custom-c1', 'bio-custom-c2', 'bio-custom-c3', 'bio-custom-text-mode', 'bio-select-effect', 'bio-select-card-style'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const evt = el.tagName === 'SELECT' ? 'change' : 'input';
+    el.addEventListener(evt, () => {
+      syncBioProfileFromInputs();
       renderBioLivePreview();
     });
   });
@@ -9835,6 +9853,12 @@ function syncBioProfileFromInputs() {
   bioLinksState.profile.subtitle = (document.getElementById('bio-input-subtitle')?.value || '').trim();
   bioLinksState.profile.instagram_url = (document.getElementById('bio-input-ig')?.value || '').trim();
   bioLinksState.profile.tiktok_url = (document.getElementById('bio-input-tt')?.value || '').trim();
+  bioLinksState.profile.bg_effect = document.getElementById('bio-select-effect')?.value || 'auto';
+  bioLinksState.profile.card_style = document.getElementById('bio-select-card-style')?.value || 'glass';
+  bioLinksState.profile.custom_c1 = document.getElementById('bio-custom-c1')?.value || '#2563eb';
+  bioLinksState.profile.custom_c2 = document.getElementById('bio-custom-c2')?.value || '#7c3aed';
+  bioLinksState.profile.custom_c3 = document.getElementById('bio-custom-c3')?.value || '#06b6d4';
+  bioLinksState.profile.custom_text_mode = document.getElementById('bio-custom-text-mode')?.value || 'auto';
 }
 
 function renderBioProfileInputs() {
@@ -9845,6 +9869,15 @@ function renderBioProfileInputs() {
   setVal('bio-input-subtitle', p.subtitle);
   setVal('bio-input-ig', p.instagram_url);
   setVal('bio-input-tt', p.tiktok_url);
+  setVal('bio-select-effect', p.bg_effect || 'auto');
+  setVal('bio-select-card-style', p.card_style || 'glass');
+  setVal('bio-custom-c1', p.custom_c1 || '#2563eb');
+  setVal('bio-custom-c2', p.custom_c2 || '#7c3aed');
+  setVal('bio-custom-c3', p.custom_c3 || '#06b6d4');
+  setVal('bio-custom-text-mode', p.custom_text_mode || 'auto');
+
+  const customBox = document.getElementById('bio-custom-colors-panel');
+  if (customBox) customBox.style.display = ((p.theme || 'clean') === 'custom') ? 'block' : 'none';
 
   const avEl = document.getElementById('bio-admin-avatar-preview');
   if (avEl) {
@@ -9917,7 +9950,30 @@ function renderBioAdminLinksList() {
 function renderBioLivePreview() {
   const p = bioLinksState.profile || {};
   const screen = document.getElementById('bio-phone-screen');
-  if (screen) screen.setAttribute('data-bio-theme', p.theme || 'clean');
+  if (screen) {
+    const theme = p.theme || 'clean';
+    screen.setAttribute('data-bio-theme', theme);
+    screen.setAttribute('data-card-style', p.card_style || 'glass');
+    if (theme === 'custom') {
+      const c1 = p.custom_c1 || '#2563eb';
+      const c2 = p.custom_c2 || '#7c3aed';
+      const c3 = p.custom_c3 || '#06b6d4';
+      screen.style.background = `linear-gradient(125deg, ${c1} 0%, ${c2} 50%, ${c3} 100%)`;
+      screen.style.backgroundSize = '240% 240%';
+      const hexLum = (hex) => {
+        const h = String(hex || '').replace('#', '');
+        if (h.length !== 6) return 0.5;
+        return (0.299 * parseInt(h.slice(0, 2), 16) + 0.587 * parseInt(h.slice(2, 4), 16) + 0.114 * parseInt(h.slice(4, 6), 16)) / 255;
+      };
+      const avg = (hexLum(c1) + hexLum(c2) + hexLum(c3)) / 3;
+      const mode = (p.custom_text_mode && p.custom_text_mode !== 'auto') ? p.custom_text_mode : (avg < 0.56 ? 'light' : 'dark');
+      screen.style.color = mode === 'light' ? '#ffffff' : '#0f172a';
+    } else {
+      screen.style.background = '';
+      screen.style.backgroundSize = '';
+      screen.style.color = '';
+    }
+  }
 
   const av = document.getElementById('bio-pv-avatar');
   if (av) {

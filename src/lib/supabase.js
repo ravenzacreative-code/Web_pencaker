@@ -577,6 +577,15 @@ export const DEFAULT_BIO_LINKS = {
     ]
 };
 
+function sanitizeHexColor(val, fallback) {
+    const clean = String(val || '').trim();
+    return /^#[0-9a-fA-F]{6}$/.test(clean) ? clean : fallback;
+}
+
+const ALLOWED_BIO_THEMES = ['clean', 'ocean', 'emerald', 'sunset', 'midnight', 'royal', 'sakura', 'cyberpunk', 'custom'];
+const ALLOWED_BIO_EFFECTS = ['auto', 'aurora', 'waves', 'stars', 'bubbles', 'grid'];
+const ALLOWED_BIO_CARDS = ['glass', 'solid', 'outline', 'pill'];
+
 function normalizeBioLinksPayload(raw, existing = null) {
     const base = existing || DEFAULT_BIO_LINKS;
     const rawProfile = (raw && typeof raw.profile === 'object' && raw.profile) ? raw.profile : {};
@@ -584,7 +593,13 @@ function normalizeBioLinksPayload(raw, existing = null) {
         name: String(rawProfile.name ?? base.profile.name ?? 'KitaKerja').trim().slice(0, 80) || 'KitaKerja',
         subtitle: String(rawProfile.subtitle ?? base.profile.subtitle ?? '').trim().slice(0, 220),
         avatar: String(rawProfile.avatar ?? base.profile.avatar ?? '').trim(),
-        theme: ['clean', 'ocean', 'midnight', 'emerald', 'sunset'].includes(rawProfile.theme) ? rawProfile.theme : (base.profile.theme || 'clean'),
+        theme: ALLOWED_BIO_THEMES.includes(rawProfile.theme) ? rawProfile.theme : (base.profile.theme || 'clean'),
+        bg_effect: ALLOWED_BIO_EFFECTS.includes(rawProfile.bg_effect) ? rawProfile.bg_effect : (base.profile.bg_effect || 'auto'),
+        card_style: ALLOWED_BIO_CARDS.includes(rawProfile.card_style) ? rawProfile.card_style : (base.profile.card_style || 'glass'),
+        custom_c1: sanitizeHexColor(rawProfile.custom_c1 ?? base.profile.custom_c1, '#2563eb'),
+        custom_c2: sanitizeHexColor(rawProfile.custom_c2 ?? base.profile.custom_c2, '#7c3aed'),
+        custom_c3: sanitizeHexColor(rawProfile.custom_c3 ?? base.profile.custom_c3, '#06b6d4'),
+        custom_text_mode: ['auto', 'light', 'dark'].includes(rawProfile.custom_text_mode) ? rawProfile.custom_text_mode : (base.profile.custom_text_mode || 'auto'),
         badge: String(rawProfile.badge ?? base.profile.badge ?? 'Terverifikasi').trim().slice(0, 40),
         instagram_url: String(rawProfile.instagram_url ?? base.profile.instagram_url ?? '').trim(),
         tiktok_url: String(rawProfile.tiktok_url ?? base.profile.tiktok_url ?? '').trim()
