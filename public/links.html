@@ -12,52 +12,168 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     :root {
-      --bg-page: linear-gradient(160deg, #f8fafc 0%, #eef2ff 50%, #f0f9ff 100%);
-      --card-bg: #ffffff;
-      --card-border: rgba(15, 23, 42, 0.08);
-      --card-shadow: 0 6px 20px -6px rgba(15, 23, 42, 0.08);
-      --card-hover-shadow: 0 14px 28px -8px rgba(37, 99, 235, 0.18);
+      /* Default: Aurora Mix Gradient */
+      --bg-page: linear-gradient(125deg, #dbeafe 0%, #e0e7ff 28%, #fce7f3 58%, #cffafe 84%, #ede9fe 100%);
+      --orb-1: rgba(59, 130, 246, 0.42);
+      --orb-2: rgba(168, 85, 247, 0.36);
+      --orb-3: rgba(6, 182, 212, 0.38);
+      --grid-color: rgba(37, 99, 235, 0.08);
+      --particle-color: rgba(255, 255, 255, 0.85);
+      --particle-glow: rgba(99, 102, 241, 0.45);
+      --card-bg: rgba(255, 255, 255, 0.8);
+      --card-border: rgba(255, 255, 255, 0.85);
+      --card-outer-ring: rgba(37, 99, 235, 0.12);
+      --card-shadow: 0 10px 28px -10px rgba(30, 58, 138, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      --card-hover-shadow: 0 18px 36px -10px rgba(79, 70, 229, 0.28), inset 0 1px 0 rgba(255, 255, 255, 1);
       --text-main: #0f172a;
-      --text-muted: #64748b;
+      --text-muted: #475569;
       --accent: #2563eb;
-      --accent-soft: rgba(37, 99, 235, 0.1);
-      --pill-bg: rgba(255, 255, 255, 0.85);
-      --avatar-ring: rgba(37, 99, 235, 0.22);
+      --accent-2: #7c3aed;
+      --accent-soft: rgba(37, 99, 235, 0.12);
+      --pill-bg: rgba(255, 255, 255, 0.78);
+      --avatar-ring: rgba(99, 102, 241, 0.38);
     }
 
     body[data-bio-theme="ocean"] {
-      --bg-page: linear-gradient(155deg, #e0f2fe 0%, #dbeafe 45%, #e0e7ff 100%);
+      --bg-page: linear-gradient(125deg, #0284c7 0%, #2563eb 30%, #4f46e5 62%, #06b6d4 100%);
+      --orb-1: rgba(56, 189, 248, 0.55);
+      --orb-2: rgba(129, 140, 248, 0.5);
+      --orb-3: rgba(45, 212, 191, 0.48);
+      --grid-color: rgba(255, 255, 255, 0.12);
+      --particle-color: rgba(224, 242, 254, 0.9);
+      --particle-glow: rgba(56, 189, 248, 0.65);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(255, 255, 255, 0.92);
+      --card-outer-ring: rgba(15, 23, 42, 0.12);
+      --card-shadow: 0 14px 32px -10px rgba(2, 6, 23, 0.3);
+      --card-hover-shadow: 0 20px 38px -8px rgba(2, 6, 23, 0.4);
+      --text-main: #0f172a;
+      --text-muted: #475569;
       --accent: #0284c7;
-      --accent-soft: rgba(2, 132, 199, 0.12);
-      --avatar-ring: rgba(2, 132, 199, 0.3);
+      --accent-2: #4f46e5;
+      --accent-soft: rgba(2, 132, 199, 0.13);
+      --pill-bg: rgba(255, 255, 255, 0.22);
+      --avatar-ring: rgba(56, 189, 248, 0.55);
+    }
+
+    body[data-bio-theme="ocean"] .bio-name,
+    body[data-bio-theme="ocean"] .bio-top-pill,
+    body[data-bio-theme="ocean"] .bio-footer,
+    body[data-bio-theme="ocean"] .bio-footer strong {
+      color: #ffffff;
+    }
+    body[data-bio-theme="ocean"] .bio-subtitle {
+      color: rgba(241, 245, 249, 0.92);
+    }
+    body[data-bio-theme="ocean"] .bio-badge-tag {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+    body[data-bio-theme="ocean"] .bio-top-pill {
+      border-color: rgba(255, 255, 255, 0.35);
     }
 
     body[data-bio-theme="emerald"] {
-      --bg-page: linear-gradient(155deg, #ecfdf5 0%, #d1fae5 45%, #e0f2fe 100%);
+      --bg-page: linear-gradient(125deg, #059669 0%, #0d9488 34%, #0284c7 68%, #10b981 100%);
+      --orb-1: rgba(52, 211, 153, 0.52);
+      --orb-2: rgba(56, 189, 248, 0.48);
+      --orb-3: rgba(163, 230, 53, 0.35);
+      --grid-color: rgba(255, 255, 255, 0.12);
+      --particle-color: rgba(236, 253, 245, 0.9);
+      --particle-glow: rgba(52, 211, 153, 0.65);
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(255, 255, 255, 0.95);
+      --card-outer-ring: rgba(6, 78, 59, 0.14);
+      --card-shadow: 0 14px 32px -10px rgba(6, 78, 59, 0.28);
+      --card-hover-shadow: 0 20px 38px -8px rgba(6, 78, 59, 0.38);
+      --text-main: #0f172a;
+      --text-muted: #475569;
       --accent: #059669;
-      --accent-soft: rgba(5, 150, 105, 0.12);
-      --avatar-ring: rgba(5, 150, 105, 0.28);
+      --accent-2: #0284c7;
+      --accent-soft: rgba(5, 150, 105, 0.13);
+      --pill-bg: rgba(255, 255, 255, 0.22);
+      --avatar-ring: rgba(52, 211, 153, 0.55);
+    }
+
+    body[data-bio-theme="emerald"] .bio-name,
+    body[data-bio-theme="emerald"] .bio-top-pill,
+    body[data-bio-theme="emerald"] .bio-footer,
+    body[data-bio-theme="emerald"] .bio-footer strong {
+      color: #ffffff;
+    }
+    body[data-bio-theme="emerald"] .bio-subtitle {
+      color: rgba(236, 253, 245, 0.94);
+    }
+    body[data-bio-theme="emerald"] .bio-badge-tag {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+    body[data-bio-theme="emerald"] .bio-top-pill {
+      border-color: rgba(255, 255, 255, 0.35);
     }
 
     body[data-bio-theme="sunset"] {
-      --bg-page: linear-gradient(155deg, #fff7ed 0%, #ffedd5 45%, #fce7f3 100%);
-      --accent: #ea580c;
-      --accent-soft: rgba(234, 88, 12, 0.12);
-      --avatar-ring: rgba(234, 88, 12, 0.28);
+      --bg-page: linear-gradient(125deg, #ff7e5f 0%, #f43f5e 35%, #a855f7 70%, #f59e0b 100%);
+      --orb-1: rgba(251, 191, 36, 0.5);
+      --orb-2: rgba(244, 114, 182, 0.55);
+      --orb-3: rgba(167, 139, 250, 0.5);
+      --grid-color: rgba(255, 255, 255, 0.12);
+      --particle-color: rgba(255, 247, 237, 0.92);
+      --particle-glow: rgba(251, 146, 60, 0.65);
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(255, 255, 255, 0.95);
+      --card-outer-ring: rgba(136, 19, 55, 0.14);
+      --card-shadow: 0 14px 32px -10px rgba(136, 19, 55, 0.28);
+      --card-hover-shadow: 0 20px 38px -8px rgba(136, 19, 55, 0.38);
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --accent: #e11d48;
+      --accent-2: #f97316;
+      --accent-soft: rgba(225, 29, 72, 0.12);
+      --pill-bg: rgba(255, 255, 255, 0.22);
+      --avatar-ring: rgba(251, 146, 60, 0.55);
+    }
+
+    body[data-bio-theme="sunset"] .bio-name,
+    body[data-bio-theme="sunset"] .bio-top-pill,
+    body[data-bio-theme="sunset"] .bio-footer,
+    body[data-bio-theme="sunset"] .bio-footer strong {
+      color: #ffffff;
+    }
+    body[data-bio-theme="sunset"] .bio-subtitle {
+      color: rgba(255, 247, 237, 0.94);
+    }
+    body[data-bio-theme="sunset"] .bio-badge-tag {
+      background: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+    body[data-bio-theme="sunset"] .bio-top-pill {
+      border-color: rgba(255, 255, 255, 0.35);
     }
 
     body[data-bio-theme="midnight"] {
-      --bg-page: radial-gradient(circle at top, #1e293b 0%, #0f172a 55%, #020617 100%);
-      --card-bg: rgba(30, 41, 59, 0.85);
-      --card-border: rgba(148, 163, 184, 0.18);
-      --card-shadow: 0 10px 26px -8px rgba(0, 0, 0, 0.45);
-      --card-hover-shadow: 0 14px 32px -6px rgba(56, 189, 248, 0.22);
+      --bg-page: linear-gradient(135deg, #090d1f 0%, #1e1b4b 35%, #0f172a 68%, #164e63 100%);
+      --orb-1: rgba(56, 189, 248, 0.42);
+      --orb-2: rgba(168, 85, 247, 0.45);
+      --orb-3: rgba(236, 72, 153, 0.34);
+      --grid-color: rgba(148, 163, 184, 0.1);
+      --particle-color: rgba(186, 230, 253, 0.9);
+      --particle-glow: rgba(56, 189, 248, 0.75);
+      --card-bg: rgba(15, 23, 42, 0.68);
+      --card-border: rgba(148, 163, 184, 0.24);
+      --card-outer-ring: rgba(56, 189, 248, 0.18);
+      --card-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      --card-hover-shadow: 0 18px 40px -8px rgba(56, 189, 248, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.14);
       --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --text-muted: #cbd5e1;
       --accent: #38bdf8;
-      --accent-soft: rgba(56, 189, 248, 0.16);
-      --pill-bg: rgba(30, 41, 59, 0.85);
-      --avatar-ring: rgba(56, 189, 248, 0.35);
+      --accent-2: #a855f7;
+      --accent-soft: rgba(56, 189, 248, 0.18);
+      --pill-bg: rgba(30, 41, 59, 0.68);
+      --avatar-ring: rgba(56, 189, 248, 0.5);
     }
 
     * {
@@ -70,14 +186,173 @@
       min-height: 100dvh;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg-page);
+      background-size: 240% 240%;
+      animation: bioGradientShift 16s ease-in-out infinite;
       color: var(--text-main);
       display: flex;
       justify-content: center;
       padding: 20px 16px 48px;
       -webkit-font-smoothing: antialiased;
+      position: relative;
+      overflow-x: hidden;
     }
 
+    /* ============================================================
+       LIVING ANIMATED BACKDROP (AURORA ORBS + GRID + FLOATING SPARKS)
+       ============================================================ */
+    .bio-bg-stage {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bio-bg-grid {
+      position: absolute;
+      inset: -40px;
+      background-image:
+        radial-gradient(var(--grid-color) 1.5px, transparent 1.5px);
+      background-size: 28px 28px;
+      animation: bioGridFloat 22s linear infinite;
+      opacity: 0.9;
+    }
+
+    .bio-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(56px);
+      will-change: transform;
+      opacity: 0.85;
+    }
+
+    .bio-orb-1 {
+      width: 340px;
+      height: 340px;
+      top: -90px;
+      left: -80px;
+      background: var(--orb-1);
+      animation: bioOrbDrift1 14s ease-in-out infinite;
+    }
+
+    .bio-orb-2 {
+      width: 360px;
+      height: 360px;
+      top: 28%;
+      right: -120px;
+      background: var(--orb-2);
+      animation: bioOrbDrift2 18s ease-in-out infinite;
+    }
+
+    .bio-orb-3 {
+      width: 310px;
+      height: 310px;
+      bottom: -90px;
+      left: 12%;
+      background: var(--orb-3);
+      animation: bioOrbDrift3 16s ease-in-out infinite;
+    }
+
+    .bio-particles {
+      position: absolute;
+      inset: 0;
+    }
+
+    .bio-particle {
+      position: absolute;
+      bottom: -24px;
+      border-radius: 50%;
+      background: var(--particle-color);
+      box-shadow: 0 0 14px var(--particle-glow);
+      opacity: 0;
+      will-change: transform, opacity;
+      animation: bioParticleRise var(--dur, 11s) linear var(--delay, 0s) infinite;
+    }
+
+    .bio-ring-deco {
+      position: absolute;
+      width: 460px;
+      height: 460px;
+      top: -160px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      border: 1.5px dashed rgba(255, 255, 255, 0.22);
+      animation: bioSpinSlow 46s linear infinite;
+    }
+
+    @keyframes bioGradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes bioGridFloat {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(28px, 28px, 0); }
+    }
+
+    @keyframes bioOrbDrift1 {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      33% { transform: translate3d(60px, 45px, 0) scale(1.12); }
+      66% { transform: translate3d(20px, 90px, 0) scale(0.94); }
+    }
+
+    @keyframes bioOrbDrift2 {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      40% { transform: translate3d(-75px, -50px, 0) scale(1.14); }
+      75% { transform: translate3d(-35px, 65px, 0) scale(0.92); }
+    }
+
+    @keyframes bioOrbDrift3 {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(70px, -60px, 0) scale(1.15); }
+    }
+
+    @keyframes bioParticleRise {
+      0% {
+        transform: translate3d(0, 0, 0) scale(0.6);
+        opacity: 0;
+      }
+      12% {
+        opacity: 0.72;
+      }
+      85% {
+        opacity: 0.55;
+      }
+      100% {
+        transform: translate3d(var(--drift, 28px), -108vh, 0) scale(1.15);
+        opacity: 0;
+      }
+    }
+
+    @keyframes bioSpinSlow {
+      from { transform: translateX(-50%) rotate(0deg); }
+      to { transform: translateX(-50%) rotate(360deg); }
+    }
+
+    @keyframes bioAvatarHalo {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes bioCardEnter {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* ============================================================
+       CONTENT SHELL
+       ============================================================ */
     .bio-shell {
+      position: relative;
+      z-index: 2;
       width: 100%;
       max-width: 500px;
       display: flex;
@@ -90,7 +365,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       gap: 10px;
     }
 
@@ -98,7 +373,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 7px 13px;
+      padding: 8px 14px;
       border-radius: 999px;
       background: var(--pill-bg);
       border: 1px solid var(--card-border);
@@ -106,16 +381,16 @@
       text-decoration: none;
       font-size: 0.78rem;
       font-weight: 700;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
       cursor: pointer;
       transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
     .bio-top-pill:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
     }
 
     .bio-profile {
@@ -128,17 +403,27 @@
     }
 
     .bio-avatar-wrap {
-      width: 92px;
-      height: 92px;
+      width: 98px;
+      height: 98px;
       border-radius: 50%;
       padding: 4px;
-      background: linear-gradient(135deg, var(--accent), #6366f1);
-      box-shadow: 0 12px 26px -8px var(--avatar-ring);
-      margin-bottom: 14px;
       position: relative;
+      margin-bottom: 14px;
+      box-shadow: 0 14px 30px -8px var(--avatar-ring);
+    }
+
+    .bio-avatar-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--accent), var(--accent-2), #ec4899, #06b6d4, var(--accent));
+      animation: bioAvatarHalo 7s linear infinite;
     }
 
     .bio-avatar-inner {
+      position: relative;
+      z-index: 1;
       width: 100%;
       height: 100%;
       border-radius: 50%;
@@ -148,7 +433,8 @@
       justify-content: center;
       overflow: hidden;
       color: var(--accent);
-      font-size: 2rem;
+      font-size: 2.1rem;
+      border: 3px solid rgba(255, 255, 255, 0.95);
     }
 
     .bio-avatar-inner img {
@@ -167,7 +453,7 @@
 
     .bio-name {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 1.32rem;
+      font-size: 1.36rem;
       font-weight: 800;
       letter-spacing: -0.02em;
       color: var(--text-main);
@@ -177,26 +463,29 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 21px;
-      height: 21px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
       color: #ffffff;
       font-size: 0.68rem;
       flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
     }
 
     .bio-badge-tag {
-      margin-top: 6px;
+      margin-top: 7px;
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 4px 11px;
+      padding: 4px 12px;
       border-radius: 999px;
       background: var(--accent-soft);
       color: var(--accent);
       font-size: 0.72rem;
       font-weight: 700;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .bio-subtitle {
@@ -204,7 +493,8 @@
       font-size: 0.87rem;
       line-height: 1.5;
       color: var(--text-muted);
-      max-width: 400px;
+      max-width: 410px;
+      font-weight: 500;
     }
 
     .bio-links-list {
@@ -224,15 +514,35 @@
       background: var(--card-bg);
       border: 1.5px solid var(--card-border);
       box-shadow: var(--card-shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       text-decoration: none;
       color: var(--text-main);
-      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, border-color 0.22s ease;
       position: relative;
       overflow: hidden;
+      animation: bioCardEnter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: calc(var(--card-idx, 0) * 65ms);
+    }
+
+    .bio-link-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -110%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.45) 50%, transparent 80%);
+      transition: left 0.55s ease;
+      pointer-events: none;
+    }
+
+    .bio-link-card:hover::after {
+      left: 135%;
     }
 
     .bio-link-card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px) scale(1.01);
       box-shadow: var(--card-hover-shadow);
       border-color: var(--accent);
     }
@@ -254,6 +564,7 @@
       border: 1px solid rgba(15, 23, 42, 0.06);
       background: #f1f5f9;
       color: #2563eb;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
     }
 
     .bio-link-thumb img {
@@ -263,14 +574,14 @@
       display: block;
     }
 
-    .bio-link-thumb.tone-briefcase { background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #ea580c; }
-    .bio-link-thumb.tone-globe { background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #2563eb; }
-    .bio-link-thumb.tone-whatsapp { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #16a34a; }
-    .bio-link-thumb.tone-file-cv { background: linear-gradient(135deg, #f5f3ff, #ede9fe); color: #7c3aed; }
-    .bio-link-thumb.tone-instagram { background: linear-gradient(135deg, #fdf2f8, #fce7f3); color: #db2777; }
-    .bio-link-thumb.tone-tiktok { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); color: #0f172a; }
-    .bio-link-thumb.tone-telegram { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); color: #0284c7; }
-    .bio-link-thumb.tone-envelope { background: linear-gradient(135deg, #fef2f2, #fee2e2); color: #dc2626; }
+    .bio-link-thumb.tone-briefcase { background: linear-gradient(135deg, #fff7ed, #fed7aa); color: #ea580c; }
+    .bio-link-thumb.tone-globe { background: linear-gradient(135deg, #eff6ff, #bfdbfe); color: #2563eb; }
+    .bio-link-thumb.tone-whatsapp { background: linear-gradient(135deg, #ecfdf5, #a7f3d0); color: #16a34a; }
+    .bio-link-thumb.tone-file-cv { background: linear-gradient(135deg, #f5f3ff, #ddd6fe); color: #7c3aed; }
+    .bio-link-thumb.tone-instagram { background: linear-gradient(135deg, #fdf2f8, #fbcfe8); color: #db2777; }
+    .bio-link-thumb.tone-tiktok { background: linear-gradient(135deg, #f1f5f9, #cbd5e1); color: #0f172a; }
+    .bio-link-thumb.tone-telegram { background: linear-gradient(135deg, #f0f9ff, #bae6fd); color: #0284c7; }
+    .bio-link-thumb.tone-envelope { background: linear-gradient(135deg, #fef2f2, #fecaca); color: #dc2626; }
     .bio-link-thumb.tone-link { background: linear-gradient(135deg, #f8fafc, #e2e8f0); color: #334155; }
 
     .bio-link-body {
@@ -297,7 +608,7 @@
     .bio-link-badge {
       font-size: 0.65rem;
       font-weight: 800;
-      padding: 2px 7px;
+      padding: 2px 8px;
       border-radius: 999px;
       background: var(--accent-soft);
       color: var(--accent);
@@ -329,7 +640,7 @@
     .bio-link-card:hover .bio-link-arrow {
       background: var(--accent-soft);
       color: var(--accent);
-      transform: translateX(2px);
+      transform: translateX(3px);
     }
 
     .bio-socials {
@@ -345,15 +656,17 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 9px 16px;
+      padding: 9px 17px;
       border-radius: 999px;
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 1.5px solid var(--card-border);
       color: var(--text-main);
       text-decoration: none;
       font-size: 0.82rem;
       font-weight: 700;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
       transition: transform 0.18s ease;
     }
 
@@ -365,10 +678,11 @@
     .bio-social-btn.tt i { color: var(--text-main); }
 
     .bio-footer {
-      margin-top: 32px;
+      margin-top: 34px;
       text-align: center;
-      font-size: 0.75rem;
+      font-size: 0.76rem;
       color: var(--text-muted);
+      font-weight: 500;
     }
 
     .bio-footer strong {
@@ -378,7 +692,8 @@
     .bio-skeleton {
       height: 78px;
       border-radius: 22px;
-      background: rgba(148, 163, 184, 0.16);
+      background: rgba(255, 255, 255, 0.32);
+      backdrop-filter: blur(8px);
       width: 100%;
     }
 
@@ -411,10 +726,37 @@
       .bio-link-thumb { width: 48px; height: 48px; border-radius: 14px; font-size: 1.2rem; }
       .bio-link-title { font-size: 0.9rem; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      body, .bio-bg-grid, .bio-orb, .bio-particle, .bio-ring-deco, .bio-avatar-wrap::before, .bio-link-card {
+        animation: none !important;
+      }
+    }
   </style>
 </head>
 
 <body data-bio-theme="clean">
+  <!-- Living Animated Gradient & Particle Backdrop -->
+  <div class="bio-bg-stage" aria-hidden="true">
+    <div class="bio-bg-grid"></div>
+    <div class="bio-ring-deco"></div>
+    <div class="bio-orb bio-orb-1"></div>
+    <div class="bio-orb bio-orb-2"></div>
+    <div class="bio-orb bio-orb-3"></div>
+    <div class="bio-particles">
+      <span class="bio-particle" style="left:8%;  width:8px;  height:8px;  --dur:11s; --delay:0s;    --drift:24px;"></span>
+      <span class="bio-particle" style="left:19%; width:12px; height:12px; --dur:14s; --delay:-3s;   --drift:-22px;"></span>
+      <span class="bio-particle" style="left:31%; width:7px;  height:7px;  --dur:10s; --delay:-6s;   --drift:18px;"></span>
+      <span class="bio-particle" style="left:44%; width:10px; height:10px; --dur:13s; --delay:-2s;   --drift:-28px;"></span>
+      <span class="bio-particle" style="left:57%; width:14px; height:14px; --dur:16s; --delay:-8s;   --drift:32px;"></span>
+      <span class="bio-particle" style="left:68%; width:8px;  height:8px;  --dur:11s; --delay:-4.5s; --drift:-18px;"></span>
+      <span class="bio-particle" style="left:79%; width:11px; height:11px; --dur:15s; --delay:-9.5s; --drift:20px;"></span>
+      <span class="bio-particle" style="left:89%; width:9px;  height:9px;  --dur:12s; --delay:-1.5s; --drift:-26px;"></span>
+      <span class="bio-particle" style="left:24%; width:6px;  height:6px;  --dur:9.5s; --delay:-7s;  --drift:14px;"></span>
+      <span class="bio-particle" style="left:74%; width:7px;  height:7px;  --dur:12.5s; --delay:-5s; --drift:-16px;"></span>
+    </div>
+  </div>
+
   <main class="bio-shell">
     <div class="bio-topbar">
       <a href="/" class="bio-top-pill" title="Buka Portal Lowongan Kerja">
@@ -547,7 +889,7 @@
         if (!links.length) {
           listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:24px;font-size:0.88rem;">Belum ada tautan aktif.</div>';
         } else {
-          listEl.innerHTML = links.map(item => {
+          listEl.innerHTML = links.map((item, idx) => {
             const iconKey = ICON_MAP[item.icon] ? item.icon : 'link';
             const thumbHtml = item.thumbnail
               ? `<img src="${esc(item.thumbnail)}" alt="${esc(item.title)}" loading="eager" decoding="async">`
@@ -555,7 +897,7 @@
             const domain = getDomainLabel(item.url);
             const subText = item.subtitle ? item.subtitle : domain;
             return `
-              <a class="bio-link-card" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" data-link-id="${esc(item.id)}">
+              <a class="bio-link-card" style="--card-idx: ${idx};" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" data-link-id="${esc(item.id)}">
                 <div class="bio-link-thumb tone-${esc(iconKey)}">${thumbHtml}</div>
                 <div class="bio-link-body">
                   <div class="bio-link-title-row">
