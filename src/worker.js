@@ -26,6 +26,9 @@ import {
     getStats,
     getSettings,
     saveSettings,
+    getBioLinks,
+    saveBioLinks,
+    incrementBioLinkClick,
     getCompanyImages,
     saveCompanyImage,
     getMasterData,
@@ -324,6 +327,7 @@ const EDGE_CACHE_PATHS = [
     '/api/company-images',
     '/api/flyer-themes',
     '/api/settings',
+    '/api/bio-links',
     '/api/config'
 ];
 
@@ -419,6 +423,43 @@ app.post('/api/settings', requireAdminAuth, async (c) => {
         await saveSettings(c.env, body);
         purgeEdgeCaches(c);
         return c.json({ success: true, message: 'Pengaturan berhasil disimpan!' });
+    } catch (err) {
+        return c.json({ error: err.message }, 500);
+    }
+});
+
+// ==========================================
+// 2B. BIO LINKS (LINKTREE-STYLE PAGE)
+// ==========================================
+app.get('/api/bio-links', async (c) => {
+    try {
+        return await withEdgeCache(c, 30, async () => {
+            const data = await getBioLinks(c.env);
+            return { success: true, data };
+        });
+    } catch (err) {
+        return c.json({ error: err.message }, 500);
+    }
+});
+
+app.put('/api/bio-links', requireAdminAuth, async (c) => {
+    try {
+        const body = await c.req.json();
+        const saved = await saveBioLinks(c.env, body);
+        purgeEdgeCaches(c);
+        return c.json({ success: true, data: saved, message: 'Link Bio berhasil disimpan!' });
+    } catch (err) {
+        return c.json({ error: err.message }, 500);
+    }
+});
+
+app.post('/api/bio-links/:id/click', async (c) => {
+    try {
+        const linkId = c.req.param('id');
+        const result = await incrementBioLinkClick(c.env, linkId);
+        purgeEdgeCaches(c);
+        if (!result) return c.json({ success: false, error: 'Link tidak ditemukan' }, 404);
+        return c.json({ success: true, data: result });
     } catch (err) {
         return c.json({ error: err.message }, 500);
     }
@@ -1159,6 +1200,9 @@ async function serveAssetPath(c, pathname) {
 
 app.get('/admin', (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get('/cek-cv', (c) => c.env.ASSETS.fetch(c.req.raw));
+app.get('/links', (c) => serveAssetPath(c, '/links.html'));
+app.get('/bio', (c) => serveAssetPath(c, '/links.html'));
+app.get('/linktree', (c) => serveAssetPath(c, '/links.html'));
 
 app.all('*', async (c) => {
     if (!c.env?.ASSETS) {

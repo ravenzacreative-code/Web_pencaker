@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>KitaKerja · Link Resmi & Info Lowongan Kerja</title>
+  <meta name="description" content="Akses cepat Portal Lowongan Kerja Resmi KitaKerja, Grup Loker Aktif, & Layanan CV ATS Friendly.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg-page: linear-gradient(160deg, #f8fafc 0%, #eef2ff 50%, #f0f9ff 100%);
+      --card-bg: #ffffff;
+      --card-border: rgba(15, 23, 42, 0.08);
+      --card-shadow: 0 6px 20px -6px rgba(15, 23, 42, 0.08);
+      --card-hover-shadow: 0 14px 28px -8px rgba(37, 99, 235, 0.18);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.1);
+      --pill-bg: rgba(255, 255, 255, 0.85);
+      --avatar-ring: rgba(37, 99, 235, 0.22);
+    }
+
+    body[data-bio-theme="ocean"] {
+      --bg-page: linear-gradient(155deg, #e0f2fe 0%, #dbeafe 45%, #e0e7ff 100%);
+      --accent: #0284c7;
+      --accent-soft: rgba(2, 132, 199, 0.12);
+      --avatar-ring: rgba(2, 132, 199, 0.3);
+    }
+
+    body[data-bio-theme="emerald"] {
+      --bg-page: linear-gradient(155deg, #ecfdf5 0%, #d1fae5 45%, #e0f2fe 100%);
+      --accent: #059669;
+      --accent-soft: rgba(5, 150, 105, 0.12);
+      --avatar-ring: rgba(5, 150, 105, 0.28);
+    }
+
+    body[data-bio-theme="sunset"] {
+      --bg-page: linear-gradient(155deg, #fff7ed 0%, #ffedd5 45%, #fce7f3 100%);
+      --accent: #ea580c;
+      --accent-soft: rgba(234, 88, 12, 0.12);
+      --avatar-ring: rgba(234, 88, 12, 0.28);
+    }
+
+    body[data-bio-theme="midnight"] {
+      --bg-page: radial-gradient(circle at top, #1e293b 0%, #0f172a 55%, #020617 100%);
+      --card-bg: rgba(30, 41, 59, 0.85);
+      --card-border: rgba(148, 163, 184, 0.18);
+      --card-shadow: 0 10px 26px -8px rgba(0, 0, 0, 0.45);
+      --card-hover-shadow: 0 14px 32px -6px rgba(56, 189, 248, 0.22);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.16);
+      --pill-bg: rgba(30, 41, 59, 0.85);
+      --avatar-ring: rgba(56, 189, 248, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100dvh;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      padding: 20px 16px 48px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .bio-shell {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .bio-topbar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 10px;
+    }
+
+    .bio-top-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      background: var(--pill-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .bio-top-pill:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
+    }
+
+    .bio-profile {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+      width: 100%;
+    }
+
+    .bio-avatar-wrap {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      padding: 4px;
+      background: linear-gradient(135deg, var(--accent), #6366f1);
+      box-shadow: 0 12px 26px -8px var(--avatar-ring);
+      margin-bottom: 14px;
+      position: relative;
+    }
+
+    .bio-avatar-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: var(--accent);
+      font-size: 2rem;
+    }
+
+    .bio-avatar-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .bio-name-row {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .bio-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.32rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+
+    .bio-verified {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 21px;
+      height: 21px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 0.68rem;
+      flex-shrink: 0;
+    }
+
+    .bio-badge-tag {
+      margin-top: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 11px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .bio-subtitle {
+      margin-top: 9px;
+      font-size: 0.87rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      max-width: 400px;
+    }
+
+    .bio-links-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    .bio-link-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 12px 16px 12px 12px;
+      border-radius: 22px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      box-shadow: var(--card-shadow);
+      text-decoration: none;
+      color: var(--text-main);
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bio-link-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--card-hover-shadow);
+      border-color: var(--accent);
+    }
+
+    .bio-link-card:active {
+      transform: scale(0.985);
+    }
+
+    .bio-link-thumb {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      background: #f1f5f9;
+      color: #2563eb;
+    }
+
+    .bio-link-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .bio-link-thumb.tone-briefcase { background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #ea580c; }
+    .bio-link-thumb.tone-globe { background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #2563eb; }
+    .bio-link-thumb.tone-whatsapp { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #16a34a; }
+    .bio-link-thumb.tone-file-cv { background: linear-gradient(135deg, #f5f3ff, #ede9fe); color: #7c3aed; }
+    .bio-link-thumb.tone-instagram { background: linear-gradient(135deg, #fdf2f8, #fce7f3); color: #db2777; }
+    .bio-link-thumb.tone-tiktok { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); color: #0f172a; }
+    .bio-link-thumb.tone-telegram { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); color: #0284c7; }
+    .bio-link-thumb.tone-envelope { background: linear-gradient(135deg, #fef2f2, #fee2e2); color: #dc2626; }
+    .bio-link-thumb.tone-link { background: linear-gradient(135deg, #f8fafc, #e2e8f0); color: #334155; }
+
+    .bio-link-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .bio-link-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .bio-link-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.3;
+      overflow-wrap: break-word;
+    }
+
+    .bio-link-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .bio-link-sub {
+      margin-top: 3px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bio-link-arrow {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      flex-shrink: 0;
+      transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+
+    .bio-link-card:hover .bio-link-arrow {
+      background: var(--accent-soft);
+      color: var(--accent);
+      transform: translateX(2px);
+    }
+
+    .bio-socials {
+      margin-top: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .bio-social-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+      transition: transform 0.18s ease;
+    }
+
+    .bio-social-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .bio-social-btn.ig i { color: #e1306c; }
+    .bio-social-btn.tt i { color: var(--text-main); }
+
+    .bio-footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .bio-footer strong {
+      color: var(--text-main);
+    }
+
+    .bio-skeleton {
+      height: 78px;
+      border-radius: 22px;
+      background: rgba(148, 163, 184, 0.16);
+      width: 100%;
+    }
+
+    .bio-toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 999;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+    }
+
+    .bio-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 14px 12px 36px; }
+      .bio-link-card { padding: 10px 12px 10px 10px; gap: 11px; border-radius: 18px; }
+      .bio-link-thumb { width: 48px; height: 48px; border-radius: 14px; font-size: 1.2rem; }
+      .bio-link-title { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+
+<body data-bio-theme="clean">
+  <main class="bio-shell">
+    <div class="bio-topbar">
+      <a href="/" class="bio-top-pill" title="Buka Portal Lowongan Kerja">
+        <i class="fa-solid fa-briefcase" style="color: var(--accent);"></i>
+        <span>Portal Loker</span>
+      </a>
+      <button type="button" class="bio-top-pill" id="btn-share-bio" title="Bagikan halaman Link Bio">
+        <i class="fa-solid fa-share-nodes"></i>
+        <span>Bagikan</span>
+      </button>
+    </div>
+
+    <header class="bio-profile">
+      <div class="bio-avatar-wrap">
+        <div class="bio-avatar-inner" id="bio-avatar">
+          <i class="fa-solid fa-briefcase"></i>
+        </div>
+      </div>
+      <div class="bio-name-row">
+        <h1 class="bio-name" id="bio-name">KitaKerja · LOKERSMASMK</h1>
+        <span class="bio-verified" title="Akun Resmi Terverifikasi"><i class="fa-solid fa-check"></i></span>
+      </div>
+      <div class="bio-badge-tag" id="bio-badge" style="display: none;"></div>
+      <p class="bio-subtitle" id="bio-subtitle">Portal Lowongan Kerja Resmi Terverifikasi, Grup Loker Aktif &amp; Layanan CV ATS</p>
+    </header>
+
+    <section class="bio-links-list" id="bio-links-list" aria-label="Daftar Tautan Utama">
+      <div class="bio-skeleton"></div>
+      <div class="bio-skeleton"></div>
+      <div class="bio-skeleton"></div>
+      <div class="bio-skeleton"></div>
+    </section>
+
+    <div class="bio-socials" id="bio-socials" style="display: none;"></div>
+
+    <footer class="bio-footer">
+      <div>&copy; <span id="bio-year">2026</span> <strong>KitaKerja</strong> &middot; by <strong>daysheet.id</strong></div>
+    </footer>
+  </main>
+
+  <div class="bio-toast" id="bio-toast">Tautan disalin!</div>
+
+  <script>
+    (function () {
+      const ICON_MAP = {
+        briefcase: 'fa-solid fa-briefcase',
+        globe: 'fa-solid fa-globe',
+        whatsapp: 'fa-brands fa-whatsapp',
+        'file-cv': 'fa-solid fa-file-lines',
+        instagram: 'fa-brands fa-instagram',
+        tiktok: 'fa-brands fa-tiktok',
+        telegram: 'fa-brands fa-telegram',
+        envelope: 'fa-solid fa-envelope',
+        link: 'fa-solid fa-link'
+      };
+
+      const yearEl = document.getElementById('bio-year');
+      if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
+      function esc(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function getDomainLabel(url) {
+        try {
+          const u = new URL(url, window.location.origin);
+          return u.hostname.replace(/^www\./, '');
+        } catch {
+          return String(url || '').replace(/^https?:\/\//i, '').split('/')[0] || '';
+        }
+      }
+
+      function showToast(msg) {
+        const el = document.getElementById('bio-toast');
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(el._t);
+        el._t = setTimeout(() => el.classList.remove('show'), 2200);
+      }
+
+      function trackClick(linkId) {
+        if (!linkId) return;
+        const endpoint = `/api/bio-links/${encodeURIComponent(linkId)}/click`;
+        try {
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon(endpoint, new Blob(['{}'], { type: 'application/json' }));
+            return;
+          }
+        } catch (e) {}
+        fetch(endpoint, { method: 'POST', keepalive: true }).catch(() => {});
+      }
+
+      function renderBioPage(data) {
+        const profile = (data && data.profile) || {};
+        const links = Array.isArray(data && data.links) ? data.links.filter(l => l && l.active !== false && l.url) : [];
+
+        document.body.setAttribute('data-bio-theme', profile.theme || 'clean');
+        if (profile.name) {
+          document.title = `${profile.name} · Link Resmi`;
+          document.getElementById('bio-name').textContent = profile.name;
+        }
+        document.getElementById('bio-subtitle').textContent = profile.subtitle || '';
+
+        const badgeEl = document.getElementById('bio-badge');
+        if (badgeEl) {
+          if (profile.badge) {
+            badgeEl.innerHTML = `<i class="fa-solid fa-shield-check"></i> ${esc(profile.badge)}`;
+            badgeEl.style.display = 'inline-flex';
+          } else {
+            badgeEl.style.display = 'none';
+          }
+        }
+
+        const avatarEl = document.getElementById('bio-avatar');
+        if (avatarEl) {
+          if (profile.avatar) {
+            avatarEl.innerHTML = `<img src="${esc(profile.avatar)}" alt="${esc(profile.name || 'Profil')}">`;
+          } else {
+            avatarEl.innerHTML = '<i class="fa-solid fa-briefcase"></i>';
+          }
+        }
+
+        const listEl = document.getElementById('bio-links-list');
+        if (!links.length) {
+          listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:24px;font-size:0.88rem;">Belum ada tautan aktif.</div>';
+        } else {
+          listEl.innerHTML = links.map(item => {
+            const iconKey = ICON_MAP[item.icon] ? item.icon : 'link';
+            const thumbHtml = item.thumbnail
+              ? `<img src="${esc(item.thumbnail)}" alt="${esc(item.title)}" loading="eager" decoding="async">`
+              : `<i class="${ICON_MAP[iconKey]}"></i>`;
+            const domain = getDomainLabel(item.url);
+            const subText = item.subtitle ? item.subtitle : domain;
+            return `
+              <a class="bio-link-card" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" data-link-id="${esc(item.id)}">
+                <div class="bio-link-thumb tone-${esc(iconKey)}">${thumbHtml}</div>
+                <div class="bio-link-body">
+                  <div class="bio-link-title-row">
+                    <span class="bio-link-title">${esc(item.title)}</span>
+                    ${item.badge ? `<span class="bio-link-badge">${esc(item.badge)}</span>` : ''}
+                  </div>
+                  <div class="bio-link-sub">${esc(subText)}</div>
+                </div>
+                <div class="bio-link-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+              </a>
+            `;
+          }).join('');
+
+          listEl.querySelectorAll('.bio-link-card').forEach(card => {
+            card.addEventListener('click', () => {
+              trackClick(card.getAttribute('data-link-id'));
+            });
+          });
+        }
+
+        const socialsEl = document.getElementById('bio-socials');
+        const socialItems = [];
+        if (profile.instagram_url) {
+          const igUrl = /^https?:\/\//i.test(profile.instagram_url) ? profile.instagram_url : `https://${profile.instagram_url}`;
+          socialItems.push(`<a class="bio-social-btn ig" href="${esc(igUrl)}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i> Instagram</a>`);
+        }
+        if (profile.tiktok_url) {
+          const ttUrl = /^https?:\/\//i.test(profile.tiktok_url) ? profile.tiktok_url : `https://${profile.tiktok_url}`;
+          socialItems.push(`<a class="bio-social-btn tt" href="${esc(ttUrl)}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-tiktok"></i> TikTok</a>`);
+        }
+        if (socialItems.length > 0) {
+          socialsEl.innerHTML = socialItems.join('');
+          socialsEl.style.display = 'flex';
+        } else {
+          socialsEl.style.display = 'none';
+        }
+      }
+
+      const shareBtn = document.getElementById('btn-share-bio');
+      if (shareBtn) {
+        shareBtn.addEventListener('click', async () => {
+          const url = window.location.href;
+          if (navigator.share) {
+            try {
+              await navigator.share({ title: document.title, url });
+              return;
+            } catch (e) {}
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => showToast('Link Bio berhasil disalin!'));
+          } else {
+            showToast(url);
+          }
+        });
+      }
+
+      fetch('/api/bio-links')
+        .then(r => r.json())
+        .then(res => {
+          renderBioPage((res && res.data) || res || {});
+        })
+        .catch(() => {
+          renderBioPage({
+            profile: {
+              name: 'KitaKerja · LOKERSMASMK',
+              subtitle: 'Portal Lowongan Kerja Resmi Terverifikasi'
+            },
+            links: [
+              { id: 'fallback_1', title: 'Web Kita LOKERSMASMK', subtitle: 'kitakerja.biz.id', url: '/', icon: 'globe', active: true }
+            ]
+          });
+        });
+    })();
+  </script>
+</body>
+
+</html>

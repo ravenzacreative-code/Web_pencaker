@@ -986,7 +986,7 @@ function setupNavigation() {
 }
 
 function switchSection(sectionName) {
-  const sections = ['dashboard', 'upload-job', 'manage-jobs', 'sosmed-generator', 'flyer-themes', 'settings-master', 'settings-cv', 'cv-builder'];
+  const sections = ['dashboard', 'upload-job', 'manage-jobs', 'sosmed-generator', 'flyer-themes', 'settings-master', 'settings-cv', 'cv-builder', 'bio-links'];
   sections.forEach(sec => {
     const el = document.getElementById(`section-${sec}`);
     if (el) el.style.display = (sec === sectionName) ? 'block' : 'none';
@@ -1027,6 +1027,10 @@ function switchSection(sectionName) {
     if (titleEl) titleEl.textContent = 'Studio Pembuat & Desain CV (8 Template ATS)';
     if (subEl) subEl.textContent = 'Buat, sesuaikan dan cetak CV profesional standar ATS & Modern siap print A4 atau simpan PDF.';
     if (window.initCvStudio) window.initCvStudio();
+  } else if (sectionName === 'bio-links') {
+    if (titleEl) titleEl.textContent = 'Link Bio (Linktree Versi Web Sendiri)';
+    if (subEl) subEl.textContent = 'Kelola 4+ tautan utama bio medsos, kustom ikon/tema, dan pantau klik pengunjung.';
+    if (typeof loadBioLinksAdmin === 'function') loadBioLinksAdmin();
   }
 }
 
@@ -9725,3 +9729,418 @@ function setupCvSettings() {
     });
   }
 }
+
+// ==============================================================
+// LINK BIO (LINKTREE-STYLE MANAGER) IN ADMIN PANEL
+// ==============================================================
+const BIO_ICON_CLASSES = {
+  briefcase: 'fa-solid fa-briefcase',
+  globe: 'fa-solid fa-globe',
+  whatsapp: 'fa-brands fa-whatsapp',
+  'file-cv': 'fa-solid fa-file-lines',
+  instagram: 'fa-brands fa-instagram',
+  tiktok: 'fa-brands fa-tiktok',
+  telegram: 'fa-brands fa-telegram',
+  envelope: 'fa-solid fa-envelope',
+  link: 'fa-solid fa-link'
+};
+
+let bioLinksState = {
+  profile: {
+    name: 'KitaKerja · LOKERSMASMK',
+    subtitle: 'Portal Lowongan Kerja Resmi Terverifikasi, Grup Loker Aktif & Layanan CV ATS',
+    avatar: '',
+    theme: 'clean',
+    badge: 'Terverifikasi',
+    instagram_url: '',
+    tiktok_url: ''
+  },
+  links: []
+};
+let bioItemDraftThumb = '';
+let bioLinksEventsBound = false;
+
+function getBioPublicFullUrl() {
+  const origin = (typeof window !== 'undefined' && window.location && window.location.origin && !window.location.origin.startsWith('file:'))
+    ? window.location.origin
+    : 'https://kitakerja.biz.id';
+  return `${origin}/links`;
+}
+
+function getBioDomainLabel(url) {
+  try {
+    return new URL(url, window.location.origin).hostname.replace(/^www\./, '');
+  } catch {
+    return String(url || '').replace(/^https?:\/\//i, '').split('/')[0] || '';
+  }
+}
+
+function bindBioLinksEventsOnce() {
+  if (bioLinksEventsBound) return;
+  bioLinksEventsBound = true;
+
+  ['bio-input-name', 'bio-input-badge', 'bio-input-subtitle', 'bio-input-ig', 'bio-input-tt'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      syncBioProfileFromInputs();
+      renderBioLivePreview();
+    });
+  });
+
+  document.querySelectorAll('#bio-theme-pills .bio-theme-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.getAttribute('data-theme') || 'clean';
+      bioLinksState.profile.theme = theme;
+      document.querySelectorAll('#bio-theme-pills .bio-theme-pill').forEach(b => {
+        b.classList.toggle('active', b === btn);
+      });
+      renderBioLivePreview();
+    });
+  });
+
+  const avatarInput = document.getElementById('bio-avatar-file-input');
+  if (avatarInput) {
+    avatarInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const dataUrl = await compressImageFileToDataUrl(file, 360, 0.84);
+      if (dataUrl) {
+        bioLinksState.profile.avatar = dataUrl;
+        renderBioProfileInputs();
+        renderBioLivePreview();
+      }
+      avatarInput.value = '';
+    });
+  }
+
+  const itemThumbInput = document.getElementById('bio-item-thumb-file');
+  if (itemThumbInput) {
+    itemThumbInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const dataUrl = await compressImageFileToDataUrl(file, 220, 0.84);
+      if (dataUrl) {
+        bioItemDraftThumb = dataUrl;
+        updateBioItemThumbPreview();
+      }
+      itemThumbInput.value = '';
+    });
+  }
+}
+
+function syncBioProfileFromInputs() {
+  bioLinksState.profile.name = (document.getElementById('bio-input-name')?.value || '').trim() || 'KitaKerja';
+  bioLinksState.profile.badge = (document.getElementById('bio-input-badge')?.value || '').trim();
+  bioLinksState.profile.subtitle = (document.getElementById('bio-input-subtitle')?.value || '').trim();
+  bioLinksState.profile.instagram_url = (document.getElementById('bio-input-ig')?.value || '').trim();
+  bioLinksState.profile.tiktok_url = (document.getElementById('bio-input-tt')?.value || '').trim();
+}
+
+function renderBioProfileInputs() {
+  const p = bioLinksState.profile || {};
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  setVal('bio-input-name', p.name);
+  setVal('bio-input-badge', p.badge);
+  setVal('bio-input-subtitle', p.subtitle);
+  setVal('bio-input-ig', p.instagram_url);
+  setVal('bio-input-tt', p.tiktok_url);
+
+  const avEl = document.getElementById('bio-admin-avatar-preview');
+  if (avEl) {
+    avEl.innerHTML = p.avatar
+      ? `<img src="${escapeHtml(p.avatar)}" alt="Avatar">`
+      : '<i class="fa-solid fa-briefcase"></i>';
+  }
+
+  document.querySelectorAll('#bio-theme-pills .bio-theme-pill').forEach(btn => {
+    btn.classList.toggle('active', (btn.getAttribute('data-theme') || 'clean') === (p.theme || 'clean'));
+  });
+}
+
+function renderBioAdminLinksList() {
+  const listEl = document.getElementById('bio-admin-links-list');
+  const countLabel = document.getElementById('bio-links-count-label');
+  const sideBadge = document.getElementById('sidebar-bio-links-count');
+  const links = Array.isArray(bioLinksState.links) ? bioLinksState.links : [];
+
+  if (countLabel) countLabel.textContent = String(links.length);
+  if (sideBadge) sideBadge.textContent = String(links.filter(l => l.active !== false).length);
+
+  if (!listEl) return;
+  if (links.length === 0) {
+    listEl.innerHTML = '<div style="text-align:center; padding:24px; color:#64748b; font-size:0.84rem; border:1px dashed #cbd5e1; border-radius:12px;">Belum ada link. Klik <strong>+ Tambah Link</strong> untuk mulai menambahkan.</div>';
+    return;
+  }
+
+  listEl.innerHTML = links.map((item, idx) => {
+    const iconCls = BIO_ICON_CLASSES[item.icon] || BIO_ICON_CLASSES.link;
+    const thumbHtml = item.thumbnail
+      ? `<img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}">`
+      : `<i class="${iconCls}"></i>`;
+    const domain = getBioDomainLabel(item.url);
+    const clicks = Number(item.clicks || 0);
+    const isActive = item.active !== false;
+    return `
+      <div class="bio-admin-link-row ${isActive ? '' : 'is-inactive'}">
+        <div class="bio-row-thumb">${thumbHtml}</div>
+        <div class="bio-row-info">
+          <div class="bio-row-title">${escapeHtml(item.title || 'Tanpa Judul')}</div>
+          <div class="bio-row-meta">
+            <span class="bio-clicks-pill"><i class="fa-solid fa-arrow-pointer"></i> ${clicks} clicks</span>
+            <span>&middot;</span>
+            <span>${escapeHtml(domain || item.url || '-')}</span>
+          </div>
+        </div>
+        <div class="bio-row-actions">
+          <button type="button" class="bio-row-btn" onclick="moveBioLinkItem(${idx}, -1)" title="Naikkan urutan" ${idx === 0 ? 'disabled style="opacity:0.4;"' : ''}>
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+          <button type="button" class="bio-row-btn" onclick="moveBioLinkItem(${idx}, 1)" title="Turunkan urutan" ${idx === links.length - 1 ? 'disabled style="opacity:0.4;"' : ''}>
+            <i class="fa-solid fa-arrow-down"></i>
+          </button>
+          <button type="button" class="bio-row-btn" onclick="toggleBioLinkActive(${idx})" title="${isActive ? 'Sembunyikan' : 'Aktifkan'}">
+            <i class="fa-solid ${isActive ? 'fa-eye' : 'fa-eye-slash'}" style="color:${isActive ? '#059669' : '#94a3b8'};"></i>
+          </button>
+          <button type="button" class="bio-row-btn" onclick="openBioLinkItemForm(${idx})" title="Edit link">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button type="button" class="bio-row-btn danger" onclick="deleteBioLinkItem(${idx})" title="Hapus link">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderBioLivePreview() {
+  const p = bioLinksState.profile || {};
+  const screen = document.getElementById('bio-phone-screen');
+  if (screen) screen.setAttribute('data-bio-theme', p.theme || 'clean');
+
+  const av = document.getElementById('bio-pv-avatar');
+  if (av) {
+    av.innerHTML = p.avatar
+      ? `<img src="${escapeHtml(p.avatar)}" alt="Avatar">`
+      : '<i class="fa-solid fa-briefcase"></i>';
+  }
+  const nm = document.getElementById('bio-pv-name');
+  if (nm) nm.textContent = p.name || 'KitaKerja';
+  const sb = document.getElementById('bio-pv-sub');
+  if (sb) sb.textContent = p.subtitle || '';
+
+  const pvList = document.getElementById('bio-pv-links');
+  if (!pvList) return;
+  const activeLinks = (bioLinksState.links || []).filter(l => l && l.active !== false);
+  pvList.innerHTML = activeLinks.map(item => {
+    const iconCls = BIO_ICON_CLASSES[item.icon] || BIO_ICON_CLASSES.link;
+    const thumbHtml = item.thumbnail
+      ? `<img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}">`
+      : `<i class="${iconCls}"></i>`;
+    return `
+      <div class="bio-pv-card">
+        <div class="bio-pv-thumb">${thumbHtml}</div>
+        <div style="flex:1; min-width:0;">
+          <div class="bio-pv-title">${escapeHtml(item.title)}</div>
+          <div class="bio-pv-domain">${escapeHtml(item.subtitle || getBioDomainLabel(item.url))}</div>
+        </div>
+        <i class="fa-solid fa-chevron-right" style="font-size:0.65rem; opacity:0.45;"></i>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateBioItemThumbPreview() {
+  const el = document.getElementById('bio-item-thumb-preview');
+  if (!el) return;
+  el.innerHTML = bioItemDraftThumb
+    ? `<img src="${escapeHtml(bioItemDraftThumb)}" alt="Icon">`
+    : '<i class="fa-solid fa-image"></i>';
+}
+
+window.clearBioAvatar = function() {
+  bioLinksState.profile.avatar = '';
+  renderBioProfileInputs();
+  renderBioLivePreview();
+};
+
+window.clearBioItemThumb = function() {
+  bioItemDraftThumb = '';
+  updateBioItemThumbPreview();
+};
+
+window.openBioLinkItemForm = function(editIdx = -1) {
+  const panel = document.getElementById('bio-link-form-panel');
+  const titleHeading = document.getElementById('bio-item-form-title');
+  const idxInput = document.getElementById('bio-item-edit-index');
+  const isEdit = Number.isInteger(editIdx) && editIdx >= 0 && bioLinksState.links[editIdx];
+  const item = isEdit ? bioLinksState.links[editIdx] : { title: '', subtitle: '', url: '', icon: 'globe', badge: '', thumbnail: '' };
+
+  if (titleHeading) titleHeading.textContent = isEdit ? `Edit Link #${editIdx + 1}` : 'Tambah Link Baru';
+  if (idxInput) idxInput.value = isEdit ? String(editIdx) : '-1';
+  document.getElementById('bio-item-title').value = item.title || '';
+  document.getElementById('bio-item-badge').value = item.badge || '';
+  document.getElementById('bio-item-url').value = item.url || '';
+  document.getElementById('bio-item-subtitle').value = item.subtitle || '';
+  document.getElementById('bio-item-icon').value = item.icon || 'globe';
+  bioItemDraftThumb = item.thumbnail || '';
+  updateBioItemThumbPreview();
+
+  if (panel) {
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+};
+
+window.closeBioLinkItemForm = function() {
+  const panel = document.getElementById('bio-link-form-panel');
+  if (panel) panel.style.display = 'none';
+};
+
+window.applyBioLinkItemForm = function() {
+  const idx = parseInt(document.getElementById('bio-item-edit-index')?.value || '-1', 10);
+  const title = (document.getElementById('bio-item-title')?.value || '').trim();
+  let url = (document.getElementById('bio-item-url')?.value || '').trim();
+  const subtitle = (document.getElementById('bio-item-subtitle')?.value || '').trim();
+  const badge = (document.getElementById('bio-item-badge')?.value || '').trim();
+  const icon = (document.getElementById('bio-item-icon')?.value || 'globe').trim();
+
+  if (!title || !url) {
+    alert('Judul link dan URL tujuan wajib diisi!');
+    return;
+  }
+  if (!/^(https?:\/\/|mailto:|tel:|\/)/i.test(url)) {
+    url = 'https://' + url;
+  }
+
+  if (idx >= 0 && bioLinksState.links[idx]) {
+    bioLinksState.links[idx] = {
+      ...bioLinksState.links[idx],
+      title,
+      url,
+      subtitle,
+      badge,
+      icon,
+      thumbnail: bioItemDraftThumb
+    };
+  } else {
+    bioLinksState.links.push({
+      id: 'link_' + Date.now(),
+      title,
+      url,
+      subtitle,
+      badge,
+      icon,
+      thumbnail: bioItemDraftThumb,
+      active: true,
+      clicks: 0
+    });
+  }
+
+  closeBioLinkItemForm();
+  renderBioAdminLinksList();
+  renderBioLivePreview();
+};
+
+window.moveBioLinkItem = function(idx, delta) {
+  const target = idx + delta;
+  if (target < 0 || target >= bioLinksState.links.length) return;
+  const copy = [...bioLinksState.links];
+  const [moved] = copy.splice(idx, 1);
+  copy.splice(target, 0, moved);
+  bioLinksState.links = copy;
+  renderBioAdminLinksList();
+  renderBioLivePreview();
+};
+
+window.toggleBioLinkActive = function(idx) {
+  if (!bioLinksState.links[idx]) return;
+  bioLinksState.links[idx].active = bioLinksState.links[idx].active === false ? true : false;
+  renderBioAdminLinksList();
+  renderBioLivePreview();
+};
+
+window.deleteBioLinkItem = function(idx) {
+  const item = bioLinksState.links[idx];
+  if (!item) return;
+  if (!confirm(`Hapus link "${item.title}" dari halaman Link Bio?`)) return;
+  bioLinksState.links.splice(idx, 1);
+  renderBioAdminLinksList();
+  renderBioLivePreview();
+};
+
+window.copyBioPublicUrl = function() {
+  const fullUrl = getBioPublicFullUrl();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      showAdminToast('Link Bio Disalin!', `Alamat ${fullUrl} berhasil disalin. Siap ditempel di bio TikTok / Instagram!`, 'success');
+    }).catch(() => prompt('Salin alamat Link Bio Anda:', fullUrl));
+  } else {
+    prompt('Salin alamat Link Bio Anda:', fullUrl);
+  }
+};
+
+window.loadBioLinksAdmin = async function() {
+  bindBioLinksEventsOnce();
+  const fullUrl = getBioPublicFullUrl();
+  const urlTxt = document.getElementById('bio-public-url-text');
+  const openBtn = document.getElementById('btn-open-bio-public');
+  if (urlTxt) urlTxt.textContent = fullUrl;
+  if (openBtn) openBtn.href = fullUrl;
+
+  try {
+    const res = await safeFetchJson(getApiEndpoint(`/api/bio-links?_t=${Date.now()}`));
+    if (res.ok && res.data && res.data.data) {
+      bioLinksState = {
+        profile: { ...bioLinksState.profile, ...(res.data.data.profile || {}) },
+        links: Array.isArray(res.data.data.links) ? res.data.data.links : []
+      };
+    }
+  } catch (e) {
+    console.warn('loadBioLinksAdmin warning:', e);
+  }
+
+  renderBioProfileInputs();
+  renderBioAdminLinksList();
+  renderBioLivePreview();
+};
+
+window.saveBioLinksConfig = async function() {
+  syncBioProfileFromInputs();
+  const btn = document.getElementById('btn-save-bio-links');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan Link Bio...';
+  }
+
+  try {
+    const token = getAdminToken();
+    const res = await safeFetchJson(getApiEndpoint('/api/bio-links'), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(bioLinksState)
+    });
+
+    if (res.ok && res.data && res.data.data) {
+      bioLinksState = res.data.data;
+      renderBioProfileInputs();
+      renderBioAdminLinksList();
+      renderBioLivePreview();
+      showAdminToast('Link Bio Tayang!', `Halaman ${getBioPublicFullUrl()} berhasil diperbarui secara live!`, 'success');
+    } else {
+      alert('Gagal menyimpan Link Bio: ' + (res.data?.error || res.error?.message || 'Periksa sesi login admin.'));
+    }
+  } catch (err) {
+    alert('Error menyimpan Link Bio: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+};

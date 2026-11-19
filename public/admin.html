@@ -14,7 +14,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/admin.css?v=20261116_04">
+  <link rel="stylesheet" href="./css/admin.css?v=20261119_02">
   <link rel="stylesheet" href="./css/cv-builder.css?v=20261116_04">
   <!-- Start Admin Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialAdminJobsPrefetch = fetch('/api/jobs?status=all').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
@@ -202,6 +202,20 @@
               </span>
               <span class="nav-label">Studio Pembuat CV</span>
               <span class="nav-pill tone-pro">8 PRO</span>
+            </a>
+          </li>
+
+          <li class="menu-item">
+            <a href="#bio-links">
+              <span class="nav-icon-tile tone-cyan" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+              </span>
+              <span class="nav-label">Link Bio (Linktree)</span>
+              <span class="nav-pill tone-emerald" id="sidebar-bio-links-count">4</span>
             </a>
           </li>
 
@@ -1860,6 +1874,211 @@
         </section>
 
         <!-- ============================================================== -->
+        <!-- SECTION: LINK BIO (LINKTREE ALA WEB SENDIRI)                   -->
+        <!-- ============================================================== -->
+        <section id="section-bio-links" style="display: none;">
+          <div class="panel">
+            <div class="panel-header bio-panel-header">
+              <div>
+                <div class="panel-title" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <i class="fa-solid fa-link" style="color: #0284c7;"></i>
+                  <span>Kelola Halaman Link Bio (Linktree Versi Web Sendiri)</span>
+                  <span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 9px;">LIVE &amp; GRATIS</span>
+                </div>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
+                  Atur tautan utama untuk bio TikTok, Instagram, dan WhatsApp dalam satu halaman profesional lengkap dengan statistik klik.
+                </p>
+              </div>
+              <div class="bio-header-url-actions">
+                <div class="bio-public-url-chip" title="Alamat publik halaman Link Bio Anda">
+                  <i class="fa-solid fa-globe" style="color: #0284c7;"></i>
+                  <span id="bio-public-url-text">https://kitakerja.biz.id/links</span>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" id="btn-copy-bio-url" onclick="copyBioPublicUrl()">
+                  <i class="fa-regular fa-copy"></i> Salin Link
+                </button>
+                <a href="/links" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" id="btn-open-bio-public">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Link Bio
+                </a>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="bio-admin-grid">
+                <!-- LEFT: EDITOR -->
+                <div class="bio-editor-col">
+                  <!-- Card 1: Profile & Theme -->
+                  <div class="bio-editor-card">
+                    <div class="bio-editor-card-head">
+                      <h4><i class="fa-solid fa-id-badge" style="color: #4f46e5;"></i> Profil &amp; Tema Halaman Bio</h4>
+                    </div>
+
+                    <div class="bio-avatar-upload-row">
+                      <div class="bio-avatar-thumb-box" id="bio-admin-avatar-preview">
+                        <i class="fa-solid fa-briefcase"></i>
+                      </div>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">Logo / Foto Profil Link Bio</div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                          <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('bio-avatar-file-input').click()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Logo/Foto
+                          </button>
+                          <button type="button" class="btn btn-outline btn-sm" onclick="clearBioAvatar()" style="color: #dc2626; border-color: #fecaca;">
+                            <i class="fa-solid fa-trash-can"></i> Reset
+                          </button>
+                          <input type="file" id="bio-avatar-file-input" accept="image/*" style="display: none;">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-grid-2" style="margin-top: 14px;">
+                      <div class="form-group">
+                        <label class="form-label">Nama Brand / Profil</label>
+                        <input type="text" id="bio-input-name" class="form-input" placeholder="KitaKerja · LOKERSMASMK">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Badge Label (Opsional)</label>
+                        <input type="text" id="bio-input-badge" class="form-input" placeholder="Terverifikasi / Info Loker Resmi">
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Deskripsi Bio Singkat</label>
+                      <textarea id="bio-input-subtitle" class="form-textarea" rows="2"
+                        placeholder="Portal Lowongan Kerja Resmi Terverifikasi, Grup Loker Aktif &amp; Layanan CV ATS"></textarea>
+                    </div>
+
+                    <div class="form-grid-2">
+                      <div class="form-group">
+                        <label class="form-label"><i class="fa-brands fa-instagram" style="color: #e1306c;"></i> Link Instagram (Opsional)</label>
+                        <input type="url" id="bio-input-ig" class="form-input" placeholder="https://instagram.com/username">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label"><i class="fa-brands fa-tiktok" style="color: #0f172a;"></i> Link TikTok (Opsional)</label>
+                        <input type="url" id="bio-input-tt" class="form-input" placeholder="https://tiktok.com/@username">
+                      </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                      <label class="form-label">Tema Warna Halaman</label>
+                      <div class="bio-theme-pills" id="bio-theme-pills">
+                        <button type="button" class="bio-theme-pill active" data-theme="clean"><span class="swatch sw-clean"></span> Clean Light</button>
+                        <button type="button" class="bio-theme-pill" data-theme="ocean"><span class="swatch sw-ocean"></span> Ocean Blue</button>
+                        <button type="button" class="bio-theme-pill" data-theme="emerald"><span class="swatch sw-emerald"></span> Emerald</button>
+                        <button type="button" class="bio-theme-pill" data-theme="sunset"><span class="swatch sw-sunset"></span> Sunset</button>
+                        <button type="button" class="bio-theme-pill" data-theme="midnight"><span class="swatch sw-midnight"></span> Dark Mode</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Card 2: Link List Manager -->
+                  <div class="bio-editor-card">
+                    <div class="bio-editor-card-head" style="justify-content: space-between;">
+                      <div>
+                        <h4><i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> Daftar Kartu Link (<span id="bio-links-count-label">0</span>)</h4>
+                        <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">Atur 4 link utama (atau lebih), urutan, gambar ikon, dan pantau jumlah klik secara live.</p>
+                      </div>
+                      <button type="button" class="btn btn-primary btn-sm" onclick="openBioLinkItemForm()">
+                        <i class="fa-solid fa-plus"></i> Tambah Link
+                      </button>
+                    </div>
+
+                    <!-- Inline Add/Edit Form -->
+                    <div id="bio-link-form-panel" class="bio-item-form-box" style="display: none;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong id="bio-item-form-title" style="font-size: 0.88rem; color: #1e293b;">Tambah Link Baru</strong>
+                        <button type="button" class="btn btn-outline btn-xs" onclick="closeBioLinkItemForm()"><i class="fa-solid fa-xmark"></i></button>
+                      </div>
+                      <input type="hidden" id="bio-item-edit-index" value="-1">
+                      <div class="form-grid-2">
+                        <div class="form-group">
+                          <label class="form-label">Judul Tombol / Kartu *</label>
+                          <input type="text" id="bio-item-title" class="form-input" placeholder="Contoh: Web kita LOKERSMASMK">
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Badge Kecil (Opsional)</label>
+                          <input type="text" id="bio-item-badge" class="form-input" placeholder="Contoh: Portal Resmi / Grup WA">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">URL / Tautan Tujuan *</label>
+                        <input type="url" id="bio-item-url" class="form-input" placeholder="https://kitakerja.biz.id atau https://wa.me/...">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Keterangan Singkat (Opsional — kosongkan untuk tampilkan nama domain)</label>
+                        <input type="text" id="bio-item-subtitle" class="form-input" placeholder="Contoh: Update info loker harian langsung di grup WhatsApp">
+                      </div>
+                      <div class="form-grid-2">
+                        <div class="form-group">
+                          <label class="form-label">Ikon Preset</label>
+                          <select id="bio-item-icon" class="form-select">
+                            <option value="globe">Portal Website (Bola Dunia)</option>
+                            <option value="briefcase">Lowongan Kerja (Tas Kerja)</option>
+                            <option value="whatsapp">WhatsApp / Grup WA</option>
+                            <option value="file-cv">Order CV ATS / Cek CV</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="envelope">Email</option>
+                            <option value="link">Link Umum</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Thumbnail / Logo Custom (Opsional)</label>
+                          <div style="display: flex; gap: 8px; align-items: center;">
+                            <div id="bio-item-thumb-preview" class="bio-mini-thumb-preview"><i class="fa-solid fa-image"></i></div>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('bio-item-thumb-file').click()" style="flex: 1;">
+                              <i class="fa-solid fa-upload"></i> Upload Icon
+                            </button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="clearBioItemThumb()" title="Hapus gambar thumbnail">
+                              <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <input type="file" id="bio-item-thumb-file" accept="image/*" style="display: none;">
+                          </div>
+                        </div>
+                      </div>
+                      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="closeBioLinkItemForm()">Batal</button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="applyBioLinkItemForm()">
+                          <i class="fa-solid fa-check"></i> Terapkan ke Daftar
+                        </button>
+                      </div>
+                    </div>
+
+                    <div id="bio-admin-links-list" class="bio-admin-links-list">
+                      <!-- Rendered dynamically -->
+                    </div>
+
+                    <div class="bio-save-bar">
+                      <button type="button" class="btn btn-primary" id="btn-save-bio-links" onclick="saveBioLinksConfig()"
+                        style="width: 100%; padding: 13px; font-weight: 800; background: linear-gradient(135deg, #059669, #10b981); border: none;">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan &amp; Tayangkan Halaman Link Bio
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- RIGHT: LIVE MOBILE PREVIEW -->
+                <div class="bio-preview-col">
+                  <div class="bio-phone-frame">
+                    <div class="bio-phone-notch"></div>
+                    <div class="bio-phone-screen" id="bio-phone-screen" data-bio-theme="clean">
+                      <div class="bio-pv-profile">
+                        <div class="bio-pv-avatar" id="bio-pv-avatar"><i class="fa-solid fa-briefcase"></i></div>
+                        <div class="bio-pv-name" id="bio-pv-name">KitaKerja · LOKERSMASMK</div>
+                        <div class="bio-pv-sub" id="bio-pv-sub">Portal Lowongan Kerja Resmi</div>
+                      </div>
+                      <div class="bio-pv-links" id="bio-pv-links"></div>
+                      <div class="bio-pv-footer">&copy; 2026 KitaKerja · by daysheet.id</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================== -->
         <!-- STUDIO PEMBUAT & DESAIN CV (8 TEMPLATE ATS & KREATIF)         -->
         <!-- ============================================================== -->
         <section id="section-cv-builder" class="admin-section" style="display: none;">
@@ -2328,28 +2547,30 @@
   <div class="admin-modal-overlay" id="poster-studio-modal">
     <div class="admin-modal-box poster-studio-box">
       <div class="admin-modal-header poster-studio-header">
-        <div>
-          <h3
-            style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-palette" style="color: #4f46e5;"></i> Studio Gambar Poster Lowongan
-          </h3>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-            Informasi lowongan dari web otomatis dirender ke gambar flyer profesional siap download & diposting ke media
-            sosial!
+        <div class="poster-studio-title-wrap">
+          <div class="poster-studio-title-row">
+            <h3 class="poster-studio-heading">
+              <i class="fa-solid fa-palette" style="color: #4f46e5;"></i> <span>Studio Gambar Poster Lowongan</span>
+            </h3>
+            <button type="button" class="btn-table btn-studio-close-mobile" onclick="closePosterStudioModal()" title="Tutup Studio" aria-label="Tutup Studio">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <p class="poster-studio-subtitle">
+            Informasi lowongan dari web otomatis dirender ke gambar flyer profesional siap download &amp; diposting ke media sosial!
           </p>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <button type="button" class="btn btn-sm btn-primary" id="btn-studio-publish-direct"
-            onclick="publishJobFromStudio()"
-            style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-weight: 800; border-radius: 10px; padding: 8px 16px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); color: #fff; display: flex; align-items: center; gap: 6px;">
-            <i class="fa-solid fa-paper-plane"></i> Terbitkan ke Portal
+        <div class="poster-studio-header-actions">
+          <button type="button" class="btn btn-sm btn-primary btn-studio-hdr-publish" id="btn-studio-publish-direct"
+            onclick="publishJobFromStudio()">
+            <i class="fa-solid fa-paper-plane"></i> <span>Terbitkan ke Portal</span>
           </button>
-          <button type="button" class="btn btn-sm btn-primary" onclick="savePosterChangesToJob()"
-            style="background: linear-gradient(135deg, #4f46e5, #6366f1); border: none; font-weight: 800; border-radius: 10px; padding: 8px 16px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); display: flex; align-items: center; gap: 6px;">
-            <i class="fa-solid fa-floppy-disk"></i> Simpan
+          <button type="button" class="btn btn-sm btn-primary btn-studio-hdr-save" onclick="savePosterChangesToJob()">
+            <i class="fa-solid fa-floppy-disk"></i> <span>Simpan</span>
           </button>
-          <button class="btn-table" onclick="closePosterStudioModal()" style="border-radius: 50%;"><i
-              class="fa-solid fa-xmark"></i></button>
+          <button type="button" class="btn-table btn-studio-close-desktop" onclick="closePosterStudioModal()" title="Tutup Studio" aria-label="Tutup Studio">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
       </div>
 
@@ -2761,7 +2982,7 @@
     </div>
   </div>
 
-  <script src="./js/admin.js?v=20261119_01" defer></script>
+  <script src="./js/admin.js?v=20261119_02" defer></script>
   <script src="./js/cv-builder.js?v=20261116_04" defer></script>
 </body>
 

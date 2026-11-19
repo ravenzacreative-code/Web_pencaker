@@ -519,6 +519,154 @@ export async function saveSettings(env, settingsData) {
     return true;
 }
 
+export const DEFAULT_BIO_LINKS = {
+    profile: {
+        name: 'KitaKerja · LOKERSMASMK',
+        subtitle: 'Portal Lowongan Kerja Resmi Terverifikasi, Grup Loker Aktif & Layanan CV ATS',
+        avatar: '',
+        theme: 'clean',
+        badge: 'Terverifikasi',
+        instagram_url: '',
+        tiktok_url: ''
+    },
+    links: [
+        {
+            id: 'link_1',
+            title: 'Lamar Cepat Tanpa Hoax',
+            subtitle: 'Lowongan resmi terverifikasi langsung ke HRD',
+            url: 'https://id.kitalulus.com',
+            icon: 'briefcase',
+            thumbnail: '',
+            badge: 'Rekomendasi',
+            active: true,
+            clicks: 0
+        },
+        {
+            id: 'link_2',
+            title: 'Web Kita LOKERSMASMK',
+            subtitle: 'Portal poster & info lowongan kerja terbaru setiap hari',
+            url: 'https://kitakerja.biz.id',
+            icon: 'globe',
+            thumbnail: '',
+            badge: 'Portal Resmi',
+            active: true,
+            clicks: 0
+        },
+        {
+            id: 'link_3',
+            title: 'KitaKerja2026 - Join Grup Loker',
+            subtitle: 'Update info loker harian langsung di grup WhatsApp',
+            url: 'https://whatsapp.com',
+            icon: 'whatsapp',
+            thumbnail: '',
+            badge: 'Grup Aktif',
+            active: true,
+            clicks: 0
+        },
+        {
+            id: 'link_4',
+            title: 'Order CV ATS Friendly & Cek CV',
+            subtitle: 'Buat CV profesional standar HRD & ATS cepat via WhatsApp',
+            url: 'https://kitakerja.biz.id/cek-cv',
+            icon: 'file-cv',
+            thumbnail: '',
+            badge: 'CV ATS',
+            active: true,
+            clicks: 0
+        }
+    ]
+};
+
+function normalizeBioLinksPayload(raw, existing = null) {
+    const base = existing || DEFAULT_BIO_LINKS;
+    const rawProfile = (raw && typeof raw.profile === 'object' && raw.profile) ? raw.profile : {};
+    const profile = {
+        name: String(rawProfile.name ?? base.profile.name ?? 'KitaKerja').trim().slice(0, 80) || 'KitaKerja',
+        subtitle: String(rawProfile.subtitle ?? base.profile.subtitle ?? '').trim().slice(0, 220),
+        avatar: String(rawProfile.avatar ?? base.profile.avatar ?? '').trim(),
+        theme: ['clean', 'ocean', 'midnight', 'emerald', 'sunset'].includes(rawProfile.theme) ? rawProfile.theme : (base.profile.theme || 'clean'),
+        badge: String(rawProfile.badge ?? base.profile.badge ?? 'Terverifikasi').trim().slice(0, 40),
+        instagram_url: String(rawProfile.instagram_url ?? base.profile.instagram_url ?? '').trim(),
+        tiktok_url: String(rawProfile.tiktok_url ?? base.profile.tiktok_url ?? '').trim()
+    };
+
+    const existingClicksMap = new Map();
+    if (existing && Array.isArray(existing.links)) {
+        existing.links.forEach(item => {
+            if (item && item.id) existingClicksMap.set(String(item.id), Number(item.clicks || 0));
+        });
+    }
+
+    const rawLinks = Array.isArray(raw?.links) ? raw.links : (Array.isArray(base.links) ? base.links : []);
+    const links = rawLinks
+        .filter(item => item && typeof item === 'object')
+        .slice(0, 24)
+        .map((item, idx) => {
+            const id = String(item.id || `link_${Date.now()}_${idx}`).trim().replace(/[^a-zA-Z0-9_-]/g, '') || `link_${idx + 1}`;
+            const rawUrl = String(item.url || '').trim();
+            const safeUrl = rawUrl && !/^(https?:\/\/|mailto:|tel:|\/)/i.test(rawUrl) ? `https://${rawUrl}` : rawUrl;
+            const prevClicks = existingClicksMap.has(id) ? existingClicksMap.get(id) : 0;
+            const incomingClicks = Number(item.clicks);
+            return {
+                id,
+                title: String(item.title || `Link ${idx + 1}`).trim().slice(0, 100),
+                subtitle: String(item.subtitle || '').trim().slice(0, 140),
+                url: safeUrl,
+                icon: String(item.icon || 'link').trim().slice(0, 32),
+                thumbnail: String(item.thumbnail || '').trim(),
+                badge: String(item.badge || '').trim().slice(0, 30),
+                active: item.active !== false,
+                clicks: Number.isFinite(incomingClicks) && incomingClicks >= prevClicks ? incomingClicks : prevClicks
+            };
+        });
+
+    return {
+        profile,
+        links,
+        updated_at: new Date().toISOString()
+    };
+}
+
+export async function getBioLinks(env) {
+    const settings = await getSettings(env);
+    const stored = settings && typeof settings.bio_links === 'object' && settings.bio_links
+        ? settings.bio_links
+        : null;
+    const merged = normalizeBioLinksPayload(stored || DEFAULT_BIO_LINKS, DEFAULT_BIO_LINKS);
+    if (!merged.profile.instagram_url && settings?.instagram_url) {
+        merged.profile.instagram_url = settings.instagram_url;
+    }
+    if (!merged.profile.tiktok_url && settings?.tiktok_url) {
+        merged.profile.tiktok_url = settings.tiktok_url;
+    }
+    return merged;
+}
+
+export async function saveBioLinks(env, payload) {
+    const current = await getBioLinks(env);
+    const normalized = normalizeBioLinksPayload(payload, current);
+    await saveSettings(env, { bio_links: normalized });
+    return normalized;
+}
+
+export async function incrementBioLinkClick(env, linkId) {
+    const cleanId = String(linkId || '').trim();
+    if (!cleanId) return null;
+    const current = await getBioLinks(env);
+    let updatedClicks = null;
+    const nextLinks = current.links.map(item => {
+        if (String(item.id) === cleanId) {
+            updatedClicks = Number(item.clicks || 0) + 1;
+            return { ...item, clicks: updatedClicks };
+        }
+        return item;
+    });
+    if (updatedClicks === null) return null;
+    const nextBio = { ...current, links: nextLinks, updated_at: new Date().toISOString() };
+    await saveSettings(env, { bio_links: nextBio });
+    return { id: cleanId, clicks: updatedClicks };
+}
+
 export async function getCompanyImages(env) {
     try {
         const rows = await supabaseFetch(env, 'jobs?status=eq.system_company_images&limit=1&select=id,description');
