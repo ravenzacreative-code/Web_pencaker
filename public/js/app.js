@@ -1683,14 +1683,16 @@ function setupModalDismiss(modalId) {
 // Helper to determine if a job is visible to public visitors
 function isJobPubliclyVisible(j) {
   if (!j) return false;
-  if (!j.status || j.status.startsWith('system_') || j.status === 'deleted' || j.status === 'archived') {
+  const st = String(j.status || '').toLowerCase().trim();
+  if (!st || st.startsWith('system_') || st === 'deleted' || st === 'archived' || st === 'draft') {
     return false;
   }
-  if (j.status === 'scheduled') {
+  if (st === 'scheduled') {
     if (!j.scheduled_at) return false;
     const schedTime = new Date(j.scheduled_at).getTime();
     if (isNaN(schedTime) || schedTime > Date.now()) return false;
   }
+  // Active, published, expired, closed, and locked jobs stay visible (locked/closed sorted to bottom)
   return true;
 }
 
@@ -2393,6 +2395,10 @@ function openJobPosterById(jobId) {
   if (window.getSelection && window.getSelection().toString().trim().length > 0) return;
   const job = (rawAllJobs || []).find(j => Number(j.id) === Number(jobId)) || (window.rawAllJobs || []).find(j => Number(j.id) === Number(jobId));
   if (!job) return;
+  if (isJobLocked(job)) {
+    showLockedNotice(job.title);
+    return;
+  }
   const flyerList = typeof getJobFlyerImages === 'function' ? getJobFlyerImages(job).filter(src => isManualJobFlyer({ poster_image: src })) : [];
   if (flyerList.length > 0) {
     openLightbox(flyerList, `${job.title} - Flyer Rekrutmen`, 0);
@@ -2418,6 +2424,10 @@ function renderJobs(jobs) {
     return;
   }
 
+  const lockedCount = jobs.filter(isJobLocked).length;
+  const openCount = jobs.length - lockedCount;
+  let closedDividerInserted = false;
+
   const cardsHtml = jobs.map((job, idx) => {
     const coverSrc = getEffectiveJobCover(job);
     const rawFlyers = Array.isArray(job.flyer_images) && job.flyer_images.length > 0
@@ -2427,6 +2437,17 @@ function renderJobs(jobs) {
     const hasFlyers = flyerList.length > 0;
 
     const isLocked = isJobLocked(job);
+    let closedDividerHtml = '';
+    if (isLocked && !closedDividerInserted && openCount > 0) {
+      closedDividerInserted = true;
+      closedDividerHtml = `
+        <div class="closed-jobs-divider" role="separator" aria-label="Lowongan Ditutup">
+          <span class="closed-divider-line"></span>
+          <span class="closed-divider-pill"><i class="fa-solid fa-lock"></i> Lowongan Ditutup / CLOSED (${lockedCount})</span>
+          <span class="closed-divider-line"></span>
+        </div>
+      `;
+    }
     const initial = job.company_name ? job.company_name.charAt(0).toUpperCase() : 'C';
     const timeAgo = formatTimeAgo(job.created_at);
     const urgencyBadge = calculateUrgencyBadge(job.deadline);
@@ -2456,19 +2477,24 @@ function renderJobs(jobs) {
       ? `Diposting pada ${new Date(job.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
       : 'Tanggal posting';
 
-    return `
-      <div class="job-card ${isLocked ? 'job-card-locked' : ''}" data-id="${job.id}" onmouseenter="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})" onpointerdown="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})" onfocusin="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})">
+    return `${closedDividerHtml}
+      <div class="job-card ${isLocked ? 'job-card-locked' : ''}" data-id="${job.id}" ${isLocked ? `onclick="showLockedNotice('${safeTitle}')" aria-disabled="true"` : `onmouseenter="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})" onpointerdown="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})" onfocusin="window.prefetchJobAssets && window.prefetchJobAssets(${job.id})"`}>
 
         <!-- Foto Sampul Kartu / Poster Preview with Lightbox trigger -->
-        <div class="job-poster-preview" onclick="${isLocked ? `showLockedNotice('${safeTitle}')` : `openJobPosterById(${job.id})`}">
+        <div class="job-poster-preview" ${isLocked ? '' : `onclick="openJobPosterById(${job.id})"`}>
           <img class="poster-img-fade" src="${coverSrc}" alt="${escapeHtml(job.title)}" loading="${loadingAttr}"${fetchPriorityAttr} decoding="async" onload="window.markPosterLoaded && window.markPosterLoaded(this)" onerror="window.handlePublicPosterError && window.handlePublicPosterError(this, ${job.id});">
-          ${isLocked ? '<div class="badge-locked-overlay"><i class="fa-solid fa-lock"></i> TELAH DITUTUP (EXPIRED)</div>' : ''}
+          ${isLocked ? `
+            <div class="badge-locked-overlay"><i class="fa-solid fa-lock"></i> CLOSED · LOWONGAN DITUTUP</div>
+            <div class="closed-stamp-center"><span><i class="fa-solid fa-ban"></i> CLOSED</span></div>
+          ` : ''}
           ${job.is_featured && !isLocked ? '<div class="badge-featured"><i class="fa-solid fa-star"></i> Unggulan</div>' : ''}
           ${hasFlyers && !isLocked ? `<div class="badge-card-flyer"><i class="fa-regular fa-image"></i> ${flyerList.length > 1 ? flyerList.length + ' Poster' : 'Poster Loker'}</div>` : ''}
           <div class="badge-category">${escapeHtml(job.category)}</div>
-          <div class="poster-overlay">
-            <span class="poster-badge-btn"><i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-expand'}"></i> ${isLocked ? 'Lowongan Telah Kedaluwarsa' : (hasFlyers ? 'Lihat Poster (' + flyerList.length + ')' : 'Lihat Poster')}</span>
-          </div>
+          ${isLocked ? '' : `
+            <div class="poster-overlay">
+              <span class="poster-badge-btn"><i class="fa-solid fa-expand"></i> ${hasFlyers ? 'Lihat Poster (' + flyerList.length + ')' : 'Lihat Poster'}</span>
+            </div>
+          `}
         </div>
 
         <div class="job-card-body">
@@ -2480,18 +2506,18 @@ function renderJobs(jobs) {
             </div>
           </div>
 
-          <h3 class="job-title" onclick="${isLocked ? `showLockedNotice('${safeTitle}')` : `openJobDetail(${job.id})`}" title="${isLocked ? 'Lowongan telah ditutup (Expired)' : 'Klik untuk rincian lengkap'}">${escapeHtml(job.title)}</h3>
+          <h3 class="job-title" ${isLocked ? '' : `onclick="openJobDetail(${job.id})"`} title="${isLocked ? 'Lowongan ini sudah CLOSED dan tidak dapat dibuka' : 'Klik untuk rincian lengkap'}">${escapeHtml(job.title)}</h3>
 
           <div class="job-badges">
-            ${platformPill}
+            ${isLocked ? '<span class="pill pill-expired"><i class="fa-solid fa-lock"></i> CLOSED · Ditutup</span>' : platformPill}
             <span class="pill pill-type"><i class="fa-regular fa-clock"></i> ${escapeHtml(job.job_type)}</span>
             ${job.salary_display ? `<span class="pill pill-salary"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(job.salary_display)}</span>` : ''}
-            ${channelPillsHtml}
-            ${isLocked ? '<span class="pill pill-expired"><i class="fa-solid fa-ban"></i> Lowongan Berakhir / Terkunci</span>' : urgencyBadge}
+            ${isLocked ? '' : channelPillsHtml}
+            ${isLocked ? '' : urgencyBadge}
           </div>
 
           <!-- CV Match Score Badge (if active) -->
-          ${job._matchScore ? `
+          ${job._matchScore && !isLocked ? `
             <div style="margin-top: 6px;">
               <span class="cv-match-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Kecocokan CV: ${job._matchScore}%</span>
               ${job._matchedSkills && job._matchedSkills.length > 0 ? `
@@ -2505,7 +2531,10 @@ function renderJobs(jobs) {
 
           <!-- Skill Chips -->
           <div class="card-skills-list">
-            ${skillTags.map(tag => `<span class="skill-tag-pill" onclick="searchBySkill(event, '${escapeHtml(tag)}')">#${escapeHtml(tag)}</span>`).join('')}
+            ${skillTags.map(tag => isLocked
+              ? `<span class="skill-tag-pill skill-tag-disabled">#${escapeHtml(tag)}</span>`
+              : `<span class="skill-tag-pill" onclick="searchBySkill(event, '${escapeHtml(tag)}')">#${escapeHtml(tag)}</span>`
+            ).join('')}
           </div>
 
           <p class="job-excerpt">${escapeHtml(job.description)}</p>
@@ -2514,8 +2543,8 @@ function renderJobs(jobs) {
             <span class="posted-time" title="${escapeHtml(exactCreatedTitle)}"><i class="fa-regular fa-calendar"></i> ${timeAgo}</span>
             <div class="card-actions" style="width: ${isLocked ? '100%' : 'auto'};">
               ${isLocked ? `
-                <button type="button" class="btn-locked-disabled" onclick="showLockedNotice('${safeTitle}')" title="Lowongan sudah kedaluwarsa">
-                  <i class="fa-solid fa-lock"></i> Lowongan Telah Ditutup (Expired)
+                <button type="button" class="btn-locked-disabled" disabled aria-disabled="true" title="Lowongan ini sudah CLOSED dan tidak dapat dibuka">
+                  <i class="fa-solid fa-lock"></i> CLOSED · Tidak Dapat Dibuka
                 </button>
               ` : `
                 <button type="button" class="btn btn-outline btn-sm" onclick="openJobDetail(${job.id})" title="Lihat kualifikasi & deskripsi lengkap">
@@ -2630,7 +2659,8 @@ function parseDateSafe(str) {
 // Job Lock Check: missing/open deadline stays open forever; dated deadline stays open through today and locks tomorrow
 function isJobLocked(job) {
   if (!job) return false;
-  if (job.status === 'expired' || job.status === 'closed') return true;
+  const st = String(job.status || '').toLowerCase().trim();
+  if (st === 'expired' || st === 'closed' || st === 'locked') return true;
   const dObj = parseDateSafe(job.deadline);
   if (!dObj) return false;
   return dObj.getTime() < Date.now();
@@ -3386,7 +3416,7 @@ async function openJobDetail(jobId) {
 
 // Notice for Locked / Expired Jobs
 window.showLockedNotice = function (jobTitle) {
-  showToast('error', `Lowongan untuk posisi "${jobTitle || 'Pekerjaan ini'}" telah berakhir dan dikunci oleh pihak rekruter. Anda tidak dapat membuka detail atau mengajukan lamaran baru.`);
+  showToast('error', `Lowongan "${jobTitle || 'Pekerjaan ini'}" berstatus CLOSED (Ditutup) dan tidak dapat dibuka.`);
 };
 
 // Interactive Checklist Match Score

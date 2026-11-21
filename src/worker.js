@@ -433,7 +433,7 @@ app.post('/api/settings', requireAdminAuth, async (c) => {
 // ==========================================
 app.get('/api/bio-links', async (c) => {
     try {
-        return await withEdgeCache(c, 30, async () => {
+        return await withEdgeCache(c, 120, async () => {
             const data = await getBioLinks(c.env);
             return { success: true, data };
         });
@@ -1198,11 +1198,21 @@ async function serveAssetPath(c, pathname) {
     return c.env.ASSETS.fetch(new Request(url.toString(), c.req.raw));
 }
 
+async function serveLinksPage(c) {
+    const res = await serveAssetPath(c, '/links.html');
+    if (res.status === 200) {
+        const headers = new Headers(res.headers);
+        headers.set('Cache-Control', 'public, max-age=300, s-maxage=600, stale-while-revalidate=86400');
+        return new Response(res.body, { status: 200, headers });
+    }
+    return res;
+}
+
 app.get('/admin', (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get('/cek-cv', (c) => c.env.ASSETS.fetch(c.req.raw));
-app.get('/links', (c) => serveAssetPath(c, '/links.html'));
-app.get('/bio', (c) => serveAssetPath(c, '/links.html'));
-app.get('/linktree', (c) => serveAssetPath(c, '/links.html'));
+app.get('/links', serveLinksPage);
+app.get('/bio', serveLinksPage);
+app.get('/linktree', serveLinksPage);
 
 app.all('*', async (c) => {
     if (!c.env?.ASSETS) {

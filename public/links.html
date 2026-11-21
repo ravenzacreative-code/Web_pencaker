@@ -8,24 +8,22 @@
   <meta name="description" content="Akses cepat Portal Lowongan Kerja Resmi KitaKerja, Grup Loker Aktif, & Layanan CV ATS Friendly.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" media="print" onload="this.media='all'">
   <style>
     :root {
       /* 1. Aurora Mix (Default) */
-      --bg-page: linear-gradient(125deg, #dbeafe 0%, #e0e7ff 28%, #fce7f3 58%, #cffafe 84%, #ede9fe 100%);
-      --orb-1: rgba(59, 130, 246, 0.42);
-      --orb-2: rgba(168, 85, 247, 0.36);
-      --orb-3: rgba(6, 182, 212, 0.38);
+      --bg-page: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 32%, #fce7f3 66%, #cffafe 100%);
+      --orb-1: rgba(59, 130, 246, 0.34);
+      --orb-2: rgba(168, 85, 247, 0.28);
+      --orb-3: rgba(6, 182, 212, 0.3);
       --grid-color: rgba(37, 99, 235, 0.08);
       --particle-color: rgba(255, 255, 255, 0.88);
-      --particle-glow: rgba(99, 102, 241, 0.45);
       --wave-1: rgba(37, 99, 235, 0.14);
       --wave-2: rgba(124, 58, 237, 0.12);
-      --card-bg: rgba(255, 255, 255, 0.82);
-      --card-border: rgba(255, 255, 255, 0.9);
-      --card-shadow: 0 10px 28px -10px rgba(30, 58, 138, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-      --card-hover-shadow: 0 18px 36px -10px rgba(79, 70, 229, 0.28);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(255, 255, 255, 0.92);
+      --card-shadow: 0 8px 22px -10px rgba(30, 58, 138, 0.16);
+      --card-hover-shadow: 0 14px 28px -10px rgba(79, 70, 229, 0.26);
       --text-main: #0f172a;
       --text-muted: #475569;
       --header-text: #0f172a;
@@ -33,26 +31,24 @@
       --accent: #2563eb;
       --accent-2: #7c3aed;
       --accent-soft: rgba(37, 99, 235, 0.12);
-      --pill-bg: rgba(255, 255, 255, 0.78);
-      --pill-border: rgba(255, 255, 255, 0.85);
-      --avatar-ring: rgba(99, 102, 241, 0.38);
+      --pill-bg: rgba(255, 255, 255, 0.82);
+      --pill-border: rgba(255, 255, 255, 0.9);
+      --avatar-ring: rgba(99, 102, 241, 0.36);
     }
 
-    /* 2. Cyber Ocean */
     body[data-bio-theme="ocean"] {
-      --bg-page: linear-gradient(125deg, #0284c7 0%, #2563eb 32%, #4f46e5 65%, #06b6d4 100%);
-      --orb-1: rgba(56, 189, 248, 0.55);
-      --orb-2: rgba(129, 140, 248, 0.5);
-      --orb-3: rgba(45, 212, 191, 0.48);
+      --bg-page: linear-gradient(135deg, #0284c7 0%, #2563eb 34%, #4f46e5 68%, #06b6d4 100%);
+      --orb-1: rgba(56, 189, 248, 0.42);
+      --orb-2: rgba(129, 140, 248, 0.38);
+      --orb-3: rgba(45, 212, 191, 0.36);
       --grid-color: rgba(255, 255, 255, 0.13);
       --particle-color: rgba(224, 242, 254, 0.9);
-      --particle-glow: rgba(56, 189, 248, 0.65);
       --wave-1: rgba(255, 255, 255, 0.16);
-      --wave-2: rgba(56, 189, 248, 0.22);
-      --card-bg: rgba(255, 255, 255, 0.88);
-      --card-border: rgba(255, 255, 255, 0.95);
-      --card-shadow: 0 14px 32px -10px rgba(2, 6, 23, 0.3);
-      --card-hover-shadow: 0 20px 38px -8px rgba(2, 6, 23, 0.42);
+      --wave-2: rgba(56, 189, 248, 0.2);
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --card-border: rgba(255, 255, 255, 0.96);
+      --card-shadow: 0 10px 24px -10px rgba(2, 6, 23, 0.28);
+      --card-hover-shadow: 0 16px 30px -8px rgba(2, 6, 23, 0.38);
       --text-main: #0f172a;
       --text-muted: #475569;
       --header-text: #ffffff;
@@ -62,24 +58,22 @@
       --accent-soft: rgba(2, 132, 199, 0.14);
       --pill-bg: rgba(255, 255, 255, 0.22);
       --pill-border: rgba(255, 255, 255, 0.36);
-      --avatar-ring: rgba(56, 189, 248, 0.55);
+      --avatar-ring: rgba(56, 189, 248, 0.5);
     }
 
-    /* 3. Neon Mint */
     body[data-bio-theme="emerald"] {
-      --bg-page: linear-gradient(125deg, #059669 0%, #0d9488 35%, #0284c7 68%, #10b981 100%);
-      --orb-1: rgba(52, 211, 153, 0.52);
-      --orb-2: rgba(56, 189, 248, 0.48);
-      --orb-3: rgba(163, 230, 53, 0.36);
+      --bg-page: linear-gradient(135deg, #059669 0%, #0d9488 36%, #0284c7 70%, #10b981 100%);
+      --orb-1: rgba(52, 211, 153, 0.4);
+      --orb-2: rgba(56, 189, 248, 0.36);
+      --orb-3: rgba(163, 230, 53, 0.28);
       --grid-color: rgba(255, 255, 255, 0.14);
       --particle-color: rgba(236, 253, 245, 0.92);
-      --particle-glow: rgba(52, 211, 153, 0.7);
       --wave-1: rgba(255, 255, 255, 0.14);
-      --wave-2: rgba(110, 231, 183, 0.2);
-      --card-bg: rgba(255, 255, 255, 0.9);
-      --card-border: rgba(255, 255, 255, 0.95);
-      --card-shadow: 0 14px 32px -10px rgba(6, 78, 59, 0.28);
-      --card-hover-shadow: 0 20px 38px -8px rgba(6, 78, 59, 0.38);
+      --wave-2: rgba(110, 231, 183, 0.18);
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --card-border: rgba(255, 255, 255, 0.96);
+      --card-shadow: 0 10px 24px -10px rgba(6, 78, 59, 0.26);
+      --card-hover-shadow: 0 16px 30px -8px rgba(6, 78, 59, 0.36);
       --text-main: #0f172a;
       --text-muted: #475569;
       --header-text: #ffffff;
@@ -89,24 +83,22 @@
       --accent-soft: rgba(5, 150, 105, 0.14);
       --pill-bg: rgba(255, 255, 255, 0.22);
       --pill-border: rgba(255, 255, 255, 0.36);
-      --avatar-ring: rgba(52, 211, 153, 0.55);
+      --avatar-ring: rgba(52, 211, 153, 0.5);
     }
 
-    /* 4. Sunset Glow */
     body[data-bio-theme="sunset"] {
-      --bg-page: linear-gradient(125deg, #ff7e5f 0%, #f43f5e 36%, #a855f7 70%, #f59e0b 100%);
-      --orb-1: rgba(251, 191, 36, 0.55);
-      --orb-2: rgba(244, 114, 182, 0.55);
-      --orb-3: rgba(167, 139, 250, 0.5);
+      --bg-page: linear-gradient(135deg, #ff7e5f 0%, #f43f5e 36%, #a855f7 70%, #f59e0b 100%);
+      --orb-1: rgba(251, 191, 36, 0.42);
+      --orb-2: rgba(244, 114, 182, 0.42);
+      --orb-3: rgba(167, 139, 250, 0.38);
       --grid-color: rgba(255, 255, 255, 0.13);
       --particle-color: rgba(255, 247, 237, 0.92);
-      --particle-glow: rgba(251, 146, 60, 0.7);
       --wave-1: rgba(255, 255, 255, 0.16);
-      --wave-2: rgba(253, 186, 116, 0.22);
-      --card-bg: rgba(255, 255, 255, 0.9);
-      --card-border: rgba(255, 255, 255, 0.95);
-      --card-shadow: 0 14px 32px -10px rgba(136, 19, 55, 0.28);
-      --card-hover-shadow: 0 20px 38px -8px rgba(136, 19, 55, 0.38);
+      --wave-2: rgba(253, 186, 116, 0.2);
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --card-border: rgba(255, 255, 255, 0.96);
+      --card-shadow: 0 10px 24px -10px rgba(136, 19, 55, 0.26);
+      --card-hover-shadow: 0 16px 30px -8px rgba(136, 19, 55, 0.36);
       --text-main: #0f172a;
       --text-muted: #475569;
       --header-text: #ffffff;
@@ -116,24 +108,22 @@
       --accent-soft: rgba(225, 29, 72, 0.13);
       --pill-bg: rgba(255, 255, 255, 0.22);
       --pill-border: rgba(255, 255, 255, 0.36);
-      --avatar-ring: rgba(251, 146, 60, 0.55);
+      --avatar-ring: rgba(251, 146, 60, 0.5);
     }
 
-    /* 5. Cosmic Dark */
     body[data-bio-theme="midnight"] {
-      --bg-page: linear-gradient(135deg, #090d1f 0%, #1e1b4b 36%, #0f172a 68%, #164e63 100%);
-      --orb-1: rgba(56, 189, 248, 0.42);
-      --orb-2: rgba(168, 85, 247, 0.45);
-      --orb-3: rgba(236, 72, 153, 0.34);
+      --bg-page: linear-gradient(135deg, #090d1f 0%, #1e1b4b 38%, #0f172a 70%, #164e63 100%);
+      --orb-1: rgba(56, 189, 248, 0.34);
+      --orb-2: rgba(168, 85, 247, 0.36);
+      --orb-3: rgba(236, 72, 153, 0.28);
       --grid-color: rgba(148, 163, 184, 0.11);
       --particle-color: rgba(224, 242, 254, 0.95);
-      --particle-glow: rgba(56, 189, 248, 0.8);
-      --wave-1: rgba(56, 189, 248, 0.16);
-      --wave-2: rgba(168, 85, 247, 0.18);
-      --card-bg: rgba(15, 23, 42, 0.68);
+      --wave-1: rgba(56, 189, 248, 0.15);
+      --wave-2: rgba(168, 85, 247, 0.16);
+      --card-bg: rgba(15, 23, 42, 0.78);
       --card-border: rgba(148, 163, 184, 0.26);
-      --card-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      --card-hover-shadow: 0 18px 40px -8px rgba(56, 189, 248, 0.35);
+      --card-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.5);
+      --card-hover-shadow: 0 14px 32px -8px rgba(56, 189, 248, 0.32);
       --text-main: #f8fafc;
       --text-muted: #cbd5e1;
       --header-text: #f8fafc;
@@ -141,26 +131,24 @@
       --accent: #38bdf8;
       --accent-2: #a855f7;
       --accent-soft: rgba(56, 189, 248, 0.18);
-      --pill-bg: rgba(30, 41, 59, 0.68);
+      --pill-bg: rgba(30, 41, 59, 0.74);
       --pill-border: rgba(148, 163, 184, 0.28);
-      --avatar-ring: rgba(56, 189, 248, 0.55);
+      --avatar-ring: rgba(56, 189, 248, 0.5);
     }
 
-    /* 6. Royal Gold (Luxury) */
     body[data-bio-theme="royal"] {
-      --bg-page: linear-gradient(135deg, #0c0a09 0%, #292524 34%, #1c1917 64%, #451a03 100%);
-      --orb-1: rgba(245, 158, 11, 0.42);
-      --orb-2: rgba(251, 191, 36, 0.34);
-      --orb-3: rgba(180, 83, 9, 0.4);
+      --bg-page: linear-gradient(135deg, #0c0a09 0%, #292524 36%, #1c1917 66%, #451a03 100%);
+      --orb-1: rgba(245, 158, 11, 0.34);
+      --orb-2: rgba(251, 191, 36, 0.28);
+      --orb-3: rgba(180, 83, 9, 0.32);
       --grid-color: rgba(251, 191, 36, 0.1);
       --particle-color: rgba(254, 243, 199, 0.95);
-      --particle-glow: rgba(245, 158, 11, 0.85);
-      --wave-1: rgba(245, 158, 11, 0.16);
-      --wave-2: rgba(251, 191, 36, 0.14);
-      --card-bg: rgba(28, 25, 23, 0.78);
+      --wave-1: rgba(245, 158, 11, 0.15);
+      --wave-2: rgba(251, 191, 36, 0.13);
+      --card-bg: rgba(28, 25, 23, 0.84);
       --card-border: rgba(251, 191, 36, 0.38);
-      --card-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(254, 243, 199, 0.12);
-      --card-hover-shadow: 0 18px 40px -8px rgba(245, 158, 11, 0.34);
+      --card-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.55);
+      --card-hover-shadow: 0 14px 32px -8px rgba(245, 158, 11, 0.32);
       --text-main: #fefce8;
       --text-muted: #d6d3d1;
       --header-text: #fef3c7;
@@ -168,26 +156,24 @@
       --accent: #f59e0b;
       --accent-2: #fbbf24;
       --accent-soft: rgba(245, 158, 11, 0.18);
-      --pill-bg: rgba(41, 37, 36, 0.75);
+      --pill-bg: rgba(41, 37, 36, 0.78);
       --pill-border: rgba(251, 191, 36, 0.35);
-      --avatar-ring: rgba(251, 191, 36, 0.55);
+      --avatar-ring: rgba(251, 191, 36, 0.5);
     }
 
-    /* 7. Sakura Pastel */
     body[data-bio-theme="sakura"] {
-      --bg-page: linear-gradient(125deg, #fff1f2 0%, #fce7f3 30%, #f3e8ff 64%, #ffedd5 100%);
-      --orb-1: rgba(244, 114, 182, 0.42);
-      --orb-2: rgba(192, 132, 252, 0.36);
-      --orb-3: rgba(251, 146, 60, 0.34);
+      --bg-page: linear-gradient(135deg, #fff1f2 0%, #fce7f3 32%, #f3e8ff 66%, #ffedd5 100%);
+      --orb-1: rgba(244, 114, 182, 0.34);
+      --orb-2: rgba(192, 132, 252, 0.3);
+      --orb-3: rgba(251, 146, 60, 0.28);
       --grid-color: rgba(219, 39, 119, 0.08);
       --particle-color: rgba(255, 255, 255, 0.92);
-      --particle-glow: rgba(244, 114, 182, 0.55);
-      --wave-1: rgba(244, 114, 182, 0.16);
-      --wave-2: rgba(192, 132, 252, 0.14);
-      --card-bg: rgba(255, 255, 255, 0.85);
-      --card-border: rgba(251, 207, 232, 0.9);
-      --card-shadow: 0 10px 28px -10px rgba(190, 24, 93, 0.16);
-      --card-hover-shadow: 0 18px 36px -10px rgba(219, 39, 119, 0.28);
+      --wave-1: rgba(244, 114, 182, 0.15);
+      --wave-2: rgba(192, 132, 252, 0.13);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(251, 207, 232, 0.92);
+      --card-shadow: 0 8px 22px -10px rgba(190, 24, 93, 0.15);
+      --card-hover-shadow: 0 14px 28px -10px rgba(219, 39, 119, 0.26);
       --text-main: #1f2937;
       --text-muted: #6b7280;
       --header-text: #831843;
@@ -195,26 +181,24 @@
       --accent: #db2777;
       --accent-2: #a855f7;
       --accent-soft: rgba(219, 39, 119, 0.12);
-      --pill-bg: rgba(255, 255, 255, 0.82);
+      --pill-bg: rgba(255, 255, 255, 0.84);
       --pill-border: rgba(251, 207, 232, 0.9);
-      --avatar-ring: rgba(236, 72, 153, 0.45);
+      --avatar-ring: rgba(236, 72, 153, 0.42);
     }
 
-    /* 8. Cyber Neon (Synthwave) */
     body[data-bio-theme="cyberpunk"] {
-      --bg-page: linear-gradient(135deg, #0f0728 0%, #3b0764 36%, #1e1b4b 68%, #083344 100%);
-      --orb-1: rgba(236, 72, 153, 0.5);
-      --orb-2: rgba(34, 211, 238, 0.46);
-      --orb-3: rgba(168, 85, 247, 0.5);
-      --grid-color: rgba(34, 211, 238, 0.18);
+      --bg-page: linear-gradient(135deg, #0f0728 0%, #3b0764 38%, #1e1b4b 70%, #083344 100%);
+      --orb-1: rgba(236, 72, 153, 0.4);
+      --orb-2: rgba(34, 211, 238, 0.36);
+      --orb-3: rgba(168, 85, 247, 0.4);
+      --grid-color: rgba(34, 211, 238, 0.17);
       --particle-color: rgba(244, 114, 182, 0.95);
-      --particle-glow: rgba(34, 211, 238, 0.85);
-      --wave-1: rgba(236, 72, 153, 0.2);
-      --wave-2: rgba(34, 211, 238, 0.18);
-      --card-bg: rgba(17, 12, 46, 0.72);
+      --wave-1: rgba(236, 72, 153, 0.18);
+      --wave-2: rgba(34, 211, 238, 0.16);
+      --card-bg: rgba(17, 12, 46, 0.8);
       --card-border: rgba(34, 211, 238, 0.42);
-      --card-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.65), 0 0 18px rgba(236, 72, 153, 0.18);
-      --card-hover-shadow: 0 18px 40px -8px rgba(34, 211, 238, 0.36), 0 0 24px rgba(236, 72, 153, 0.32);
+      --card-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.6);
+      --card-hover-shadow: 0 14px 32px -8px rgba(34, 211, 238, 0.34);
       --text-main: #f8fafc;
       --text-muted: #e2e8f0;
       --header-text: #ffffff;
@@ -222,18 +206,17 @@
       --accent: #22d3ee;
       --accent-2: #ec4899;
       --accent-soft: rgba(34, 211, 238, 0.18);
-      --pill-bg: rgba(24, 16, 64, 0.72);
+      --pill-bg: rgba(24, 16, 64, 0.78);
       --pill-border: rgba(34, 211, 238, 0.42);
-      --avatar-ring: rgba(236, 72, 153, 0.65);
+      --avatar-ring: rgba(236, 72, 153, 0.58);
     }
 
-    /* 9. Custom Theme Light/Dark text mode helpers */
     body[data-bio-theme="custom"][data-text-mode="light"] {
       --header-text: #ffffff;
       --header-sub: rgba(248, 250, 252, 0.92);
       --pill-bg: rgba(255, 255, 255, 0.22);
       --pill-border: rgba(255, 255, 255, 0.38);
-      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-bg: rgba(255, 255, 255, 0.9);
       --card-border: rgba(255, 255, 255, 0.95);
       --text-main: #0f172a;
       --text-muted: #475569;
@@ -242,10 +225,10 @@
     body[data-bio-theme="custom"][data-text-mode="dark"] {
       --header-text: #0f172a;
       --header-sub: #334155;
-      --pill-bg: rgba(255, 255, 255, 0.78);
+      --pill-bg: rgba(255, 255, 255, 0.82);
       --pill-border: rgba(15, 23, 42, 0.12);
-      --card-bg: rgba(255, 255, 255, 0.85);
-      --card-border: rgba(255, 255, 255, 0.92);
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(255, 255, 255, 0.94);
       --text-main: #0f172a;
       --text-muted: #475569;
     }
@@ -254,21 +237,23 @@
 
     body {
       min-height: 100dvh;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg-page);
-      background-size: 240% 240%;
-      animation: bioGradientShift 15s ease-in-out infinite;
       color: var(--text-main);
       display: flex;
       justify-content: center;
       padding: 20px 16px 48px;
       -webkit-font-smoothing: antialiased;
       position: relative;
-      overflow-x: hidden;
+      overflow-x: clip;
+    }
+
+    body.bio-paused * {
+      animation-play-state: paused !important;
     }
 
     /* ============================================================
-       MODULAR LIVING BACKDROP EFFECTS (AURORA, WAVES, STARS, BUBBLES, GRID)
+       ULTRA-LIGHTWEIGHT GPU-ONLY ANIMATED BACKDROP (ZERO BLUR LAG)
        ============================================================ */
     .bio-bg-stage {
       position: fixed;
@@ -276,6 +261,7 @@
       pointer-events: none;
       z-index: 0;
       overflow: hidden;
+      contain: strict;
     }
 
     .fx-layer {
@@ -292,156 +278,127 @@
       display: block;
     }
 
-    /* Shared soft ambient orbs */
+    /* Pre-softened radial-gradient orbs: silky glow at ~10x lower GPU cost than filter:blur() */
     .bio-orb {
       position: absolute;
       border-radius: 50%;
-      filter: blur(56px);
       will-change: transform;
-      opacity: 0.85;
+      transform: translate3d(0, 0, 0);
     }
-    .bio-orb-1 { width: 340px; height: 340px; top: -90px; left: -80px; background: var(--orb-1); animation: bioOrbDrift1 14s ease-in-out infinite; }
-    .bio-orb-2 { width: 360px; height: 360px; top: 28%; right: -120px; background: var(--orb-2); animation: bioOrbDrift2 18s ease-in-out infinite; }
-    .bio-orb-3 { width: 310px; height: 310px; bottom: -90px; left: 12%; background: var(--orb-3); animation: bioOrbDrift3 16s ease-in-out infinite; }
+    .bio-orb-1 {
+      width: 440px; height: 440px; top: -150px; left: -130px;
+      background: radial-gradient(circle, var(--orb-1) 0%, transparent 68%);
+      animation: bioOrbDrift1 15s ease-in-out infinite;
+    }
+    .bio-orb-2 {
+      width: 460px; height: 460px; top: 24%; right: -160px;
+      background: radial-gradient(circle, var(--orb-2) 0%, transparent 68%);
+      animation: bioOrbDrift2 19s ease-in-out infinite;
+    }
+    .bio-orb-3 {
+      width: 420px; height: 420px; bottom: -140px; left: 8%;
+      background: radial-gradient(circle, var(--orb-3) 0%, transparent 68%);
+      animation: bioOrbDrift3 17s ease-in-out infinite;
+    }
 
-    /* FX 1: Aurora Dot Grid + Orbit */
     .bio-dot-grid {
-      position: absolute;
-      inset: -40px;
+      position: absolute; inset: -32px;
       background-image: radial-gradient(var(--grid-color) 1.5px, transparent 1.5px);
-      background-size: 28px 28px;
-      animation: bioGridFloat 22s linear infinite;
+      background-size: 30px 30px;
+      animation: bioGridFloat 24s linear infinite;
+      will-change: transform;
     }
     .bio-ring-deco {
-      position: absolute;
-      width: 460px;
-      height: 460px;
-      top: -160px;
-      left: 50%;
-      border-radius: 50%;
-      border: 1.5px dashed rgba(255, 255, 255, 0.25);
-      animation: bioSpinSlow 42s linear infinite;
-    }
-
-    /* FX 2: Animated Ocean Waves */
-    .bio-wave-svg {
-      position: absolute;
-      bottom: -8px;
-      left: 0;
-      width: 200%;
-      height: 210px;
+      position: absolute; width: 420px; height: 420px; top: -145px; left: 50%;
+      border-radius: 50%; border: 1.5px dashed rgba(255, 255, 255, 0.24);
+      animation: bioSpinSlow 46s linear infinite;
       will-change: transform;
     }
-    .bio-wave-svg.wave-back {
-      fill: var(--wave-2);
-      animation: bioWaveSlide 14s linear infinite;
-      bottom: 8px;
-    }
-    .bio-wave-svg.wave-front {
-      fill: var(--wave-1);
-      animation: bioWaveSlideRev 10s linear infinite;
-    }
 
-    /* FX 3: Starfield + Shooting Meteors */
+    .bio-wave-svg { position: absolute; bottom: -8px; left: 0; width: 200%; height: 195px; will-change: transform; }
+    .bio-wave-svg.wave-back { fill: var(--wave-2); animation: bioWaveSlide 15s linear infinite; bottom: 8px; }
+    .bio-wave-svg.wave-front { fill: var(--wave-1); animation: bioWaveSlideRev 11s linear infinite; }
+
     .bio-star {
-      position: absolute;
-      border-radius: 50%;
-      background: var(--particle-color);
-      box-shadow: 0 0 10px var(--particle-glow);
+      position: absolute; border-radius: 50%; background: var(--particle-color);
       animation: bioTwinkle var(--dur, 4s) ease-in-out var(--delay, 0s) infinite;
+      will-change: transform, opacity;
     }
     .bio-meteor {
-      position: absolute;
-      width: 110px;
-      height: 2px;
-      border-radius: 999px;
+      position: absolute; width: 100px; height: 2px; border-radius: 999px;
       background: linear-gradient(90deg, var(--particle-color), transparent);
-      transform: rotate(-32deg);
-      opacity: 0;
-      animation: bioMeteorShoot var(--dur, 7s) linear var(--delay, 0s) infinite;
-    }
-
-    /* FX 4: Floating Bokeh Bubbles */
-    .bio-bubble {
-      position: absolute;
-      bottom: -60px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), var(--orb-1) 70%);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      opacity: 0;
+      transform: rotate(-32deg); opacity: 0;
+      animation: bioMeteorShoot var(--dur, 7.5s) linear var(--delay, 0s) infinite;
       will-change: transform, opacity;
-      animation: bioParticleRise var(--dur, 13s) linear var(--delay, 0s) infinite;
     }
 
-    /* FX 5: Cyber Geometric Grid */
+    .bio-bubble {
+      position: absolute; bottom: -56px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.72), var(--orb-1) 70%);
+      border: 1px solid rgba(255, 255, 255, 0.35); opacity: 0;
+      animation: bioParticleRise var(--dur, 13s) linear var(--delay, 0s) infinite;
+      will-change: transform, opacity;
+    }
+
     .bio-cyber-lines {
-      position: absolute;
-      inset: -60px;
+      position: absolute; inset: -48px;
       background-image:
         linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-      background-size: 42px 42px;
-      animation: bioGridFloat 18s linear infinite;
+      background-size: 44px 44px;
+      animation: bioGridFloat 20s linear infinite;
+      will-change: transform;
     }
     .bio-cyber-pulse {
-      position: absolute;
-      width: 340px;
-      height: 340px;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      border: 1.5px solid var(--grid-color);
-      animation: bioRingExpand 8s ease-out infinite;
-    }
-    .bio-cyber-pulse.p2 { animation-delay: -4s; }
-
-    /* Subtle rising sparks shared across light effects */
-    .bio-particle {
-      position: absolute;
-      bottom: -24px;
-      border-radius: 50%;
-      background: var(--particle-color);
-      box-shadow: 0 0 12px var(--particle-glow);
-      opacity: 0;
+      position: absolute; width: 320px; height: 320px; top: 50%; left: 50%;
+      border-radius: 50%; border: 1.5px solid var(--grid-color);
+      animation: bioRingExpand 8.5s ease-out infinite;
       will-change: transform, opacity;
+    }
+    .bio-cyber-pulse.p2 { animation-delay: -4.25s; }
+
+    .bio-particle {
+      position: absolute; bottom: -20px; border-radius: 50%; background: var(--particle-color);
+      opacity: 0; will-change: transform, opacity;
       animation: bioParticleRise var(--dur, 11s) linear var(--delay, 0s) infinite;
     }
 
-    @keyframes bioGradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-    @keyframes bioGridFloat { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(42px, 42px, 0); } }
-    @keyframes bioOrbDrift1 { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 33% { transform: translate3d(60px, 45px, 0) scale(1.12); } 66% { transform: translate3d(20px, 90px, 0) scale(0.94); } }
-    @keyframes bioOrbDrift2 { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 40% { transform: translate3d(-75px, -50px, 0) scale(1.14); } 75% { transform: translate3d(-35px, 65px, 0) scale(0.92); } }
-    @keyframes bioOrbDrift3 { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(70px, -60px, 0) scale(1.15); } }
-    @keyframes bioSpinSlow { from { transform: translateX(-50%) rotate(0deg); } to { transform: translateX(-50%) rotate(360deg); } }
+    @keyframes bioGridFloat { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(30px, 30px, 0); } }
+    @keyframes bioOrbDrift1 { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(55px, 50px, 0) scale(1.1); } }
+    @keyframes bioOrbDrift2 { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(-65px, -40px, 0) scale(1.1); } }
+    @keyframes bioOrbDrift3 { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(60px, -50px, 0) scale(1.12); } }
+    @keyframes bioSpinSlow { from { transform: translate3d(-50%, 0, 0) rotate(0deg); } to { transform: translate3d(-50%, 0, 0) rotate(360deg); } }
     @keyframes bioAvatarHalo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes bioWaveSlide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-    @keyframes bioWaveSlideRev { from { transform: translateX(-50%); } to { transform: translateX(0); } }
-    @keyframes bioTwinkle { 0%, 100% { opacity: 0.25; transform: scale(0.85); } 50% { opacity: 0.95; transform: scale(1.25); } }
+    @keyframes bioWaveSlide { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
+    @keyframes bioWaveSlideRev { from { transform: translate3d(-50%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+    @keyframes bioTwinkle { 0%, 100% { opacity: 0.25; transform: scale(0.85); } 50% { opacity: 0.95; transform: scale(1.2); } }
     @keyframes bioMeteorShoot {
       0% { transform: translate3d(0, 0, 0) rotate(-32deg); opacity: 0; }
-      6% { opacity: 0.95; }
-      24% { transform: translate3d(-360px, 230px, 0) rotate(-32deg); opacity: 0; }
-      100% { transform: translate3d(-360px, 230px, 0) rotate(-32deg); opacity: 0; }
+      7% { opacity: 0.95; }
+      26% { transform: translate3d(-340px, 220px, 0) rotate(-32deg); opacity: 0; }
+      100% { transform: translate3d(-340px, 220px, 0) rotate(-32deg); opacity: 0; }
     }
     @keyframes bioRingExpand {
-      0% { transform: translate(-50%, -50%) scale(0.45); opacity: 0.65; }
-      100% { transform: translate(-50%, -50%) scale(2.1); opacity: 0; }
+      0% { transform: translate3d(-50%, -50%, 0) scale(0.45); opacity: 0.6; }
+      100% { transform: translate3d(-50%, -50%, 0) scale(2); opacity: 0; }
     }
     @keyframes bioParticleRise {
-      0% { transform: translate3d(0, 0, 0) scale(0.65); opacity: 0; }
-      12% { opacity: 0.72; }
-      85% { opacity: 0.52; }
-      100% { transform: translate3d(var(--drift, 24px), -108vh, 0) scale(1.15); opacity: 0; }
+      0% { transform: translate3d(0, 0, 0) scale(0.7); opacity: 0; }
+      14% { opacity: 0.72; }
+      84% { opacity: 0.5; }
+      100% { transform: translate3d(var(--drift, 22px), -106vh, 0) scale(1.1); opacity: 0; }
     }
     @keyframes bioCardEnter {
-      from { opacity: 0; transform: translateY(14px) scale(0.985); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; transform: translate3d(0, 10px, 0); }
+      to { opacity: 1; transform: translate3d(0, 0, 0); }
     }
 
     /* ============================================================
-       MAIN CONTENT SHELL & CARD STYLE VARIANTS
+       MAIN CONTENT SHELL & LIGHTWEIGHT INLINE SVG ICONS
        ============================================================ */
+    .ic { width: 1em; height: 1em; display: inline-block; vertical-align: -0.14em; fill: currentColor; flex-shrink: 0; }
+    .ic-stroke { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
     .bio-shell {
       position: relative;
       z-index: 2;
@@ -473,35 +430,29 @@
       text-decoration: none;
       font-size: 0.78rem;
       font-weight: 700;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
       cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      transition: transform 0.16s ease;
     }
-
-    .bio-top-pill:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
-    }
+    .bio-top-pill:hover { transform: translateY(-1px); }
 
     .bio-profile {
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
       width: 100%;
     }
 
     .bio-avatar-wrap {
-      width: 98px;
-      height: 98px;
+      width: 94px;
+      height: 94px;
       border-radius: 50%;
       padding: 4px;
       position: relative;
-      margin-bottom: 14px;
-      box-shadow: 0 14px 30px -8px var(--avatar-ring);
+      margin-bottom: 13px;
+      box-shadow: 0 12px 26px -8px var(--avatar-ring);
     }
 
     .bio-avatar-wrap::before {
@@ -510,7 +461,8 @@
       inset: 0;
       border-radius: 50%;
       background: conic-gradient(from 0deg, var(--accent), var(--accent-2), #ec4899, #06b6d4, var(--accent));
-      animation: bioAvatarHalo 7s linear infinite;
+      animation: bioAvatarHalo 8s linear infinite;
+      will-change: transform;
     }
 
     .bio-avatar-inner {
@@ -525,150 +477,87 @@
       justify-content: center;
       overflow: hidden;
       color: var(--accent);
-      font-size: 2.1rem;
-      border: 3px solid rgba(255, 255, 255, 0.95);
+      font-size: 2rem;
+      border: 3px solid rgba(255, 255, 255, 0.96);
     }
-
     .bio-avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
 
-    .bio-name-row {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      flex-wrap: wrap;
-    }
-
+    .bio-name-row { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: wrap; }
     .bio-name {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 1.36rem;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-size: 1.32rem;
       font-weight: 800;
       letter-spacing: -0.02em;
       color: var(--header-text);
     }
-
     .bio-verified {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 21px; height: 21px; border-radius: 50%;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: #ffffff;
-      font-size: 0.68rem;
-      flex-shrink: 0;
-      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+      color: #ffffff; font-size: 0.72rem; flex-shrink: 0;
     }
-
     .bio-badge-tag {
-      margin-top: 7px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: var(--pill-bg);
-      border: 1px solid var(--pill-border);
-      color: var(--header-text);
-      font-size: 0.72rem;
-      font-weight: 700;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      margin-top: 6px; display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 12px; border-radius: 999px;
+      background: var(--pill-bg); border: 1px solid var(--pill-border);
+      color: var(--header-text); font-size: 0.72rem; font-weight: 700;
     }
-
     .bio-subtitle {
-      margin-top: 9px;
-      font-size: 0.87rem;
-      line-height: 1.5;
-      color: var(--header-sub);
-      max-width: 410px;
-      font-weight: 500;
+      margin-top: 8px; font-size: 0.86rem; line-height: 1.48;
+      color: var(--header-sub); max-width: 410px; font-weight: 500;
     }
 
-    .bio-links-list {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 13px;
-    }
+    .bio-links-list { width: 100%; display: flex; flex-direction: column; gap: 12px; }
 
     .bio-link-card {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 13px;
       width: 100%;
-      padding: 12px 16px 12px 12px;
-      border-radius: 22px;
+      padding: 11px 14px 11px 11px;
+      border-radius: 20px;
       background: var(--card-bg);
       border: 1.5px solid var(--card-border);
       box-shadow: var(--card-shadow);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       text-decoration: none;
       color: var(--text-main);
-      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
       position: relative;
       overflow: hidden;
-      animation: bioCardEnter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-      animation-delay: calc(var(--card-idx, 0) * 65ms);
+      animation: bioCardEnter 0.35s ease both;
+      animation-delay: calc(var(--card-idx, 0) * 45ms);
     }
 
-    /* Card Style Variants */
+    @media (min-width: 641px) {
+      .bio-link-card, .bio-top-pill, .bio-social-btn {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+    }
+
     body[data-card-style="solid"] .bio-link-card {
-      background: #ffffff;
-      border: 1.5px solid rgba(15, 23, 42, 0.1);
-      color: #0f172a;
-      backdrop-filter: none;
+      background: #ffffff; border: 1.5px solid rgba(15, 23, 42, 0.1); color: #0f172a;
     }
     body[data-card-style="solid"] .bio-link-title { color: #0f172a; }
     body[data-card-style="solid"] .bio-link-sub { color: #64748b; }
 
     body[data-card-style="outline"] .bio-link-card {
-      background: rgba(15, 23, 42, 0.16);
-      border: 2px solid var(--pill-border);
-      color: var(--header-text);
+      background: rgba(15, 23, 42, 0.18); border: 2px solid var(--pill-border); color: var(--header-text);
     }
     body[data-card-style="outline"] .bio-link-title { color: var(--header-text); }
     body[data-card-style="outline"] .bio-link-sub { color: var(--header-sub); }
 
-    body[data-card-style="pill"] .bio-link-card {
-      border-radius: 999px;
-      padding: 10px 18px 10px 10px;
-    }
-    body[data-card-style="pill"] .bio-link-thumb {
-      border-radius: 50%;
-    }
+    body[data-card-style="pill"] .bio-link-card { border-radius: 999px; padding: 10px 16px 10px 10px; }
+    body[data-card-style="pill"] .bio-link-thumb { border-radius: 50%; }
 
-    .bio-link-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -110%;
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.42) 50%, transparent 80%);
-      transition: left 0.55s ease;
-      pointer-events: none;
-    }
-    .bio-link-card:hover::after { left: 135%; }
-    .bio-link-card:hover { transform: translateY(-3px) scale(1.01); box-shadow: var(--card-hover-shadow); border-color: var(--accent); }
+    .bio-link-card:hover { transform: translateY(-2px); box-shadow: var(--card-hover-shadow); border-color: var(--accent); }
     .bio-link-card:active { transform: scale(0.985); }
 
     .bio-link-thumb {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.35rem;
-      overflow: hidden;
-      border: 1px solid rgba(15, 23, 42, 0.06);
-      background: #f1f5f9;
-      color: #2563eb;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+      width: 50px; height: 50px; border-radius: 15px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.35rem; overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.06); background: #f1f5f9; color: #2563eb;
     }
     .bio-link-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .bio-link-thumb.tone-briefcase { background: linear-gradient(135deg, #fff7ed, #fed7aa); color: #ea580c; }
@@ -683,79 +572,58 @@
 
     .bio-link-body { flex: 1; min-width: 0; }
     .bio-link-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .bio-link-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.96rem; font-weight: 700; color: var(--text-main); line-height: 1.3; overflow-wrap: break-word; }
-    .bio-link-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
-    .bio-link-sub { margin-top: 3px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
+    .bio-link-title {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-size: 0.94rem; font-weight: 700; color: var(--text-main); line-height: 1.3; overflow-wrap: break-word;
+    }
+    .bio-link-badge {
+      font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 999px;
+      background: var(--accent-soft); color: var(--accent); white-space: nowrap;
+    }
+    .bio-link-sub {
+      margin-top: 2px; font-size: 0.77rem; color: var(--text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
     .bio-link-arrow {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      font-size: 0.82rem;
-      flex-shrink: 0;
-      transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 0.9rem; flex-shrink: 0;
+      transition: transform 0.16s ease, color 0.16s ease;
     }
-    .bio-link-card:hover .bio-link-arrow { background: var(--accent-soft); color: var(--accent); transform: translateX(3px); }
+    .bio-link-card:hover .bio-link-arrow { color: var(--accent); transform: translateX(2px); }
 
-    .bio-socials { margin-top: 26px; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .bio-socials { margin-top: 24px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
     .bio-social-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 17px;
-      border-radius: 999px;
-      background: var(--card-bg);
-      border: 1.5px solid var(--card-border);
-      color: var(--text-main);
-      text-decoration: none;
-      font-size: 0.82rem;
-      font-weight: 700;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
-      transition: transform 0.18s ease;
+      display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 999px;
+      background: var(--card-bg); border: 1.5px solid var(--card-border);
+      color: var(--text-main); text-decoration: none; font-size: 0.82rem; font-weight: 700;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08); transition: transform 0.16s ease;
     }
-    .bio-social-btn:hover { transform: translateY(-2px); }
-    .bio-social-btn.ig i { color: #e1306c; }
-    .bio-social-btn.tt i { color: var(--text-main); }
+    .bio-social-btn:hover { transform: translateY(-1px); }
+    .bio-social-btn.ig svg { color: #e1306c; }
 
-    .bio-footer { margin-top: 34px; text-align: center; font-size: 0.76rem; color: var(--header-sub); font-weight: 500; }
+    .bio-footer { margin-top: 30px; text-align: center; font-size: 0.75rem; color: var(--header-sub); font-weight: 500; }
     .bio-footer strong { color: var(--header-text); }
-
-    .bio-skeleton { height: 78px; border-radius: 22px; background: rgba(255, 255, 255, 0.32); backdrop-filter: blur(8px); width: 100%; }
+    .bio-skeleton { height: 74px; border-radius: 20px; background: rgba(255, 255, 255, 0.34); width: 100%; }
 
     .bio-toast {
-      position: fixed;
-      bottom: 22px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: #0f172a;
-      color: #ffffff;
-      padding: 10px 18px;
-      border-radius: 999px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      z-index: 999;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #0f172a; color: #ffffff; padding: 10px 18px; border-radius: 999px;
+      font-size: 0.82rem; font-weight: 600; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease; z-index: 999;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
     }
     .bio-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     @media (max-width: 420px) {
-      body { padding: 14px 12px 36px; }
-      .bio-link-card { padding: 10px 12px 10px 10px; gap: 11px; border-radius: 18px; }
-      .bio-link-thumb { width: 48px; height: 48px; border-radius: 14px; font-size: 1.2rem; }
+      body { padding: 14px 12px 34px; }
+      .bio-link-card { padding: 10px 12px 10px 10px; gap: 10px; border-radius: 18px; }
+      .bio-link-thumb { width: 46px; height: 46px; border-radius: 13px; font-size: 1.2rem; }
       .bio-link-title { font-size: 0.9rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      body, .bio-dot-grid, .bio-cyber-lines, .bio-cyber-pulse, .bio-orb, .bio-particle, .bio-bubble, .bio-star, .bio-meteor, .bio-wave-svg, .bio-ring-deco, .bio-avatar-wrap::before, .bio-link-card {
+      .bio-dot-grid, .bio-cyber-lines, .bio-cyber-pulse, .bio-orb, .bio-particle, .bio-bubble, .bio-star, .bio-meteor, .bio-wave-svg, .bio-ring-deco, .bio-avatar-wrap::before, .bio-link-card {
         animation: none !important;
       }
     }
@@ -763,29 +631,22 @@
 </head>
 
 <body data-bio-theme="clean" data-bg-effect="aurora" data-card-style="glass">
-  <!-- Modular Living Backdrop Stage -->
   <div class="bio-bg-stage" aria-hidden="true">
     <div class="bio-orb bio-orb-1"></div>
     <div class="bio-orb bio-orb-2"></div>
     <div class="bio-orb bio-orb-3"></div>
 
-    <!-- FX 1: Aurora Dots + Orbit + Sparks -->
     <div class="fx-layer fx-aurora">
       <div class="bio-dot-grid"></div>
       <div class="bio-ring-deco"></div>
-      <span class="bio-particle" style="left:10%; width:8px; height:8px; --dur:11s; --delay:0s; --drift:24px;"></span>
-      <span class="bio-particle" style="left:25%; width:11px; height:11px; --dur:14s; --delay:-4s; --drift:-22px;"></span>
-      <span class="bio-particle" style="left:45%; width:9px; height:9px; --dur:12s; --delay:-2s; --drift:18px;"></span>
-      <span class="bio-particle" style="left:66%; width:12px; height:12px; --dur:15s; --delay:-7s; --drift:-26px;"></span>
-      <span class="bio-particle" style="left:84%; width:8px; height:8px; --dur:10s; --delay:-3s; --drift:20px;"></span>
+      <span class="bio-particle" style="left:14%; width:8px; height:8px; --dur:11s; --delay:0s; --drift:20px;"></span>
+      <span class="bio-particle" style="left:46%; width:10px; height:10px; --dur:13s; --delay:-4s; --drift:-18px;"></span>
+      <span class="bio-particle" style="left:78%; width:8px; height:8px; --dur:12s; --delay:-7s; --drift:18px;"></span>
     </div>
 
-    <!-- FX 2: Animated Ocean Waves + Aqua Sparks -->
     <div class="fx-layer fx-waves">
-      <span class="bio-particle" style="left:14%; width:10px; height:10px; --dur:10s; --delay:-1s; --drift:16px;"></span>
-      <span class="bio-particle" style="left:38%; width:7px; height:7px; --dur:13s; --delay:-5s; --drift:-18px;"></span>
-      <span class="bio-particle" style="left:64%; width:11px; height:11px; --dur:11s; --delay:-3s; --drift:22px;"></span>
-      <span class="bio-particle" style="left:82%; width:8px; height:8px; --dur:14s; --delay:-8s; --drift:-16px;"></span>
+      <span class="bio-particle" style="left:20%; width:9px; height:9px; --dur:11s; --delay:-1s; --drift:16px;"></span>
+      <span class="bio-particle" style="left:62%; width:10px; height:10px; --dur:13s; --delay:-5s; --drift:-16px;"></span>
       <svg class="bio-wave-svg wave-back" viewBox="0 0 1200 180" preserveAspectRatio="none">
         <path d="M0,70 C150,140 350,10 600,80 C850,150 1050,20 1200,70 L1200,180 L0,180 Z"></path>
       </svg>
@@ -794,52 +655,39 @@
       </svg>
     </div>
 
-    <!-- FX 3: Starfield + Shooting Meteors -->
     <div class="fx-layer fx-stars">
-      <span class="bio-star" style="top:10%; left:14%; width:3px; height:3px; --dur:3.4s; --delay:0s;"></span>
-      <span class="bio-star" style="top:18%; left:76%; width:4px; height:4px; --dur:4.2s; --delay:-1.2s;"></span>
-      <span class="bio-star" style="top:28%; left:34%; width:3px; height:3px; --dur:3.8s; --delay:-2.1s;"></span>
-      <span class="bio-star" style="top:42%; left:88%; width:3px; height:3px; --dur:4.6s; --delay:-0.8s;"></span>
-      <span class="bio-star" style="top:54%; left:18%; width:4px; height:4px; --dur:3.5s; --delay:-2.6s;"></span>
-      <span class="bio-star" style="top:68%; left:62%; width:3px; height:3px; --dur:4.1s; --delay:-1.7s;"></span>
-      <span class="bio-star" style="top:78%; left:26%; width:3px; height:3px; --dur:3.9s; --delay:-0.5s;"></span>
-      <span class="bio-star" style="top:84%; left:80%; width:4px; height:4px; --dur:4.4s; --delay:-3.0s;"></span>
-      <span class="bio-star" style="top:12%; left:52%; width:2.5px; height:2.5px; --dur:3.2s; --delay:-1.9s;"></span>
-      <span class="bio-star" style="top:36%; left:64%; width:3px; height:3px; --dur:4.5s; --delay:-2.3s;"></span>
-      <span class="bio-meteor" style="top:12%; left:82%; --dur:6.5s; --delay:0s;"></span>
-      <span class="bio-meteor" style="top:32%; left:96%; --dur:8.5s; --delay:-3.2s;"></span>
-      <span class="bio-meteor" style="top:6%;  left:55%; --dur:9.5s; --delay:-6.1s;"></span>
+      <span class="bio-star" style="top:11%; left:15%; width:3px; height:3px; --dur:3.4s; --delay:0s;"></span>
+      <span class="bio-star" style="top:19%; left:76%; width:4px; height:4px; --dur:4.2s; --delay:-1.2s;"></span>
+      <span class="bio-star" style="top:31%; left:34%; width:3px; height:3px; --dur:3.8s; --delay:-2.1s;"></span>
+      <span class="bio-star" style="top:46%; left:86%; width:3px; height:3px; --dur:4.4s; --delay:-0.8s;"></span>
+      <span class="bio-star" style="top:64%; left:20%; width:4px; height:4px; --dur:3.6s; --delay:-2.6s;"></span>
+      <span class="bio-star" style="top:77%; left:68%; width:3px; height:3px; --dur:4.1s; --delay:-1.7s;"></span>
+      <span class="bio-meteor" style="top:12%; left:84%; --dur:7s; --delay:0s;"></span>
+      <span class="bio-meteor" style="top:34%; left:96%; --dur:9s; --delay:-4s;"></span>
     </div>
 
-    <!-- FX 4: Floating Bokeh Bubbles -->
     <div class="fx-layer fx-bubbles">
-      <span class="bio-bubble" style="left:8%;  width:38px; height:38px; --dur:14s; --delay:0s;    --drift:34px;"></span>
-      <span class="bio-bubble" style="left:24%; width:24px; height:24px; --dur:11s; --delay:-3.5s; --drift:-26px;"></span>
-      <span class="bio-bubble" style="left:42%; width:52px; height:52px; --dur:17s; --delay:-7s;   --drift:28px;"></span>
-      <span class="bio-bubble" style="left:60%; width:30px; height:30px; --dur:13s; --delay:-2s;   --drift:-32px;"></span>
-      <span class="bio-bubble" style="left:76%; width:44px; height:44px; --dur:15s; --delay:-9s;   --drift:24px;"></span>
-      <span class="bio-bubble" style="left:89%; width:22px; height:22px; --dur:12s; --delay:-5s;   --drift:-20px;"></span>
+      <span class="bio-bubble" style="left:10%; width:36px; height:36px; --dur:14s; --delay:0s; --drift:28px;"></span>
+      <span class="bio-bubble" style="left:36%; width:48px; height:48px; --dur:17s; --delay:-6s; --drift:-22px;"></span>
+      <span class="bio-bubble" style="left:64%; width:30px; height:30px; --dur:13s; --delay:-2.5s; --drift:24px;"></span>
+      <span class="bio-bubble" style="left:85%; width:40px; height:40px; --dur:15s; --delay:-8.5s; --drift:-20px;"></span>
     </div>
 
-    <!-- FX 5: Cyber Geometric Grid + Pulse Rings -->
     <div class="fx-layer fx-grid">
       <div class="bio-cyber-lines"></div>
       <div class="bio-cyber-pulse"></div>
       <div class="bio-cyber-pulse p2"></div>
-      <span class="bio-particle" style="left:18%; width:7px; height:7px; --dur:10s; --delay:-1s; --drift:18px;"></span>
-      <span class="bio-particle" style="left:52%; width:9px; height:9px; --dur:12s; --delay:-5s; --drift:-20px;"></span>
-      <span class="bio-particle" style="left:78%; width:8px; height:8px; --dur:11s; --delay:-3s; --drift:16px;"></span>
     </div>
   </div>
 
   <main class="bio-shell">
     <div class="bio-topbar">
       <a href="/" class="bio-top-pill" title="Buka Portal Lowongan Kerja">
-        <i class="fa-solid fa-briefcase"></i>
+        <svg class="ic ic-stroke" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
         <span>Portal Loker</span>
       </a>
       <button type="button" class="bio-top-pill" id="btn-share-bio" title="Bagikan halaman Link Bio">
-        <i class="fa-solid fa-share-nodes"></i>
+        <svg class="ic ic-stroke" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         <span>Bagikan</span>
       </button>
     </div>
@@ -847,12 +695,14 @@
     <header class="bio-profile">
       <div class="bio-avatar-wrap">
         <div class="bio-avatar-inner" id="bio-avatar">
-          <i class="fa-solid fa-briefcase"></i>
+          <svg class="ic ic-stroke" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
         </div>
       </div>
       <div class="bio-name-row">
         <h1 class="bio-name" id="bio-name">KitaKerja · LOKERSMASMK</h1>
-        <span class="bio-verified" title="Akun Resmi Terverifikasi"><i class="fa-solid fa-check"></i></span>
+        <span class="bio-verified" title="Akun Resmi Terverifikasi">
+          <svg class="ic ic-stroke" viewBox="0 0 24 24" style="stroke-width:3"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
       </div>
       <div class="bio-badge-tag" id="bio-badge" style="display: none;"></div>
       <p class="bio-subtitle" id="bio-subtitle">Portal Lowongan Kerja Resmi Terverifikasi, Grup Loker Aktif &amp; Layanan CV ATS</p>
@@ -876,40 +726,40 @@
 
   <script>
     (function () {
-      const ICON_MAP = {
-        briefcase: 'fa-solid fa-briefcase',
-        globe: 'fa-solid fa-globe',
-        whatsapp: 'fa-brands fa-whatsapp',
-        'file-cv': 'fa-solid fa-file-lines',
-        instagram: 'fa-brands fa-instagram',
-        tiktok: 'fa-brands fa-tiktok',
-        telegram: 'fa-brands fa-telegram',
-        envelope: 'fa-solid fa-envelope',
-        link: 'fa-solid fa-link'
+      const CACHE_KEY = 'kitakerja_bio_links_cache_v1';
+
+      // Lightweight inline SVGs (0 KB external icon font network requests)
+      const SVG_ICONS = {
+        briefcase: '<svg class="ic ic-stroke" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>',
+        globe: '<svg class="ic ic-stroke" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+        whatsapp: '<svg class="ic" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.77 14.07c-.24.68-1.42 1.3-1.96 1.38-.51.08-1.15.11-1.85-.12-.43-.14-.98-.32-1.69-.63-2.97-1.28-4.91-4.27-5.06-4.47-.15-.2-1.21-1.61-1.21-3.07s.76-2.18 1.03-2.48c.27-.3.59-.37.79-.37h.57c.18 0 .43-.07.67.51.25.6.84 2.06.91 2.21.07.15.12.33.02.53-.1.2-.15.33-.3.5-.15.17-.31.38-.45.51-.15.15-.3.31-.13.61.17.3.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.36 1.46.3.15.47.12.64-.07.18-.2.74-.86.94-1.16.2-.3.4-.25.67-.15.27.1 1.72.81 2.01.96.3.15.49.22.56.35.08.13.08.73-.16 1.41z"/></svg>',
+        'file-cv': '<svg class="ic ic-stroke" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+        instagram: '<svg class="ic ic-stroke" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
+        tiktok: '<svg class="ic" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V8.94a6.33 6.33 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.2a6.34 6.34 0 0 0 10.86 4.46 6.3 6.3 0 0 0 1.81-4.42V8.7a8.16 8.16 0 0 0 4.77 1.52V6.78a4.85 4.85 0 0 1-1-.09z"/></svg>',
+        telegram: '<svg class="ic ic-stroke" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+        envelope: '<svg class="ic ic-stroke" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg>',
+        link: '<svg class="ic ic-stroke" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+        chevron: '<svg class="ic ic-stroke" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>',
+        shield: '<svg class="ic ic-stroke" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>'
       };
 
       const THEME_DEFAULT_EFFECT = {
-        clean: 'aurora',
-        ocean: 'waves',
-        emerald: 'grid',
-        sunset: 'bubbles',
-        midnight: 'stars',
-        royal: 'stars',
-        sakura: 'bubbles',
-        cyberpunk: 'grid',
-        custom: 'aurora'
+        clean: 'aurora', ocean: 'waves', emerald: 'grid', sunset: 'bubbles',
+        midnight: 'stars', royal: 'stars', sakura: 'bubbles', cyberpunk: 'grid', custom: 'aurora'
       };
 
       const yearEl = document.getElementById('bio-year');
       if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
+      // Auto-pause animations when tab is hidden to save battery & CPU
+      document.addEventListener('visibilitychange', () => {
+        document.body.classList.toggle('bio-paused', document.hidden);
+      });
+
       function esc(str) {
         return String(str || '')
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       }
 
       function hexToRgb(hex) {
@@ -921,12 +771,10 @@
           b: parseInt(clean.slice(4, 6), 16) || 0
         };
       }
-
       function hexLuminance(hex) {
         const { r, g, b } = hexToRgb(hex);
         return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
       }
-
       function hexRgba(hex, alpha) {
         const { r, g, b } = hexToRgb(hex);
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
@@ -934,8 +782,7 @@
 
       function getDomainLabel(url) {
         try {
-          const u = new URL(url, window.location.origin);
-          return u.hostname.replace(/^www\./, '');
+          return new URL(url, window.location.origin).hostname.replace(/^www\./, '');
         } catch {
           return String(url || '').replace(/^https?:\/\//i, '').split('/')[0] || '';
         }
@@ -983,10 +830,10 @@
             ? profile.custom_text_mode
             : (avgLum < 0.56 ? 'light' : 'dark');
           document.body.setAttribute('data-text-mode', mode);
-          document.body.style.setProperty('--bg-page', `linear-gradient(125deg, ${c1} 0%, ${c2} 50%, ${c3} 100%)`);
-          document.body.style.setProperty('--orb-1', hexRgba(c1, 0.5));
-          document.body.style.setProperty('--orb-2', hexRgba(c2, 0.5));
-          document.body.style.setProperty('--orb-3', hexRgba(c3, 0.45));
+          document.body.style.setProperty('--bg-page', `linear-gradient(135deg, ${c1} 0%, ${c2} 50%, ${c3} 100%)`);
+          document.body.style.setProperty('--orb-1', hexRgba(c1, 0.42));
+          document.body.style.setProperty('--orb-2', hexRgba(c2, 0.42));
+          document.body.style.setProperty('--orb-3', hexRgba(c3, 0.38));
           document.body.style.setProperty('--accent', c1);
           document.body.style.setProperty('--accent-2', c2);
           document.body.style.setProperty('--accent-soft', hexRgba(c1, 0.14));
@@ -1000,9 +847,15 @@
         }
       }
 
+      let lastRenderedSig = '';
       function renderBioPage(data) {
-        const profile = (data && data.profile) || {};
-        const links = Array.isArray(data && data.links) ? data.links.filter(l => l && l.active !== false && l.url) : [];
+        if (!data) return;
+        const sig = JSON.stringify(data);
+        if (sig === lastRenderedSig) return;
+        lastRenderedSig = sig;
+
+        const profile = data.profile || {};
+        const links = Array.isArray(data.links) ? data.links.filter(l => l && l.active !== false && l.url) : [];
 
         applyThemeAndEffects(profile);
 
@@ -1015,7 +868,7 @@
         const badgeEl = document.getElementById('bio-badge');
         if (badgeEl) {
           if (profile.badge) {
-            badgeEl.innerHTML = `<i class="fa-solid fa-shield-check"></i> ${esc(profile.badge)}`;
+            badgeEl.innerHTML = `${SVG_ICONS.shield} ${esc(profile.badge)}`;
             badgeEl.style.display = 'inline-flex';
           } else {
             badgeEl.style.display = 'none';
@@ -1024,11 +877,9 @@
 
         const avatarEl = document.getElementById('bio-avatar');
         if (avatarEl) {
-          if (profile.avatar) {
-            avatarEl.innerHTML = `<img src="${esc(profile.avatar)}" alt="${esc(profile.name || 'Profil')}">`;
-          } else {
-            avatarEl.innerHTML = '<i class="fa-solid fa-briefcase"></i>';
-          }
+          avatarEl.innerHTML = profile.avatar
+            ? `<img src="${esc(profile.avatar)}" alt="${esc(profile.name || 'Profil')}" decoding="async">`
+            : SVG_ICONS.briefcase;
         }
 
         const listEl = document.getElementById('bio-links-list');
@@ -1036,12 +887,11 @@
           listEl.innerHTML = '<div style="text-align:center;color:var(--header-sub);padding:24px;font-size:0.88rem;">Belum ada tautan aktif.</div>';
         } else {
           listEl.innerHTML = links.map((item, idx) => {
-            const iconKey = ICON_MAP[item.icon] ? item.icon : 'link';
+            const iconKey = SVG_ICONS[item.icon] ? item.icon : 'link';
             const thumbHtml = item.thumbnail
-              ? `<img src="${esc(item.thumbnail)}" alt="${esc(item.title)}" loading="eager" decoding="async">`
-              : `<i class="${ICON_MAP[iconKey]}"></i>`;
-            const domain = getDomainLabel(item.url);
-            const subText = item.subtitle ? item.subtitle : domain;
+              ? `<img src="${esc(item.thumbnail)}" alt="${esc(item.title)}" loading="${idx < 4 ? 'eager' : 'lazy'}" decoding="async">`
+              : SVG_ICONS[iconKey];
+            const subText = item.subtitle ? item.subtitle : getDomainLabel(item.url);
             return `
               <a class="bio-link-card" style="--card-idx: ${idx};" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" data-link-id="${esc(item.id)}">
                 <div class="bio-link-thumb tone-${esc(iconKey)}">${thumbHtml}</div>
@@ -1052,7 +902,7 @@
                   </div>
                   <div class="bio-link-sub">${esc(subText)}</div>
                 </div>
-                <div class="bio-link-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                <div class="bio-link-arrow">${SVG_ICONS.chevron}</div>
               </a>
             `;
           }).join('');
@@ -1068,11 +918,11 @@
         const socialItems = [];
         if (profile.instagram_url) {
           const igUrl = /^https?:\/\//i.test(profile.instagram_url) ? profile.instagram_url : `https://${profile.instagram_url}`;
-          socialItems.push(`<a class="bio-social-btn ig" href="${esc(igUrl)}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i> Instagram</a>`);
+          socialItems.push(`<a class="bio-social-btn ig" href="${esc(igUrl)}" target="_blank" rel="noopener noreferrer">${SVG_ICONS.instagram} Instagram</a>`);
         }
         if (profile.tiktok_url) {
           const ttUrl = /^https?:\/\//i.test(profile.tiktok_url) ? profile.tiktok_url : `https://${profile.tiktok_url}`;
-          socialItems.push(`<a class="bio-social-btn tt" href="${esc(ttUrl)}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-tiktok"></i> TikTok</a>`);
+          socialItems.push(`<a class="bio-social-btn tt" href="${esc(ttUrl)}" target="_blank" rel="noopener noreferrer">${SVG_ICONS.tiktok} TikTok</a>`);
         }
         if (socialItems.length > 0) {
           socialsEl.innerHTML = socialItems.join('');
@@ -1087,10 +937,7 @@
         shareBtn.addEventListener('click', async () => {
           const url = window.location.href;
           if (navigator.share) {
-            try {
-              await navigator.share({ title: document.title, url });
-              return;
-            } catch (e) {}
+            try { await navigator.share({ title: document.title, url }); return; } catch (e) {}
           }
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(() => showToast('Link Bio berhasil disalin!'));
@@ -1100,21 +947,36 @@
         });
       }
 
+      // 1. Instant 0ms render from localStorage cache (SWR)
+      let hadCache = false;
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.profile) {
+            renderBioPage(parsed);
+            hadCache = true;
+          }
+        }
+      } catch (e) {}
+
+      // 2. Revalidate silently from Edge-cached API
       fetch('/api/bio-links')
         .then(r => r.json())
         .then(res => {
-          renderBioPage((res && res.data) || res || {});
+          const fresh = (res && res.data) || res || null;
+          if (fresh && fresh.profile) {
+            try { localStorage.setItem(CACHE_KEY, JSON.stringify(fresh)); } catch (e) {}
+            renderBioPage(fresh);
+          }
         })
         .catch(() => {
-          renderBioPage({
-            profile: {
-              name: 'KitaKerja · LOKERSMASMK',
-              subtitle: 'Portal Lowongan Kerja Resmi Terverifikasi'
-            },
-            links: [
-              { id: 'fallback_1', title: 'Web Kita LOKERSMASMK', subtitle: 'kitakerja.biz.id', url: '/', icon: 'globe', active: true }
-            ]
-          });
+          if (!hadCache) {
+            renderBioPage({
+              profile: { name: 'KitaKerja · LOKERSMASMK', subtitle: 'Portal Lowongan Kerja Resmi Terverifikasi' },
+              links: [{ id: 'fallback_1', title: 'Web Kita LOKERSMASMK', subtitle: 'kitakerja.biz.id', url: '/', icon: 'globe', active: true }]
+            });
+          }
         });
     })();
   </script>

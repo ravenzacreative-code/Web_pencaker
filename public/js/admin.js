@@ -2559,7 +2559,7 @@ function renderDashboardStats(jobsList) {
             <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
             <td>${job.views_count || 0}</td>
             <td>
-              <button class="btn-table btn-lock" onclick="toggleJobLock(${job.id}, '${isLocked ? 'active' : 'expired'}')" title="${isLocked ? 'Buka Kunci' : 'Kunci (Expired)'}">
+              <button class="btn-table btn-lock" onclick="toggleJobLock(${job.id}, '${isLocked ? 'active' : 'closed'}')" title="${isLocked ? 'Buka Kunci (Aktifkan Kembali)' : 'Kunci (Tampil CLOSED di Bawah Web User)'}">
                 <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'}"></i>
               </button>
             </td>
@@ -3004,8 +3004,8 @@ function renderAdminJobsTable() {
     }
 
     const lockIcon = isLocked ? 'fa-lock-open' : 'fa-lock';
-    const lockTooltip = isLocked ? 'Buka kunci lowongan (Aktifkan kembali)' : 'Kunci lowongan (Jadikan Expired & tutup lamaran)';
-    const nextStatus = isLocked ? 'active' : 'expired';
+    const lockTooltip = isLocked ? 'Buka kunci lowongan (Aktifkan kembali di Web User)' : 'Kunci lowongan (Tampil CLOSED di bagian paling bawah Web User & tidak bisa dibuka)';
+    const nextStatus = isLocked ? 'active' : 'closed';
 
     return `
       <tr class="admin-job-row" onclick="handleAdminRowClick(event, ${job.id})">
@@ -3260,10 +3260,11 @@ window.toggleJobLock = async function(jobId, newStatus) {
       safeSessionSet('kerja_admin_jobs_cache', JSON.stringify(adminJobs));
       broadcastPublicJobsSync(adminJobs);
     } catch (e) {}
-    const msg = newStatus === 'expired'
-      ? `Lowongan "${job.title}" telah dikunci (Expired & pendaftaran ditutup).`
+    const isNowLocked = newStatus === 'expired' || newStatus === 'closed';
+    const msg = isNowLocked
+      ? `Lowongan "${job.title}" telah dikunci (tampil CLOSED di bagian paling bawah Web User & tidak bisa dibuka).`
       : `Lowongan "${job.title}" berhasil diaktifkan kembali.`;
-    showAdminToast(newStatus === 'expired' ? 'Lowongan Dikunci' : 'Lowongan Aktif', msg, 'info');
+    showAdminToast(isNowLocked ? 'Lowongan Ditutup (CLOSED)' : 'Lowongan Aktif', msg, 'info');
   } else {
     // Revert optimistic update on failure
     job.status = prevStatus;
@@ -9950,6 +9951,7 @@ function renderBioAdminLinksList() {
 function renderBioLivePreview() {
   const p = bioLinksState.profile || {};
   const screen = document.getElementById('bio-phone-screen');
+  if (screen) screen.setAttribute('data-bio-theme', p.theme || 'clean');
   if (screen) {
     const theme = p.theme || 'clean';
     screen.setAttribute('data-bio-theme', theme);
