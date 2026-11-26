@@ -9,15 +9,17 @@
     content="Temukan poster rekrutmen resmi dan informasi lowongan kerja terkini. Hubungi langsung pihak perekrut resmi via WhatsApp dan Email secara cepat dan terpercaya.">
 
   <!-- Favicon / Fonts / Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/uploads/kerjahub-favicon.png?v=20261127_01">
+  <link rel="shortcut icon" type="image/png" href="/uploads/kerjahub-favicon.png?v=20261127_01">
+  <link rel="apple-touch-icon" href="/uploads/kerjahub-favicon.png?v=20261127_01">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://nptmawuukuysqzqakwej.supabase.co" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/style.css?v=20261121_01">
+  <link rel="stylesheet" href="./css/style.css?v=20261127_01">
   <!-- Start Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
@@ -33,8 +35,8 @@
     <div class="container nav-container">
       <div class="brand-lockup">
         <a href="./" class="brand-logo" id="brand-logo-link">
-          <div class="brand-icon">
-            <i class="fa-solid fa-briefcase"></i>
+          <div class="brand-icon brand-icon-hd">
+            <img src="/uploads/kerjahub-logo-hd.png?v=20261127_01" alt="Logo KerjaHub" width="42" height="42" decoding="async">
           </div>
           <span>KerjaHub<span class="brand-tag">PORTAL</span></span>
         </a>
@@ -501,13 +503,15 @@
           <div class="wa-popover-name">Layanan CV KerjaHub</div>
           <div class="wa-popover-status"><span class="wa-online-dot"></span> Online • Fast Response</div>
         </div>
-        <button type="button" class="wa-popover-close" onclick="closeWaWidget()" title="Tutup" aria-label="Tutup Jendela WhatsApp">
+        <button type="button" class="wa-popover-close" onclick="closeWaWidget()" title="Tutup"
+          aria-label="Tutup Jendela WhatsApp">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <div class="wa-popover-body">
         <div class="wa-chat-bubble">
-          Halo! Butuh CV profesional standar ATS &amp; HRD agar lebih dilirik rekruter? Yuk konsultasi langsung via WhatsApp!
+          Halo! Butuh CV profesional standar ATS &amp; HRD agar lebih dilirik rekruter? Yuk konsultasi langsung via
+          WhatsApp!
         </div>
       </div>
       <div class="wa-popover-foot">
@@ -524,7 +528,7 @@
     </button>
   </div>
 
-  <script src="./js/app.js?v=20261121_01" defer></script>
+  <script src="./js/app.js?v=20261127_01" defer></script>
 </body>
 
 </html>

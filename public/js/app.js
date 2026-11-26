@@ -149,9 +149,72 @@ function safeSessionRemove(key) {
   delete _appMemoryStore.session[key];
 }
 
-const DEFAULT_SUPABASE_URL = "https://nptmawuukuysqzqakwej.supabase.co";
-const DEFAULT_SUPABASE_KEY = "sb_publishable_CeLmp_Pj-sgJ_vIrShAj2A__rzAQIYT";
-const ALTERNATE_SUPABASE_KEY = "sb_publishable_vhr-CPf4EI0fy2Xsl1uBPg_RxF7UwWT";
+// Public Supabase config is injected strictly at runtime via /api/config (zero hardcoded credentials)
+let RUNTIME_SUPABASE_URL = "";
+let RUNTIME_SUPABASE_KEY = "";
+
+function getOrCreateVisitorId() {
+  const KEY = 'kh_visitor_id_v1';
+  try {
+    let vid = safeLocalGet(KEY);
+    if (!vid) {
+      vid = (window.crypto && typeof window.crypto.randomUUID === 'function')
+        ? window.crypto.randomUUID()
+        : ('kh_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 12));
+      safeLocalSet(KEY, vid);
+    }
+    return vid;
+  } catch (e) {
+    return 'kh_' + Math.random().toString(36).slice(2, 12);
+  }
+}
+
+function trackJobInteraction(jobId, action = 'detail') {
+  if (!jobId) return;
+  const endpoint = getApiEndpoint(`/api/jobs/${encodeURIComponent(jobId)}/track`);
+  const payload = JSON.stringify({
+    visitor_id: getOrCreateVisitorId(),
+    action: String(action || 'detail')
+  });
+  try {
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(endpoint, new Blob([payload], { type: 'application/json' }));
+      return;
+    }
+  } catch (e) { }
+  fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: payload,
+    keepalive: true
+  }).catch(() => { });
+}
+
+function triggerButtonClickFX(btn, event, mode = 'detail') {
+  if (!btn || !(btn instanceof HTMLElement)) return;
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 1.45;
+  const hasCoords = event && typeof event.clientX === 'number' && event.clientX > 0;
+  const x = hasCoords ? (event.clientX - rect.left - size / 2) : (rect.width / 2 - size / 2);
+  const y = hasCoords ? (event.clientY - rect.top - size / 2) : (rect.height / 2 - size / 2);
+
+  const ripple = document.createElement('span');
+  ripple.className = 'btn-click-ripple';
+  ripple.style.width = `${size}px`;
+  ripple.style.height = `${size}px`;
+  ripple.style.left = `${x}px`;
+  ripple.style.top = `${y}px`;
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 520);
+
+  btn.classList.remove('is-click-feedback');
+  void btn.offsetWidth;
+  btn.classList.add('is-click-feedback');
+  clearTimeout(btn._fxTimer);
+  btn._fxTimer = setTimeout(() => {
+    btn.classList.remove('is-click-feedback');
+  }, mode === 'apply' ? 480 : 320);
+}
 
 function getApiEndpoint(endpoint) {
   if (!endpoint) return '';
@@ -527,26 +590,14 @@ function getOrCreateSupabaseClient(url, key, baseOpts) {
 }
 
 async function initSupabaseClient() {
-
-  // 1. Immediately initialize with client-side default Supabase credentials so it works on GitHub Pages, workdev, and static previews
-  if (!sbClient) {
-    try {
-      sbClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, clientOptions);
-      if (sbClient) {
-        currentSupabaseUrl = DEFAULT_SUPABASE_URL;
-        currentSupabaseKey = DEFAULT_SUPABASE_KEY;
-      }
-    } catch (e) {
-      console.warn('Initial Supabase createClient error:', e);
-    }
-  }
-
-  // 2. Fetch runtime /api/config and settings in background without blocking initial rendering
+  // Fetch runtime public /api/config and settings in background without blocking initial rendering
   (async () => {
     try {
       const { ok, data } = await safeFetchJson(getApiEndpoint('/api/config'));
       if (ok && data) {
         if (data.supabaseUrl && data.supabaseKey) {
+          RUNTIME_SUPABASE_URL = data.supabaseUrl;
+          RUNTIME_SUPABASE_KEY = data.supabaseKey;
           if (data.supabaseUrl !== currentSupabaseUrl || data.supabaseKey !== currentSupabaseKey) {
             try {
               const nextClient = getOrCreateSupabaseClient(data.supabaseUrl, data.supabaseKey, clientOptions);
@@ -1754,11 +1805,11 @@ async function loadJobs(options = {}) {
     };
 
     const fetchSupabase = async () => {
-      if (!sbClient) {
-        sbClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, clientOptions);
+      if (!sbClient && RUNTIME_SUPABASE_URL && RUNTIME_SUPABASE_KEY) {
+        sbClient = getOrCreateSupabaseClient(RUNTIME_SUPABASE_URL, RUNTIME_SUPABASE_KEY, clientOptions);
         if (sbClient) {
-          currentSupabaseUrl = DEFAULT_SUPABASE_URL;
-          currentSupabaseKey = DEFAULT_SUPABASE_KEY;
+          currentSupabaseUrl = RUNTIME_SUPABASE_URL;
+          currentSupabaseKey = RUNTIME_SUPABASE_KEY;
         }
       }
       if (!sbClient) return null;
@@ -1771,21 +1822,11 @@ async function loadJobs(options = {}) {
           .neq('status', 'system_flyer_themes')
           .neq('status', 'system_company_images')
           .neq('status', 'system_uploaded_file')
+          .neq('status', 'system_analytics')
           .order('id', { ascending: false });
 
         const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 4000));
         let res = await Promise.race([fetchQuery(), timeoutPromise]);
-
-        if (res && res.error && (res.error.code === 'PGRST301' || res.status === 401 || String(res.error.message || '').includes('API key'))) {
-          const altKey = (currentSupabaseKey === DEFAULT_SUPABASE_KEY) ? ALTERNATE_SUPABASE_KEY : DEFAULT_SUPABASE_KEY;
-          const altClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, altKey, clientOptions);
-          if (altClient) {
-            sbClient = altClient;
-            currentSupabaseKey = altKey;
-            const altTimeout = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 4000));
-            res = await Promise.race([fetchQuery(), altTimeout]);
-          }
-        }
 
         if (res && !res.timeout && !res.error && Array.isArray(res.data)) {
           return res.data.map((row) => {
@@ -2547,11 +2588,11 @@ function renderJobs(jobs) {
                   <i class="fa-solid fa-lock"></i> CLOSED · Tidak Dapat Dibuka
                 </button>
               ` : `
-                <button type="button" class="btn btn-outline btn-sm" onclick="openJobDetail(${job.id})" title="Lihat kualifikasi & deskripsi lengkap">
-                  <i class="fa-regular fa-eye"></i> Detail
+                <button type="button" class="btn btn-outline btn-sm btn-detail-job" onclick="openJobDetail(${job.id}, event)" title="Lihat kualifikasi & deskripsi lengkap">
+                  <i class="fa-regular fa-eye"></i> <span>Detail</span>
                 </button>
                 <button type="button" class="btn btn-primary btn-sm btn-apply-direct" onclick="directApplyJob(${job.id}, event)" title="Buka langsung tautan pendaftaran resmi ${escapeHtml(job.company_name)}">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Lamar Langsung
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Lamar Langsung</span>
                 </button>
               `}
             </div>
@@ -3041,8 +3082,11 @@ function formatStructuredDescriptionHtml(rawDesc) {
   return htmlParts.join('') || `<p class="desc-body-text">${escapeHtml(raw)}</p>`;
 }
 
-async function openJobDetail(jobId) {
+async function openJobDetail(jobId, clickEvent = null) {
   if (window.getSelection && window.getSelection().toString().trim().length > 0) return;
+  if (clickEvent && clickEvent.currentTarget) {
+    triggerButtonClickFX(clickEvent.currentTarget, clickEvent, 'detail');
+  }
   let rawJob = rawAllJobs.find(j => Number(j.id) === Number(jobId));
   if (!rawJob && jobId) {
     try {
@@ -3077,10 +3121,8 @@ async function openJobDetail(jobId) {
   rawJob.views_count = nextViews;
   job.views_count = nextViews;
 
-  // Increment views count in Supabase Cloud
-  if (sbClient) {
-    sbClient.from('jobs').update({ views_count: nextViews }).eq('id', job.id).then();
-  }
+  // Track unique visitor & total clicks securely via backend API
+  trackJobInteraction(job.id, 'detail');
   if (typeof renderPopularCategoriesByViews === 'function') {
     renderPopularCategoriesByViews();
   }
@@ -3648,6 +3690,9 @@ window.directApplyJob = function (jobId, event) {
   if (event) {
     event.stopPropagation();
     event.preventDefault();
+    if (event.currentTarget) {
+      triggerButtonClickFX(event.currentTarget, event, 'apply');
+    }
   }
 
   const job = (rawAllJobs || []).find(j => String(j.id) === String(jobId));
@@ -3679,14 +3724,9 @@ window.directApplyJob = function (jobId, event) {
     openJobDetail(jobId);
   }
 
-  // Increment view count safely in background without blocking mobile gesture navigation
-  try {
-    if (sbClient && job.id) {
-      Promise.resolve(
-        sbClient.from('jobs').update({ views_count: (job.views_count || 0) + 1 }).eq('id', job.id)
-      ).catch(() => { });
-    }
-  } catch (e) { }
+  // Track unique visitor & total clicks securely via backend API without blocking navigation
+  job.views_count = Number(job.views_count || 0) + 1;
+  trackJobInteraction(job.id, 'apply');
 };
 
 // Render Multi-Channel Contact Buttons

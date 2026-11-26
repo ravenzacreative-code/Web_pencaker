@@ -1,3 +1,5 @@
+import { SecureEnvVault } from './security-vault.js';
+
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
@@ -45,10 +47,11 @@ async function importHmacKey(secret) {
 }
 
 /**
- * Verify admin password against env.ADMIN_PASSWORD without hardcoded fallbacks.
+ * Verify admin password against SecureEnvVault without hardcoded fallbacks.
  */
 export function verifyAdminPassword(inputPassword, env) {
-    const expected = env?.ADMIN_PASSWORD;
+    const vault = SecureEnvVault.from(env);
+    const expected = vault.getAdminPassword();
     if (!expected || typeof expected !== 'string' || !expected.trim()) {
         return { ok: false, misconfigured: true };
     }
@@ -62,7 +65,8 @@ export function verifyAdminPassword(inputPassword, env) {
  * Create a stateless HMAC-SHA256 signed admin session token.
  */
 export async function createAdminToken(env, ttlSeconds = DEFAULT_TOKEN_TTL_SECONDS) {
-    const secret = env?.SESSION_SECRET;
+    const vault = SecureEnvVault.from(env);
+    const secret = vault.getSessionSecret();
     if (!secret || typeof secret !== 'string' || secret.length < 16) {
         throw new Error('SESSION_SECRET is not configured properly');
     }
@@ -88,7 +92,8 @@ export async function createAdminToken(env, ttlSeconds = DEFAULT_TOKEN_TTL_SECON
  */
 export async function verifyAdminToken(token, env) {
     if (!token || typeof token !== 'string') return null;
-    const secret = env?.SESSION_SECRET;
+    const vault = SecureEnvVault.from(env);
+    const secret = vault.getSessionSecret();
     if (!secret || typeof secret !== 'string' || secret.length < 16) return null;
 
     const parts = token.split('.');

@@ -61,10 +61,10 @@ function safeSessionRemove(key) {
   delete _adminMemoryStore.session[key];
 }
 
-const DEFAULT_SUPABASE_URL = "https://nptmawuukuysqzqakwej.supabase.co";
-const DEFAULT_SUPABASE_KEY = "sb_publishable_CeLmp_Pj-sgJ_vIrShAj2A__rzAQIYT";
-const ALTERNATE_SUPABASE_KEY = "sb_publishable_vhr-CPf4EI0fy2Xsl1uBPg_RxF7UwWT";
-const DEFAULT_ADMIN_PASSWORD = "admin_supersecret_portal_2026";
+// Public Supabase config is loaded strictly at runtime from /api/config (zero hardcoded secrets or passwords)
+let RUNTIME_SUPABASE_URL = "";
+let RUNTIME_SUPABASE_KEY = "";
+window.adminPortalAnalytics = { jobs: {}, summary: {} };
 const defaultPoster = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80"><rect width="80" height="80" rx="14" fill="#1e293b"/><rect x="22" y="30" width="36" height="26" rx="4" fill="none" stroke="#38bdf8" stroke-width="3"/><path d="M32 30v-4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v4" fill="none" stroke="#38bdf8" stroke-width="3"/><path d="M22 40h36" stroke="#818cf8" stroke-width="2.5"/></svg>');
 let isLoadingAdminJobs = false;
 
@@ -561,23 +561,12 @@ function getOrCreateSupabaseClient(url, key, baseOpts) {
 }
 
 async function initSupabaseClient() {
-  // 1. Singleton initialization with default Supabase credentials
-  if (!sbClient) {
-    try {
-      sbClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, clientOptions);
-      if (sbClient) {
-        currentSupabaseUrl = DEFAULT_SUPABASE_URL;
-        currentSupabaseKey = DEFAULT_SUPABASE_KEY;
-      }
-    } catch (e) {
-      console.warn('Initial Supabase createClient error in admin:', e);
-    }
-  }
-
-  // 2. Fetch runtime /api/config from backend only if credentials differ
+  // Fetch runtime public /api/config strictly from backend SecureEnvVault
   try {
     const { ok, data } = await safeFetchJson(getApiEndpoint('/api/config'));
     if (ok && data && data.supabaseUrl && data.supabaseKey) {
+      RUNTIME_SUPABASE_URL = data.supabaseUrl;
+      RUNTIME_SUPABASE_KEY = data.supabaseKey;
       if (data.supabaseUrl !== currentSupabaseUrl || data.supabaseKey !== currentSupabaseKey) {
         try {
           const nextClient = getOrCreateSupabaseClient(data.supabaseUrl, data.supabaseKey, clientOptions);
@@ -862,37 +851,20 @@ function setupAuth() {
         if (ok && data && data.success && data.token) {
           safeSessionSet('kerja_admin_token', data.token);
           unlockDashboard();
-        } else if (!ok && (status === 404 || status === 0 || !data)) {
-          // Static hosting (GitHub Pages) fallback when backend API is not present
-          if (password === DEFAULT_ADMIN_PASSWORD) {
-            safeSessionSet('kerja_admin_token', 'cf_token_gh_admin_' + Date.now());
-            unlockDashboard();
-          } else {
-            if (errorAlert) {
-              errorText.textContent = 'Kata sandi admin salah! Akses ditolak.';
-              errorAlert.style.display = 'flex';
-            }
-          }
-        } else if (status === 401 || (data && data.success === false && data.message)) {
+        } else if (status === 429) {
           if (errorAlert) {
-            errorText.textContent = data?.message || 'Kata sandi admin salah! Akses ditolak.';
+            errorText.textContent = data?.error || 'Terlalu banyak percobaan login. Tunggu sebentar lalu coba lagi.';
             errorAlert.style.display = 'flex';
           }
         } else {
-          if (password === DEFAULT_ADMIN_PASSWORD) {
-            safeSessionSet('kerja_admin_token', 'cf_token_gh_admin_' + Date.now());
-            unlockDashboard();
-          } else if (errorAlert) {
-            errorText.textContent = data?.message || 'Kata sandi admin salah! Akses ditolak.';
+          if (errorAlert) {
+            errorText.textContent = data?.error || data?.message || 'Kata sandi admin salah! Akses ditolak.';
             errorAlert.style.display = 'flex';
           }
         }
       } catch (err) {
-        if (password === DEFAULT_ADMIN_PASSWORD) {
-          safeSessionSet('kerja_admin_token', 'cf_token_gh_admin_' + Date.now());
-          unlockDashboard();
-        } else if (errorAlert) {
-          errorText.textContent = 'Gagal menghubungi server otentikasi. Pastikan backend server aktif.';
+        if (errorAlert) {
+          errorText.textContent = 'Gagal menghubungi server otentikasi. Pastikan koneksi internet & server aktif.';
           errorAlert.style.display = 'flex';
         }
       } finally {
@@ -2494,6 +2466,51 @@ function renderDashboardCharts(jobsList, activeCount, scheduledCount, expiredCou
   }
 }
 
+function getJobClickMetrics(job) {
+  const map = (window.adminPortalAnalytics && window.adminPortalAnalytics.jobs) || {};
+  const entry = job && job.id ? map[String(job.id)] : null;
+  const totalClicks = Math.max(Number(job?.views_count || 0), Number(entry?.clicks || 0));
+  const uniquePeople = entry ? Math.min(totalClicks, Number(entry.unique_clicks || 0)) : 0;
+  return { uniquePeople, totalClicks };
+}
+
+function renderDualClickPillsHtml(uniquePeople, totalClicks, compact = false) {
+  const u = Number(uniquePeople || 0).toLocaleString('id-ID');
+  const c = Number(totalClicks || 0).toLocaleString('id-ID');
+  return `
+    <div class="dual-click-metrics ${compact ? 'is-compact' : ''}">
+      <span class="click-metric-pill people" title="Jumlah orang unik yang mengklik lowongan ini">
+        <i class="fa-solid fa-user-check"></i> ${u} Orang
+      </span>
+      <span class="click-metric-pill clicks" title="Total semua klik / tayangan lowongan ini">
+        <i class="fa-solid fa-arrow-pointer"></i> ${c} Klik
+      </span>
+    </div>
+  `;
+}
+
+async function fetchAdminPortalAnalytics() {
+  try {
+    const token = getAdminToken();
+    if (!token) return null;
+    const { ok, data } = await safeFetchJson(getApiEndpoint(`/api/admin/analytics?_t=${Date.now()}`), {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (ok && data && data.success && data.data) {
+      window.adminPortalAnalytics = data.data;
+      if (Array.isArray(adminJobs)) {
+        renderDashboardStats(adminJobs);
+        renderAdminJobsTable();
+      }
+      if (typeof renderBioAdminLinksList === 'function' && document.getElementById('bio-admin-links-list')) {
+        renderBioAdminLinksList();
+      }
+      return data.data;
+    }
+  } catch (e) { }
+  return null;
+}
+
 function renderDashboardStats(jobsList) {
   const realJobs = (jobsList || []).filter(j => j && (!j.status || !j.status.startsWith('system_')));
   const now = new Date();
@@ -2516,18 +2533,26 @@ function renderDashboardStats(jobsList) {
 
   const closedJobs = realJobs.filter(j => isJobLocked(j));
   const totalJobs = realJobs.length;
-  const totalViews = realJobs.reduce((acc, j) => acc + (j.views_count || 0), 0);
+  const analyticsSummary = (window.adminPortalAnalytics && window.adminPortalAnalytics.summary) || {};
+  const sumViews = realJobs.reduce((acc, j) => acc + Math.max(Number(j.views_count || 0), Number(getJobClickMetrics(j).totalClicks || 0)), 0);
+  const totalBioClicks = Number(analyticsSummary.total_bio_clicks || 0);
+  const totalClicksAll = Math.max(sumViews, Number(analyticsSummary.total_job_clicks || 0)) + totalBioClicks;
+  const totalUniquePeople = Math.max(
+    Number(analyticsSummary.combined_unique_people || 0),
+    Number(analyticsSummary.total_job_unique_people || 0)
+  );
   const recentJobs = sortJobsNewestFirst(realJobs).slice(0, 5);
 
-  document.getElementById('stat-total-jobs') && (document.getElementById('stat-total-jobs').textContent = totalJobs);
-  document.getElementById('stat-active-jobs') && (document.getElementById('stat-active-jobs').textContent = activeJobs.length);
-  document.getElementById('stat-scheduled-jobs') && (document.getElementById('stat-scheduled-jobs').textContent = scheduledJobs.length);
+  document.getElementById('stat-total-jobs') && (document.getElementById('stat-total-jobs').textContent = totalJobs.toLocaleString('id-ID'));
+  document.getElementById('stat-active-jobs') && (document.getElementById('stat-active-jobs').textContent = activeJobs.length.toLocaleString('id-ID'));
+  document.getElementById('stat-scheduled-jobs') && (document.getElementById('stat-scheduled-jobs').textContent = scheduledJobs.length.toLocaleString('id-ID'));
   document.getElementById('badge-scheduled-count') && (document.getElementById('badge-scheduled-count').textContent = `${scheduledJobs.length} Mengantre`);
-  document.getElementById('stat-closed-jobs') && (document.getElementById('stat-closed-jobs').textContent = closedJobs.length);
-  document.getElementById('stat-total-views') && (document.getElementById('stat-total-views').textContent = totalViews);
+  document.getElementById('stat-closed-jobs') && (document.getElementById('stat-closed-jobs').textContent = closedJobs.length.toLocaleString('id-ID'));
+  document.getElementById('stat-unique-people') && (document.getElementById('stat-unique-people').textContent = totalUniquePeople.toLocaleString('id-ID'));
+  document.getElementById('stat-total-views') && (document.getElementById('stat-total-views').textContent = totalClicksAll.toLocaleString('id-ID'));
   document.getElementById('sidebar-jobs-count') && (document.getElementById('sidebar-jobs-count').textContent = totalJobs);
   document.getElementById('sidebar-stat-active') && (document.getElementById('sidebar-stat-active').textContent = activeJobs.length);
-  document.getElementById('sidebar-stat-views') && (document.getElementById('sidebar-stat-views').textContent = Number(totalViews || 0).toLocaleString('id-ID'));
+  document.getElementById('sidebar-stat-views') && (document.getElementById('sidebar-stat-views').textContent = `${totalUniquePeople.toLocaleString('id-ID')} / ${totalClicksAll.toLocaleString('id-ID')}`);
 
   // Render recent table in dashboard
   const recentTbody = document.getElementById('dashboard-recent-tbody');
@@ -2538,6 +2563,7 @@ function renderDashboardStats(jobsList) {
       recentTbody.innerHTML = recentJobs.map(job => {
         const isLocked = isJobLocked(job);
         const isSched = !isLocked && (job.status === 'scheduled' || (job.scheduled_at && new Date(job.scheduled_at) > now));
+        const metrics = getJobClickMetrics(job);
         let badgeClass = 'badge-active';
         let badgeLabel = '<i class="fa-solid fa-circle-check"></i> Aktif';
         if (isLocked) {
@@ -2557,7 +2583,7 @@ function renderDashboardStats(jobsList) {
             <td><small>${escapeHtml(job.category)}</small></td>
             <td><span class="badge" style="background:#f1f5f9; color:#475569;">${escapeHtml(job.job_type)}</span></td>
             <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
-            <td>${job.views_count || 0}</td>
+            <td>${renderDualClickPillsHtml(metrics.uniquePeople, metrics.totalClicks, true)}</td>
             <td>
               <button class="btn-table btn-lock" onclick="toggleJobLock(${job.id}, '${isLocked ? 'active' : 'closed'}')" title="${isLocked ? 'Buka Kunci (Aktifkan Kembali)' : 'Kunci (Tampil CLOSED di Bawah Web User)'}">
                 <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'}"></i>
@@ -3006,6 +3032,7 @@ function renderAdminJobsTable() {
     const lockIcon = isLocked ? 'fa-lock-open' : 'fa-lock';
     const lockTooltip = isLocked ? 'Buka kunci lowongan (Aktifkan kembali di Web User)' : 'Kunci lowongan (Tampil CLOSED di bagian paling bawah Web User & tidak bisa dibuka)';
     const nextStatus = isLocked ? 'active' : 'closed';
+    const jobMetrics = getJobClickMetrics(job);
 
     return `
       <tr class="admin-job-row" onclick="handleAdminRowClick(event, ${job.id})">
@@ -3023,7 +3050,7 @@ function renderAdminJobsTable() {
               <div class="mobile-job-meta-row">
                 <span class="badge" style="background:#f1f5f9; color:#475569; font-size:0.75rem;">${escapeHtml(job.category || 'Umum')}</span>
                 ${statusBadge}
-                <span style="font-size:0.75rem; color:#64748b; font-weight:600;"><i class="fa-solid fa-eye"></i> ${job.views_count || 0}</span>
+                ${renderDualClickPillsHtml(jobMetrics.uniquePeople, jobMetrics.totalClicks, true)}
               </div>
 
               <!-- Mobile Only Quick Action Bar -->
@@ -3058,7 +3085,7 @@ function renderAdminJobsTable() {
         <td><span class="badge" style="background:#f1f5f9; color:#475569;">${escapeHtml(job.job_type)}</span></td>
         <td style="max-width:200px;">${contactsHtml}</td>
         <td>${statusBadge}</td>
-        <td>${job.views_count || 0}</td>
+        <td>${renderDualClickPillsHtml(jobMetrics.uniquePeople, jobMetrics.totalClicks, true)}</td>
         <td><small>${job.created_at ? new Date(job.created_at).toLocaleDateString('id-ID') : '-'}</small></td>
         <td>
           <div class="action-buttons">
@@ -3168,18 +3195,10 @@ async function loadAdminJobs(forceRefresh = false) {
         .neq('status', 'system_flyer_themes')
         .neq('status', 'system_company_images')
         .neq('status', 'system_uploaded_file')
+        .neq('status', 'system_analytics')
         .order('id', { ascending: false });
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000));
       let res = await Promise.race([fetchJobs(), timeoutPromise]);
-      if (res && res.error && (res.error.code === 'PGRST301' || res.status === 401 || String(res.error.message || '').includes('API key'))) {
-        const altKey = (currentSupabaseKey === DEFAULT_SUPABASE_KEY) ? ALTERNATE_SUPABASE_KEY : DEFAULT_SUPABASE_KEY;
-        const altClient = getOrCreateSupabaseClient(DEFAULT_SUPABASE_URL, altKey, clientOptions);
-        if (altClient) {
-          sbClient = altClient;
-          currentSupabaseKey = altKey;
-          res = await Promise.race([fetchJobs(), timeoutPromise]);
-        }
-      }
       if (res && !res.error && Array.isArray(res.data)) {
         return res.data;
       }
@@ -3203,6 +3222,8 @@ async function loadAdminJobs(forceRefresh = false) {
     }
 
     renderAdminJobsTable();
+    // Refresh Orang Unik vs Total Klik analytics in parallel without blocking table paint
+    fetchAdminPortalAnalytics();
     renderDashboardStats(adminJobs);
   } catch (err) {
     console.error('loadAdminJobs error:', err);
@@ -9882,9 +9903,8 @@ function renderBioProfileInputs() {
 
   const avEl = document.getElementById('bio-admin-avatar-preview');
   if (avEl) {
-    avEl.innerHTML = p.avatar
-      ? `<img src="${escapeHtml(p.avatar)}" alt="Avatar">`
-      : '<i class="fa-solid fa-briefcase"></i>';
+    const avSrc = p.avatar || '/uploads/kerjahub-logo-hd.png?v=20261127_01';
+    avEl.innerHTML = `<img src="${escapeHtml(avSrc)}" alt="Avatar">`;
   }
 
   document.querySelectorAll('#bio-theme-pills .bio-theme-pill').forEach(btn => {
@@ -9896,10 +9916,19 @@ function renderBioAdminLinksList() {
   const listEl = document.getElementById('bio-admin-links-list');
   const countLabel = document.getElementById('bio-links-count-label');
   const sideBadge = document.getElementById('sidebar-bio-links-count');
+  const bioTotalClicksEl = document.getElementById('bio-total-clicks');
+  const bioTotalPeopleEl = document.getElementById('bio-total-unique-people');
   const links = Array.isArray(bioLinksState.links) ? bioLinksState.links : [];
+
+  const totalBioClicks = links.reduce((sum, l) => sum + Number(l.clicks || 0), 0);
+  const sumLinkUnique = links.reduce((sum, l) => sum + Number(l.unique_clicks || 0), 0);
+  const serverBioPeople = Number(window.adminPortalAnalytics?.summary?.total_bio_unique_people || 0);
+  const displayBioPeople = serverBioPeople > 0 ? serverBioPeople : sumLinkUnique;
 
   if (countLabel) countLabel.textContent = String(links.length);
   if (sideBadge) sideBadge.textContent = String(links.filter(l => l.active !== false).length);
+  if (bioTotalClicksEl) bioTotalClicksEl.textContent = totalBioClicks.toLocaleString('id-ID');
+  if (bioTotalPeopleEl) bioTotalPeopleEl.textContent = displayBioPeople.toLocaleString('id-ID');
 
   if (!listEl) return;
   if (links.length === 0) {
@@ -9914,6 +9943,7 @@ function renderBioAdminLinksList() {
       : `<i class="${iconCls}"></i>`;
     const domain = getBioDomainLabel(item.url);
     const clicks = Number(item.clicks || 0);
+    const uniqueClicks = Math.min(clicks, Number(item.unique_clicks || 0));
     const isActive = item.active !== false;
     return `
       <div class="bio-admin-link-row ${isActive ? '' : 'is-inactive'}">
@@ -9921,7 +9951,8 @@ function renderBioAdminLinksList() {
         <div class="bio-row-info">
           <div class="bio-row-title">${escapeHtml(item.title || 'Tanpa Judul')}</div>
           <div class="bio-row-meta">
-            <span class="bio-clicks-pill"><i class="fa-solid fa-arrow-pointer"></i> ${clicks} clicks</span>
+            <span class="bio-people-pill" title="Jumlah orang unik yang mengklik link ini"><i class="fa-solid fa-user-check"></i> ${uniqueClicks.toLocaleString('id-ID')} Orang</span>
+            <span class="bio-clicks-pill" title="Total klik keseluruhan pada link ini"><i class="fa-solid fa-arrow-pointer"></i> ${clicks.toLocaleString('id-ID')} Klik</span>
             <span>&middot;</span>
             <span>${escapeHtml(domain || item.url || '-')}</span>
           </div>
@@ -9979,9 +10010,8 @@ function renderBioLivePreview() {
 
   const av = document.getElementById('bio-pv-avatar');
   if (av) {
-    av.innerHTML = p.avatar
-      ? `<img src="${escapeHtml(p.avatar)}" alt="Avatar">`
-      : '<i class="fa-solid fa-briefcase"></i>';
+    const avSrc = p.avatar || '/uploads/kerjahub-logo-hd.png?v=20261127_01';
+    av.innerHTML = `<img src="${escapeHtml(avSrc)}" alt="Avatar">`;
   }
   const nm = document.getElementById('bio-pv-name');
   if (nm) nm.textContent = p.name || 'KitaKerja';
@@ -10148,7 +10178,10 @@ window.loadBioLinksAdmin = async function() {
   if (openBtn) openBtn.href = fullUrl;
 
   try {
-    const res = await safeFetchJson(getApiEndpoint(`/api/bio-links?_t=${Date.now()}`));
+    const [res] = await Promise.all([
+      safeFetchJson(getApiEndpoint(`/api/bio-links?_t=${Date.now()}`)),
+      fetchAdminPortalAnalytics()
+    ]);
     if (res.ok && res.data && res.data.data) {
       bioLinksState = {
         profile: { ...bioLinksState.profile, ...(res.data.data.profile || {}) },
@@ -10162,6 +10195,9 @@ window.loadBioLinksAdmin = async function() {
   renderBioProfileInputs();
   renderBioAdminLinksList();
   renderBioLivePreview();
+  if (typeof fetchAdminPortalAnalytics === 'function') {
+    fetchAdminPortalAnalytics();
+  }
 };
 
 window.saveBioLinksConfig = async function() {

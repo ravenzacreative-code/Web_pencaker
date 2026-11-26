@@ -169,9 +169,9 @@ function updateThemeIcon(theme) {
   }
 }
 
-const DEFAULT_SUPABASE_URL = "https://nptmawuukuysqzqakwej.supabase.co";
-const DEFAULT_SUPABASE_KEY = "sb_publishable_CeLmp_Pj-sgJ_vIrShAj2A__rzAQIYT";
-const ALTERNATE_SUPABASE_KEY = "sb_publishable_vhr-CPf4EI0fy2Xsl1uBPg_RxF7UwWT";
+// Public Supabase config is injected strictly at runtime via /api/config (zero hardcoded credentials)
+let RUNTIME_SUPABASE_URL = "";
+let RUNTIME_SUPABASE_KEY = "";
 
 function getApiEndpoint(endpoint) {
   if (!endpoint) return '';
@@ -349,13 +349,28 @@ function getOrCreateCekCvSupabaseClient(url, key) {
 }
 
 async function loadAllJobs() {
-  if (!cekCvSbClient) {
-    try {
-      cekCvSbClient = getOrCreateCekCvSupabaseClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY);
-    } catch (e) {
-      console.warn('Initial Supabase client error in cek-cv:', e);
+  // Fetch runtime public config only (no hardcoded keys)
+  try {
+    const cfg = await safeFetchJson(getApiEndpoint('/api/config'));
+    if (cfg.ok && cfg.data) {
+      if (cfg.data.supabaseUrl && cfg.data.supabaseKey) {
+        RUNTIME_SUPABASE_URL = cfg.data.supabaseUrl;
+        RUNTIME_SUPABASE_KEY = cfg.data.supabaseKey;
+        if (!cekCvSbClient) {
+          try {
+            cekCvSbClient = getOrCreateCekCvSupabaseClient(RUNTIME_SUPABASE_URL, RUNTIME_SUPABASE_KEY);
+          } catch (e) {
+            console.warn('Initial Supabase client error in cek-cv:', e);
+          }
+        }
+      }
+      if (cfg.data.cv_whatsapp) window.siteSettings.cv_whatsapp = cfg.data.cv_whatsapp;
+      if (cfg.data.cv_order_message) window.siteSettings.cv_order_message = cfg.data.cv_order_message;
+      if (typeof cfg.data.instagram_url === 'string') window.siteSettings.instagram_url = cfg.data.instagram_url;
+      if (typeof cfg.data.tiktok_url === 'string') window.siteSettings.tiktok_url = cfg.data.tiktok_url;
+      if (typeof window.renderFooterSocialLinks === 'function') window.renderFooterSocialLinks();
     }
-  }
+  } catch (e) {}
   const sb = cekCvSbClient;
 
   // 1. Try lightweight backend /api/jobs first (avoids 16+ MB base64 payloads)

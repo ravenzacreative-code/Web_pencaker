@@ -2979,27 +2979,27 @@ textarea.form-control {
 
 @media (max-width: 768px) {
   .trending-keywords {
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding: 4px 6px 10px 6px;
-    margin: 12px -8px 0 -8px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .trending-keywords::-webkit-scrollbar {
-    display: none;
+    justify-content: center;
+    flex-wrap: wrap;
+    overflow-x: visible;
+    padding: 0 2px;
+    margin: 14px 0 0 0;
+    gap: 7px;
   }
 
   .trending-label {
-    flex-shrink: 0;
-    padding-left: 6px;
+    flex-basis: 100%;
+    justify-content: center;
+    padding-left: 0;
+    margin-bottom: 2px;
+    font-size: 0.78rem;
   }
 
   .chip-keyword {
     flex-shrink: 0;
     white-space: nowrap;
+    font-size: 0.75rem;
+    padding: 6px 11px;
   }
 }
 
@@ -5307,5 +5307,551 @@ body {
 
   .email-providers-quick-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==============================================================
+   2026-11-27 POLISH: HD LOGO, MODERN JOB BADGES & TACTILE BUTTON FX
+   ============================================================== */
+.brand-icon.brand-icon-hd {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.22);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.brand-icon.brand-icon-hd img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 50%;
+}
+
+@media (max-width: 640px) {
+  .brand-icon.brand-icon-hd {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Redesigned Front-Page Job Card Badges: sleek, crisp, uniform height */
+.job-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.job-badges .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 27px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  font-size: 0.725rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.job-badges .pill i {
+  font-size: 0.74rem;
+  flex-shrink: 0;
+}
+
+.job-badges .pill-platform.pill-official {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(5, 150, 105, 0.08));
+  color: #047857;
+  border-color: rgba(16, 185, 129, 0.34);
+  text-transform: uppercase;
+  font-size: 0.69rem;
+  letter-spacing: 0.03em;
+}
+
+.job-badges .pill-type {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0369a1;
+  border-color: rgba(14, 165, 233, 0.24);
+}
+
+.job-badges .pill-salary {
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border-color: rgba(16, 185, 129, 0.24);
+}
+
+.job-badges .pill-channel-email {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4338ca;
+  border-color: rgba(79, 70, 229, 0.25);
+}
+
+.job-badges .pill-channel-web {
+  background: rgba(2, 132, 199, 0.1);
+  color: #0369a1;
+  border-color: rgba(2, 132, 199, 0.25);
+}
+
+.job-badges .pill-channel-wa {
+  background: rgba(22, 163, 74, 0.11);
+  color: #15803d;
+  border-color: rgba(22, 163, 74, 0.26);
+}
+
+.job-badges .pill-urgency {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(217, 119, 6, 0.08));
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
+[data-theme="dark"] .job-badges .pill-platform.pill-official {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.34);
+}
+
+[data-theme="dark"] .job-badges .pill-type {
+  background: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+[data-theme="dark"] .job-badges .pill-salary {
+  background: rgba(16, 185, 129, 0.16);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+[data-theme="dark"] .job-badges .pill-urgency {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.34);
+}
+
+@media (max-width: 640px) {
+  .job-badges {
+    gap: 5px;
+  }
+
+  .job-badges .pill {
+    min-height: 25px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Tactile Micro-Interaction & Click Ripple Experience on Detail & Lamar Langsung */
+.card-actions .btn-detail-job,
+.card-actions .btn-apply-direct {
+  position: relative;
+  overflow: hidden;
+  transform-origin: center;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.card-actions .btn-detail-job {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-color);
+  font-weight: 700;
+}
+
+.card-actions .btn-detail-job:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  box-shadow: 0 6px 14px -6px rgba(29, 78, 216, 0.32);
+}
+
+.card-actions .btn-detail-job:hover i {
+  transform: scale(1.12);
+}
+
+.card-actions .btn-detail-job:active {
+  transform: translateY(1px) scale(0.95);
+  box-shadow: 0 2px 6px rgba(29, 78, 216, 0.18);
+}
+
+.card-actions .btn-apply-direct {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 55%, #6366f1 100%);
+  box-shadow: 0 6px 16px -6px rgba(37, 99, 235, 0.55);
+  font-weight: 700;
+}
+
+.card-actions .btn-apply-direct::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 75%;
+  height: 100%;
+  background: linear-gradient(110deg, transparent 15%, rgba(255, 255, 255, 0.34) 50%, transparent 85%);
+  transform: skewX(-20deg);
+  transition: left 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.card-actions .btn-apply-direct:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -6px rgba(37, 99, 235, 0.62);
+}
+
+.card-actions .btn-apply-direct:hover::after {
+  left: 145%;
+}
+
+.card-actions .btn-apply-direct:hover i {
+  transform: translate(2px, -2px) scale(1.08);
+}
+
+.card-actions .btn-apply-direct:active {
+  transform: translateY(1px) scale(0.95);
+  box-shadow: 0 3px 10px -4px rgba(37, 99, 235, 0.45);
+}
+
+.card-actions .btn-detail-job i,
+.card-actions .btn-apply-direct i {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-actions .btn-detail-job.is-click-feedback {
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  border-color: var(--primary);
+}
+
+.card-actions .btn-apply-direct.is-click-feedback {
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.32), 0 8px 20px -4px rgba(37, 99, 235, 0.55);
+}
+
+.btn-click-ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: scale(0);
+  opacity: 0.65;
+  background: rgba(255, 255, 255, 0.52);
+  animation: khBtnRipple 0.52s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.btn-detail-job .btn-click-ripple {
+  background: rgba(37, 99, 235, 0.24);
+}
+
+@keyframes khBtnRipple {
+  0% {
+    transform: scale(0);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* ==============================================================
+   2026-11-27 POLISH: HD LOGO, MOBILE TRENDING CHIPS,
+   SLEEK JOB BADGES & TACTILE BUTTON CLICK EXPERIENCE
+   ============================================================== */
+.brand-icon.brand-icon-hd {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  background: transparent;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.22);
+  flex-shrink: 0;
+}
+
+.brand-icon.brand-icon-hd img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+[data-theme="dark"] .brand-icon.brand-icon-hd {
+  border-color: rgba(148, 163, 184, 0.35);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.28);
+}
+
+/* Fix Mobile Kategori Terpopuler: Clean Wrapped Pill Cloud (Zero Mid-Word Clipping) */
+@media (max-width: 768px) {
+  .trending-keywords {
+    display: flex;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center;
+    overflow-x: visible !important;
+    margin: 14px 0 0 0 !important;
+    padding: 0 2px !important;
+    gap: 7px !important;
+  }
+
+  .trending-keywords .trending-label {
+    flex: 0 0 100%;
+    justify-content: center;
+    padding-left: 0 !important;
+    margin-bottom: 2px;
+    font-size: 0.78rem;
+  }
+
+  .trending-keywords .chip-keyword {
+    flex: 0 1 auto;
+    max-width: 100%;
+    white-space: nowrap;
+    padding: 6px 12px;
+    font-size: 0.76rem;
+    line-height: 1.15;
+    border-radius: 999px;
+  }
+}
+
+/* Modern Redesigned Job Card Badges (Sleek, Uniform Height, Cohesive Palette) */
+.job-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.job-badges .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 27px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.725rem;
+  font-weight: 700;
+  letter-spacing: 0.012em;
+  line-height: 1.1;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.job-badges .pill i {
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.job-badges .pill-platform.pill-official {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.13), rgba(5, 150, 105, 0.07));
+  color: #047857;
+  border-color: rgba(16, 185, 129, 0.3);
+  text-transform: uppercase;
+  font-size: 0.69rem;
+  letter-spacing: 0.03em;
+}
+
+.job-badges .pill-type {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(2, 132, 199, 0.06));
+  color: #0369a1;
+  border-color: rgba(14, 165, 233, 0.24);
+}
+
+.job-badges .pill-salary {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(20, 184, 166, 0.08));
+  color: #047857;
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+.job-badges .pill-channel-email {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(99, 102, 241, 0.06));
+  color: #4338ca;
+  border-color: rgba(99, 102, 241, 0.26);
+}
+
+.job-badges .pill-channel-web {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(37, 99, 235, 0.06));
+  color: #1d4ed8;
+  border-color: rgba(59, 130, 246, 0.26);
+}
+
+.job-badges .pill-channel-wa {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.13), rgba(34, 197, 94, 0.07));
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.28);
+}
+
+.job-badges .pill-urgency {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(251, 191, 36, 0.08));
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+[data-theme="dark"] .job-badges .pill-platform.pill-official {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+[data-theme="dark"] .job-badges .pill-type {
+  background: rgba(14, 165, 233, 0.18);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.32);
+}
+
+[data-theme="dark"] .job-badges .pill-salary {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border-color: rgba(52, 211, 153, 0.34);
+}
+
+[data-theme="dark"] .job-badges .pill-channel-email {
+  background: rgba(99, 102, 241, 0.22);
+  color: #a5b4fc;
+  border-color: rgba(129, 140, 248, 0.35);
+}
+
+[data-theme="dark"] .job-badges .pill-channel-web {
+  background: rgba(37, 99, 235, 0.22);
+  color: #93c5fd;
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+[data-theme="dark"] .job-badges .pill-channel-wa {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+[data-theme="dark"] .job-badges .pill-urgency {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+/* Tactile Interactive Click Experience: Detail & Lamar Langsung Buttons */
+.card-actions .btn-detail-job,
+.card-actions .btn-apply-direct {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 10px;
+  font-weight: 700;
+  will-change: transform;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.22s ease,
+              background 0.22s ease,
+              border-color 0.22s ease,
+              color 0.2s ease;
+}
+
+.card-actions .btn-detail-job i,
+.card-actions .btn-apply-direct i {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-actions .btn-detail-job:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 6px 14px -4px rgba(29, 78, 216, 0.22);
+}
+
+.card-actions .btn-detail-job:hover i {
+  transform: scale(1.14);
+}
+
+.card-actions .btn-apply-direct::after {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -130%;
+  width: 65%;
+  height: 120%;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.36) 50%, transparent 100%);
+  transform: skewX(-20deg);
+  transition: left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.card-actions .btn-apply-direct:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.45);
+}
+
+.card-actions .btn-apply-direct:hover::after {
+  left: 145%;
+}
+
+.card-actions .btn-apply-direct:hover i {
+  transform: translate(2px, -2px) scale(1.08);
+}
+
+.card-actions .btn-detail-job:active,
+.card-actions .btn-apply-direct:active {
+  transform: translateY(1px) scale(0.95) !important;
+  transition-duration: 0.08s;
+}
+
+.card-actions .btn-detail-job.is-click-feedback {
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.24);
+  border-color: var(--primary);
+}
+
+.card-actions .btn-apply-direct.is-click-feedback {
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.32), 0 8px 18px -4px rgba(37, 99, 235, 0.45);
+}
+
+.btn-click-ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: scale(0);
+  opacity: 0.55;
+  background: rgba(255, 255, 255, 0.72);
+  animation: khBtnRipple 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  z-index: 0;
+}
+
+.btn-detail-job .btn-click-ripple {
+  background: rgba(37, 99, 235, 0.28);
+}
+
+@keyframes khBtnRipple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .brand-icon.brand-icon-hd {
+    width: 36px;
+    height: 36px;
+  }
+
+  .job-badges .pill {
+    min-height: 25px;
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    border-radius: 7px;
   }
 }

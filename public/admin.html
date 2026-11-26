@@ -6,15 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard & Upload Poster - KerjaHub</title>
 
-  <!-- Fonts & Icons -->
+  <!-- Favicon / Fonts & Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/uploads/kerjahub-favicon.png?v=20261127_01">
+  <link rel="shortcut icon" type="image/png" href="/uploads/kerjahub-favicon.png?v=20261127_01">
+  <link rel="apple-touch-icon" href="/uploads/kerjahub-favicon.png?v=20261127_01">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://nptmawuukuysqzqakwej.supabase.co" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/admin.css?v=20261119_04">
+  <link rel="stylesheet" href="./css/admin.css?v=20261127_01">
   <link rel="stylesheet" href="./css/cv-builder.css?v=20261116_04">
   <!-- Start Admin Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialAdminJobsPrefetch = fetch('/api/jobs?status=all').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
@@ -34,8 +36,8 @@
   <div id="admin-login-modal" class="auth-gate-wrapper">
     <div class="auth-gate-card">
       <div class="auth-gate-header">
-        <div class="auth-logo-badge">
-          <i class="fa-solid fa-shield-halved"></i>
+        <div class="auth-logo-badge auth-logo-hd">
+          <img src="/uploads/kerjahub-logo-hd.png?v=20261127_01" alt="KerjaHub Logo" width="68" height="68" decoding="async">
         </div>
         <h2>Admin Portal KerjaHub</h2>
         <p>Akses khusus administrator untuk mengunggah poster lowongan dan mengelola data Cloud.</p>
@@ -80,13 +82,8 @@
     <aside class="admin-sidebar" id="admin-sidebar">
       <div class="sidebar-header">
         <a href="./admin.html" class="sidebar-brand">
-          <div class="brand-glow-circle" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
-              stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="7" width="20" height="14" rx="2" />
-              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-              <path d="M2 12h20" />
-            </svg>
+          <div class="brand-glow-circle brand-glow-hd" aria-hidden="true">
+            <img src="/uploads/kerjahub-logo-hd.png?v=20261127_01" alt="KerjaHub" width="42" height="42" decoding="async">
           </div>
           <div class="brand-text-block">
             <span class="brand-title">KerjaHub</span>
@@ -422,6 +419,22 @@
                 <div class="stat-label">Lowongan Expired / Dikunci</div>
               </div>
             </div>
+            <div class="stat-card card-people">
+              <div class="stat-icon teal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <div class="stat-info-wrap">
+                <span class="stat-badge-mini teal">Orang Unik</span>
+                <div class="stat-value" id="stat-unique-people">0</div>
+                <div class="stat-label">Jumlah Orang Klik (Unik)</div>
+              </div>
+            </div>
             <div class="stat-card card-views">
               <div class="stat-icon blue">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
@@ -430,10 +443,10 @@
                   <path d="m19 9-5 5-4-4-3 3" />
                 </svg>
               </div>
-              <div>
-                <span class="stat-badge-mini blue">Live Traffic</span>
+              <div class="stat-info-wrap">
+                <span class="stat-badge-mini blue">Total Klik</span>
                 <div class="stat-value" id="stat-total-views">0</div>
-                <div class="stat-label">Total Kunjungan / Views</div>
+                <div class="stat-label">Total Semua Klik / Views</div>
               </div>
             </div>
           </div>
@@ -574,7 +587,7 @@
                     <th>Kategori</th>
                     <th>Tipe</th>
                     <th>Status</th>
-                    <th>Total Dilihat</th>
+                    <th>Orang / Klik</th>
                     <th>Aksi Cepat</th>
                   </tr>
                 </thead>
@@ -1199,7 +1212,7 @@
                     <th>Tipe</th>
                     <th>Kontak Tersedia</th>
                     <th>Status Lowongan</th>
-                    <th>Views</th>
+                    <th>Orang / Klik</th>
                     <th>Tanggal</th>
                     <th style="min-width: 130px;">Aksi</th>
                   </tr>
@@ -2032,11 +2045,29 @@
                     <div class="bio-editor-card-head" style="justify-content: space-between;">
                       <div>
                         <h4><i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> Daftar Kartu Link (<span id="bio-links-count-label">0</span>)</h4>
-                        <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">Atur 4 link utama (atau lebih), urutan, gambar ikon, dan pantau jumlah klik secara live.</p>
+                        <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">Atur 4 link utama (atau lebih), urutan, gambar ikon, dan pantau jumlah orang vs total klik secara live.</p>
                       </div>
                       <button type="button" class="btn btn-primary btn-sm" onclick="openBioLinkItemForm()">
                         <i class="fa-solid fa-plus"></i> Tambah Link
                       </button>
+                    </div>
+
+                    <!-- Dual Analytics Summary Strip for Bio Links -->
+                    <div class="bio-analytics-summary-strip">
+                      <div class="bio-analytics-kpi kpi-people">
+                        <div class="bio-kpi-icon"><i class="fa-solid fa-users"></i></div>
+                        <div>
+                          <div class="bio-kpi-val" id="bio-total-unique-people">0</div>
+                          <div class="bio-kpi-lbl">Orang Unik (Pengunjung)</div>
+                        </div>
+                      </div>
+                      <div class="bio-analytics-kpi kpi-clicks">
+                        <div class="bio-kpi-icon"><i class="fa-solid fa-arrow-pointer"></i></div>
+                        <div>
+                          <div class="bio-kpi-val" id="bio-total-clicks">0</div>
+                          <div class="bio-kpi-lbl">Total Semua Klik</div>
+                        </div>
+                      </div>
                     </div>
 
                     <!-- Inline Add/Edit Form -->
@@ -3038,7 +3069,7 @@
     </div>
   </div>
 
-  <script src="./js/admin.js?v=20261121_01" defer></script>
+  <script src="./js/admin.js?v=20261127_01" defer></script>
   <script src="./js/cv-builder.js?v=20261116_04" defer></script>
 </body>
 

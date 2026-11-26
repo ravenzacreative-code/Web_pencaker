@@ -6196,4 +6196,640 @@ body::before {
   }
 }
 
+/* ============================================================== */
+/* 2026-11-27 POLISH: HD LOGO, DUAL ANALYTICS & MOBILE DASHBOARD  */
+/* ============================================================== */
+.auth-logo-badge.auth-logo-hd {
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.25);
+  overflow: hidden;
+}
+
+.auth-logo-badge.auth-logo-hd img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 50%;
+}
+
+.brand-glow-circle.brand-glow-hd {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.34);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.brand-glow-circle.brand-glow-hd img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 50%;
+}
+
+/* 6th Dashboard KPI Card: Orang Unik (Teal/Emerald Accent) */
+.stat-card.card-people::before {
+  background: linear-gradient(90deg, #0d9488, #14b8a6, #10b981);
+}
+
+.stat-icon.teal {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.14), rgba(20, 184, 166, 0.22));
+  color: #0d9488;
+}
+
+.stat-badge-mini.teal {
+  background: rgba(13, 148, 136, 0.12);
+  color: #0f766e;
+}
+
+/* Dual Click Metric Pills (Orang Unik vs Total Klik) */
+.dual-click-metrics {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.dual-click-metrics.is-compact {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.click-metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.click-metric-pill.people {
+  background: rgba(13, 148, 136, 0.12);
+  color: #0f766e;
+  border: 1px solid rgba(13, 148, 136, 0.24);
+}
+
+.click-metric-pill.clicks {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+}
+
+/* Bio Links Dual Analytics Summary Strip & Per-Row Pills */
+.bio-analytics-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.bio-analytics-kpi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.bio-analytics-kpi.kpi-people {
+  background: linear-gradient(135deg, #f0fdfa, #ecfdf5);
+  border-color: #99f6e4;
+}
+
+.bio-analytics-kpi.kpi-clicks {
+  background: linear-gradient(135deg, #eff6ff, #eef2ff);
+  border-color: #bfdbfe;
+}
+
+.bio-kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.bio-analytics-kpi.kpi-people .bio-kpi-icon {
+  background: rgba(13, 148, 136, 0.14);
+  color: #0f766e;
+}
+
+.bio-analytics-kpi.kpi-clicks .bio-kpi-icon {
+  background: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+}
+
+.bio-kpi-val {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+}
+
+.bio-kpi-lbl {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.bio-people-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(13, 148, 136, 0.12);
+  color: #0f766e;
+  border: 1px solid rgba(13, 148, 136, 0.24);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Mobile Admin Dashboard Polish (<= 768px & <= 480px) */
+@media (max-width: 768px) {
+  #section-dashboard {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  #section-dashboard .stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+
+  #section-dashboard .stat-card {
+    padding: 12px 11px !important;
+    border-radius: 14px !important;
+    gap: 9px !important;
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+  }
+
+  #section-dashboard .stat-card .stat-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    flex-shrink: 0;
+  }
+
+  #section-dashboard .stat-card .stat-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  #section-dashboard .stat-badge-mini {
+    font-size: 0.63rem !important;
+    padding: 2px 7px !important;
+    margin-bottom: 4px !important;
+    display: inline-block;
+  }
+
+  #section-dashboard .stat-value {
+    font-size: 1.38rem !important;
+    line-height: 1.15 !important;
+  }
+
+  #section-dashboard .stat-label {
+    font-size: 0.72rem !important;
+    line-height: 1.3 !important;
+    word-break: break-word;
+  }
+
+  #section-dashboard .dashboard-charts-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  #section-dashboard .dashboard-charts-grid .panel-body {
+    padding: 14px 12px !important;
+    min-height: 210px !important;
+  }
+
+  #section-dashboard .admin-quick-hero {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 18px 16px !important;
+    gap: 14px !important;
+    border-radius: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  #section-dashboard .quick-hero-graphic {
+    display: none !important;
+  }
+
+  #section-dashboard .admin-quick-hero h2 {
+    font-size: 1.08rem !important;
+    line-height: 1.3 !important;
+  }
+
+  #section-dashboard .admin-quick-hero p {
+    font-size: 0.8rem !important;
+    line-height: 1.48 !important;
+  }
+
+  #section-dashboard .quick-hero-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  #section-dashboard .quick-hero-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 40px;
+    font-size: 0.82rem !important;
+  }
+
+  #section-dashboard .panel {
+    border-radius: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  #section-dashboard .panel-title {
+    font-size: 0.88rem !important;
+    flex-wrap: wrap;
+  }
+
+  #section-dashboard .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #section-dashboard .admin-table th,
+  #section-dashboard .admin-table td {
+    padding: 10px 10px !important;
+    font-size: 0.78rem !important;
+  }
+
+  .bio-analytics-summary-strip {
+    gap: 8px;
+  }
+
+  .bio-analytics-kpi {
+    padding: 9px 10px;
+    gap: 8px;
+  }
+
+  .bio-kpi-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.86rem;
+  }
+
+  .bio-kpi-val {
+    font-size: 1rem;
+  }
+
+  .bio-kpi-lbl {
+    font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 400px) {
+  #section-dashboard .stats-grid {
+    gap: 8px !important;
+  }
+
+  #section-dashboard .stat-card {
+    padding: 10px 9px !important;
+  }
+
+  #section-dashboard .stat-value {
+    font-size: 1.24rem !important;
+  }
+}
+
+/* ============================================================== */
+/* 2026-11-27 POLISH: HD LOGO, DUAL CLICK ANALYTICS (ORANG/KLIK), */
+/* & MOBILE ADMIN DASHBOARD LAYOUT                                */
+/* ============================================================== */
+.auth-logo-badge.auth-logo-hd {
+  width: 74px;
+  height: 74px;
+  padding: 0;
+  background: transparent !important;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.28);
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+}
+
+.auth-logo-badge.auth-logo-hd img,
+.brand-glow-circle.brand-glow-hd img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.brand-glow-circle.brand-glow-hd {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  background: transparent !important;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.34);
+}
+
+/* Balanced 6-card KPI Grid (3x2 Desktop, 2x3 Mobile) */
+#section-dashboard .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stat-card.card-people::before {
+  background: linear-gradient(90deg, #0d9488, #06b6d4);
+}
+
+.stat-icon.teal {
+  background: rgba(13, 148, 136, 0.12);
+  color: #0d9488;
+}
+
+.stat-badge-mini.teal {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+/* Dual Click Metric Pills (Orang Unik vs Total Klik) */
+.dual-click-metrics {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.click-metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.click-metric-pill.people {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.click-metric-pill.clicks {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+/* Bio Links Dual Analytics Summary Strip & Pills */
+.bio-analytics-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.bio-analytics-kpi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.bio-analytics-kpi.kpi-people {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%);
+  border-color: #99f6e4;
+}
+
+.bio-analytics-kpi.kpi-clicks {
+  background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+  border-color: #bfdbfe;
+}
+
+.bio-kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.92rem;
+  flex-shrink: 0;
+}
+
+.bio-analytics-kpi.kpi-people .bio-kpi-icon {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.bio-analytics-kpi.kpi-clicks .bio-kpi-icon {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.bio-kpi-val {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+}
+
+.bio-kpi-lbl {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.bio-people-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Admin Dashboard Mobile Polish (<= 1024px & <= 768px & <= 480px) */
+@media (max-width: 1100px) {
+  #section-dashboard .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-body {
+    padding: 12px !important;
+  }
+
+  #section-dashboard .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+
+  #section-dashboard .stat-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: space-between;
+    gap: 8px !important;
+    padding: 12px !important;
+    border-radius: 14px !important;
+    min-width: 0;
+  }
+
+  #section-dashboard .stat-card .stat-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+  }
+
+  #section-dashboard .stat-card .stat-icon svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+
+  #section-dashboard .stat-badge-mini {
+    font-size: 0.64rem !important;
+    padding: 2px 7px !important;
+    margin-bottom: 4px !important;
+  }
+
+  #section-dashboard .stat-value {
+    font-size: 1.4rem !important;
+    line-height: 1.15 !important;
+  }
+
+  #section-dashboard .stat-label {
+    font-size: 0.72rem !important;
+    line-height: 1.28 !important;
+    color: #475569;
+  }
+
+  /* Fix Chart Overflow on Small Phones */
+  #section-dashboard .dashboard-charts-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  #section-dashboard .dashboard-charts-grid .panel-body {
+    padding: 14px 12px !important;
+    min-height: 220px !important;
+  }
+
+  /* Clean Mobile Quick Hero Banner */
+  #section-dashboard .admin-quick-hero {
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+    margin-bottom: 16px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  #section-dashboard .quick-hero-graphic {
+    display: none !important;
+  }
+
+  #section-dashboard .quick-hero-content h2 {
+    font-size: 1.08rem !important;
+    line-height: 1.3 !important;
+  }
+
+  #section-dashboard .quick-hero-content p {
+    font-size: 0.8rem !important;
+    line-height: 1.48 !important;
+  }
+
+  #section-dashboard .quick-hero-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  #section-dashboard .quick-hero-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 10px 12px !important;
+    font-size: 0.82rem !important;
+  }
+
+  /* Clean Mobile Tables inside Dashboard */
+  #section-dashboard .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #section-dashboard .admin-table th,
+  #section-dashboard .admin-table td {
+    padding: 10px 10px !important;
+    font-size: 0.78rem !important;
+  }
+
+  .bio-analytics-summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .bio-analytics-kpi {
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+
+  .bio-kpi-val {
+    font-size: 1.05rem !important;
+  }
+
+  .bio-kpi-lbl {
+    font-size: 0.67rem !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #section-dashboard .stat-value {
+    font-size: 1.26rem !important;
+  }
+  #section-dashboard .stat-card {
+    padding: 10px !important;
+  }
+}
+
 

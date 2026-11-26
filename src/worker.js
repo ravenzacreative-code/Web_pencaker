@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { SecureEnvVault } from './lib/security-vault.js';
 import {
     verifyAdminPassword,
     createAdminToken,
@@ -29,6 +30,8 @@ import {
     getBioLinks,
     saveBioLinks,
     incrementBioLinkClick,
+    trackJobClick,
+    getPortalAnalytics,
     getCompanyImages,
     saveCompanyImage,
     getMasterData,
@@ -48,20 +51,14 @@ import {
 
 const app = new Hono();
 
-// Security headers & URL normalization
+// Security headers & URL normalization via SecureEnvVault
 app.use('*', async (c, next) => {
     await next();
-    const applyHeaders = (headers) => {
-        headers.set('X-Content-Type-Options', 'nosniff');
-        headers.set('X-Frame-Options', 'SAMEORIGIN');
-        headers.set('X-XSS-Protection', '1; mode=block');
-        headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    };
     try {
-        applyHeaders(c.res.headers);
+        SecureEnvVault.applySecurityHeaders(c.res.headers);
     } catch {
         const mutableHeaders = new Headers(c.res.headers);
-        applyHeaders(mutableHeaders);
+        SecureEnvVault.applySecurityHeaders(mutableHeaders);
         c.res = new Response(c.res.body, {
             status: c.res.status,
             statusText: c.res.statusText,
@@ -456,12 +453,51 @@ app.put('/api/bio-links', requireAdminAuth, async (c) => {
 app.post('/api/bio-links/:id/click', async (c) => {
     try {
         const linkId = c.req.param('id');
-        const result = await incrementBioLinkClick(c.env, linkId);
+        const body = await c.req.json().catch(() => ({}));
+        const vault = SecureEnvVault.from(c.env);
+        const clientIp = SecureEnvVault.getClientIp(c);
+        const userAgent = c.req.header('user-agent') || '';
+        const visitorHash = await vault.hashVisitorIdentity(body?.visitor_id || '', clientIp, userAgent);
+        const result = await incrementBioLinkClick(c.env, linkId, visitorHash);
         purgeEdgeCaches(c);
         if (!result) return c.json({ success: false, error: 'Link tidak ditemukan' }, 404);
         return c.json({ success: true, data: result });
     } catch (err) {
-        return c.json({ error: err.message }, 500);
+        return c.json({ error: SecureEnvVault.sanitizeErrorMessage(err) }, 500);
+    }
+});
+
+// ==========================================
+// 2C. JOB CLICK TRACKING & ADMIN ANALYTICS (ORANG UNIK vs TOTAL KLIK)
+// ==========================================
+app.post('/api/jobs/:id/track', async (c) => {
+    try {
+        const jobId = c.req.param('id');
+        const clientIp = SecureEnvVault.getClientIp(c);
+        const rl = SecureEnvVault.checkRateLimit(`job_track:${clientIp}`, 120, 60 * 1000);
+        if (!rl.allowed) {
+            return c.json({ success: false, error: 'Terlalu banyak permintaan.' }, 429);
+        }
+        const body = await c.req.json().catch(() => ({}));
+        const vault = SecureEnvVault.from(c.env);
+        const userAgent = c.req.header('user-agent') || '';
+        const visitorHash = await vault.hashVisitorIdentity(body?.visitor_id || '', clientIp, userAgent);
+        const result = await trackJobClick(c.env, jobId, visitorHash, body?.action || 'view');
+        if (!result) return c.json({ success: false, error: 'ID lowongan tidak valid' }, 400);
+        return c.json({ success: true, data: result });
+    } catch (err) {
+        return c.json({ error: SecureEnvVault.sanitizeErrorMessage(err) }, 500);
+    }
+});
+
+app.get('/api/admin/analytics', requireAdminAuth, async (c) => {
+    try {
+        const analytics = await getPortalAnalytics(c.env);
+        return c.json({ success: true, data: analytics }, 200, {
+            'Cache-Control': 'no-store, max-age=0'
+        });
+    } catch (err) {
+        return c.json({ error: SecureEnvVault.sanitizeErrorMessage(err) }, 500);
     }
 });
 
@@ -470,6 +506,14 @@ app.post('/api/bio-links/:id/click', async (c) => {
 // ==========================================
 app.post('/api/admin/login', async (c) => {
     try {
+        const clientIp = SecureEnvVault.getClientIp(c);
+        const rl = SecureEnvVault.checkRateLimit(`admin_login:${clientIp}`, 12, 5 * 60 * 1000);
+        if (!rl.allowed) {
+            return c.json({
+                error: `Terlalu banyak percobaan login. Coba lagi dalam ${rl.retryAfterSec} detik.`
+            }, 429);
+        }
+
         const body = await c.req.json().catch(() => ({}));
         const check = verifyAdminPassword(body?.password, c.env);
 
@@ -483,7 +527,7 @@ app.post('/api/admin/login', async (c) => {
         const token = await createAdminToken(c.env);
         return c.json({ success: true, token });
     } catch (err) {
-        return c.json({ error: err.message }, 500);
+        return c.json({ error: SecureEnvVault.sanitizeErrorMessage(err) }, 500);
     }
 });
 

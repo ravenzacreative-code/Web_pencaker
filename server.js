@@ -9,8 +9,8 @@ const db = require('./supabase');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin_supersecret_portal_2026';
-const SESSION_SECRET = process.env.SESSION_SECRET || 'super_secret_session_key_job_portal_2026';
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '').trim();
+const SESSION_SECRET = (process.env.SESSION_SECRET || '').trim() || crypto.randomBytes(32).toString('hex');
 
 // In-memory active admin tokens
 const activeAdminTokens = new Set();

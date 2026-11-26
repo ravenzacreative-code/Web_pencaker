@@ -1,3 +1,5 @@
+import { SecureEnvVault } from './security-vault.js';
+
 const DEFAULT_MASTER_DATA = {
     category: ['Manufaktur & Pabrik', 'Teknik & Otomotif', 'Operator & Produksi', 'Gudang & Logistik', 'Quality Control (QC)', 'Administrasi & Umum', 'Keuangan & Akuntansi', 'Teknologi & IT', 'Pemasaran & Sales', 'Kesehatan & Farmasi'],
     location: ['Jakarta', 'Bekasi', 'Cikarang', 'Karawang', 'Tangerang', 'Bogor', 'Depok', 'Bandung', 'Surabaya', 'Semarang', 'Cilegon', 'Purwakarta', 'Subang', 'Remote / WFH'],
@@ -32,25 +34,22 @@ const SYSTEM_STATUSES = [
     'system_master_data',
     'system_flyer_themes',
     'system_company_images',
-    'system_uploaded_file'
+    'system_uploaded_file',
+    'system_analytics'
 ];
 
-const DEFAULT_SUPABASE_URL = 'https://nptmawuukuysqzqakwej.supabase.co';
-const CANDIDATE_SUPABASE_KEYS = [
-    'sb_publishable_CeLmp_Pj-sgJ_vIrShAj2A__rzAQIYT',
-    'sb_publishable_vhr-CPf4EI0fy2Xsl1uBPg_RxF7UwWT'
-];
+const SYSTEM_STATUS_NOT_IN = `status=not.in.(${SYSTEM_STATUSES.join(',')})`;
+
 let cachedWorkingKey = '';
 
 export function getSupabaseConfig(env) {
-    const rawUrl = (env?.SUPABASE_URL || DEFAULT_SUPABASE_URL).trim().replace(/\/+$/, '');
-    const url = rawUrl || DEFAULT_SUPABASE_URL;
+    const vault = SecureEnvVault.from(env);
+    const url = vault.getSupabaseUrl();
+    const vaultKeys = vault.getSupabaseApiKeys();
 
     const rawCandidates = [
         cachedWorkingKey,
-        env?.SUPABASE_SERVICE_ROLE_KEY,
-        env?.SUPABASE_KEY,
-        ...CANDIDATE_SUPABASE_KEYS
+        ...vaultKeys
     ];
 
     const seen = new Set();
@@ -63,22 +62,24 @@ export function getSupabaseConfig(env) {
         }
     }
 
-    const publicKey = cachedWorkingKey || CANDIDATE_SUPABASE_KEYS[0];
+    const { publishableKey } = vault.getPublicSupabaseConfig();
     return {
         url,
-        key: candidateKeys[0] || publicKey,
-        publicKey,
+        key: candidateKeys[0] || publishableKey,
+        publicKey: publishableKey,
         candidateKeys
     };
 }
 
 export async function supabaseFetch(env, path, options = {}) {
-    const { url, candidateKeys } = getSupabaseConfig(env);
+    const vault = SecureEnvVault.from(env);
+    const { url, candidateKeys } = getSupabaseConfig(vault);
     if (!url || candidateKeys.length === 0) {
         throw new Error('SUPABASE_URL atau SUPABASE_KEY belum dikonfigurasi pada environment.');
     }
 
     const endpoint = `${url}/rest/v1/${path}`;
+    const serviceKey = vault.getSupabaseServiceKey();
     let lastError = null;
 
     for (const apiKey of candidateKeys) {
@@ -95,7 +96,7 @@ export async function supabaseFetch(env, path, options = {}) {
         });
 
         if (res.ok) {
-            if (!env?.SUPABASE_SERVICE_ROLE_KEY || apiKey !== env.SUPABASE_SERVICE_ROLE_KEY) {
+            if (!serviceKey || apiKey !== serviceKey) {
                 cachedWorkingKey = apiKey;
             }
             const text = await res.text();
@@ -104,7 +105,7 @@ export async function supabaseFetch(env, path, options = {}) {
         }
 
         const errText = await res.text();
-        lastError = new Error(`Supabase error (${res.status}): ${errText}`);
+        lastError = new Error(SecureEnvVault.sanitizeErrorMessage(`Supabase error (${res.status}): ${errText}`));
 
         const isKeyError = res.status === 401 || (res.status === 403 && errText.includes('Invalid API key'));
         if (!isKeyError) {
@@ -225,7 +226,7 @@ export const LIGHT_JOB_COLS = [
 export async function getJobs(env, { status = 'all', category = 'all', location = 'all', education = 'all', search = '' } = {}) {
     const statusFilter = status && status !== 'all'
         ? `status=eq.${encodeURIComponent(status)}`
-        : 'status=not.in.(system_settings,system_master_data,system_flyer_themes,system_company_images,system_uploaded_file)';
+        : SYSTEM_STATUS_NOT_IN;
 
     const params = [statusFilter, 'order=id.desc'];
     if (category && category !== 'all') params.push(`category=eq.${encodeURIComponent(category)}`);
@@ -362,7 +363,7 @@ export async function getJobImageValue(env, id, slot = 'poster') {
 export async function getJobsVersion(env) {
     const rows = await supabaseFetch(
         env,
-        'jobs?status=not.in.(system_settings,system_master_data,system_flyer_themes,system_company_images,system_uploaded_file)&select=id,status,is_featured,title,deadline&order=id.desc&limit=80'
+        `jobs?${SYSTEM_STATUS_NOT_IN}&select=id,status,is_featured,title,deadline&order=id.desc&limit=80`
     );
     const list = Array.isArray(rows) ? rows : [];
     return `${list.length}:${list.slice(0, 25).map(r => `${r.id}-${r.status}-${r.is_featured ? 1 : 0}-${r.title || ''}-${r.deadline || ''}`).join('|')}`;
@@ -457,7 +458,7 @@ export async function toggleStatus(env, id, status) {
 export async function getStats(env) {
     const rows = await supabaseFetch(
         env,
-        'jobs?status=not.in.(system_settings,system_master_data,system_flyer_themes,system_company_images,system_uploaded_file)&select=status,category,location'
+        `jobs?${SYSTEM_STATUS_NOT_IN}&select=status,category,location`
     );
     const jobs = Array.isArray(rows) ? rows : [];
     const total = jobs.length;
@@ -606,9 +607,18 @@ function normalizeBioLinksPayload(raw, existing = null) {
     };
 
     const existingClicksMap = new Map();
+    const existingUniqueMap = new Map();
+    const existingVisitorsMap = new Map();
     if (existing && Array.isArray(existing.links)) {
         existing.links.forEach(item => {
-            if (item && item.id) existingClicksMap.set(String(item.id), Number(item.clicks || 0));
+            if (item && item.id) {
+                const key = String(item.id);
+                existingClicksMap.set(key, Number(item.clicks || 0));
+                existingUniqueMap.set(key, Number(item.unique_clicks || 0));
+                if (Array.isArray(item._v)) {
+                    existingVisitorsMap.set(key, item._v.filter(Boolean).slice(-400));
+                }
+            }
         });
     }
 
@@ -621,7 +631,15 @@ function normalizeBioLinksPayload(raw, existing = null) {
             const rawUrl = String(item.url || '').trim();
             const safeUrl = rawUrl && !/^(https?:\/\/|mailto:|tel:|\/)/i.test(rawUrl) ? `https://${rawUrl}` : rawUrl;
             const prevClicks = existingClicksMap.has(id) ? existingClicksMap.get(id) : 0;
+            const prevUnique = existingUniqueMap.has(id) ? existingUniqueMap.get(id) : 0;
             const incomingClicks = Number(item.clicks);
+            const incomingUnique = Number(item.unique_clicks);
+            const finalClicks = Number.isFinite(incomingClicks) && incomingClicks >= prevClicks ? incomingClicks : prevClicks;
+            const rawUnique = Number.isFinite(incomingUnique) && incomingUnique >= prevUnique ? incomingUnique : prevUnique;
+            const finalUnique = Math.min(finalClicks, Math.max(0, rawUnique));
+            const visitors = Array.isArray(item._v)
+                ? item._v.filter(Boolean).slice(-400)
+                : (existingVisitorsMap.get(id) || []);
             return {
                 id,
                 title: String(item.title || `Link ${idx + 1}`).trim().slice(0, 100),
@@ -631,7 +649,9 @@ function normalizeBioLinksPayload(raw, existing = null) {
                 thumbnail: String(item.thumbnail || '').trim(),
                 badge: String(item.badge || '').trim().slice(0, 30),
                 active: item.active !== false,
-                clicks: Number.isFinite(incomingClicks) && incomingClicks >= prevClicks ? incomingClicks : prevClicks
+                clicks: finalClicks,
+                unique_clicks: finalUnique,
+                _v: visitors
             };
         });
 
@@ -642,7 +662,21 @@ function normalizeBioLinksPayload(raw, existing = null) {
     };
 }
 
-export async function getBioLinks(env) {
+function stripBioVisitorHashes(bioData) {
+    if (!bioData || typeof bioData !== 'object') return bioData;
+    return {
+        ...bioData,
+        links: Array.isArray(bioData.links)
+            ? bioData.links.map(({ _v, ...pub }) => ({
+                ...pub,
+                clicks: Number(pub.clicks || 0),
+                unique_clicks: Number(pub.unique_clicks || 0)
+            }))
+            : []
+    };
+}
+
+export async function getBioLinks(env, { includeVisitorHashes = false } = {}) {
     const settings = await getSettings(env);
     const stored = settings && typeof settings.bio_links === 'object' && settings.bio_links
         ? settings.bio_links
@@ -654,32 +688,226 @@ export async function getBioLinks(env) {
     if (!merged.profile.tiktok_url && settings?.tiktok_url) {
         merged.profile.tiktok_url = settings.tiktok_url;
     }
-    return merged;
+    return includeVisitorHashes ? merged : stripBioVisitorHashes(merged);
 }
 
 export async function saveBioLinks(env, payload) {
-    const current = await getBioLinks(env);
+    const current = await getBioLinks(env, { includeVisitorHashes: true });
     const normalized = normalizeBioLinksPayload(payload, current);
     await saveSettings(env, { bio_links: normalized });
-    return normalized;
+    return stripBioVisitorHashes(normalized);
 }
 
-export async function incrementBioLinkClick(env, linkId) {
+export async function incrementBioLinkClick(env, linkId, visitorHash = '') {
     const cleanId = String(linkId || '').trim();
     if (!cleanId) return null;
-    const current = await getBioLinks(env);
+    const current = await getBioLinks(env, { includeVisitorHashes: true });
+    const cleanHash = String(visitorHash || '').trim().slice(0, 32);
     let updatedClicks = null;
+    let updatedUnique = null;
+    let isUnique = false;
+
     const nextLinks = current.links.map(item => {
         if (String(item.id) === cleanId) {
             updatedClicks = Number(item.clicks || 0) + 1;
-            return { ...item, clicks: updatedClicks };
+            const prevVisitors = Array.isArray(item._v) ? item._v : [];
+            const prevUnique = Number(item.unique_clicks || 0);
+            let nextVisitors = prevVisitors;
+            if (cleanHash && !prevVisitors.includes(cleanHash)) {
+                isUnique = true;
+                updatedUnique = prevUnique + 1;
+                nextVisitors = [...prevVisitors, cleanHash].slice(-400);
+            } else if (!cleanHash) {
+                isUnique = true;
+                updatedUnique = prevUnique + 1;
+            } else {
+                updatedUnique = Math.max(prevUnique, 1);
+            }
+            return {
+                ...item,
+                clicks: updatedClicks,
+                unique_clicks: Math.min(updatedClicks, updatedUnique),
+                _v: nextVisitors
+            };
         }
         return item;
     });
     if (updatedClicks === null) return null;
     const nextBio = { ...current, links: nextLinks, updated_at: new Date().toISOString() };
     await saveSettings(env, { bio_links: nextBio });
-    return { id: cleanId, clicks: updatedClicks };
+    return {
+        id: cleanId,
+        clicks: updatedClicks,
+        unique_clicks: Math.min(updatedClicks, updatedUnique || 0),
+        is_unique: isUnique
+    };
+}
+
+// ==========================================
+// JOB & PORTAL DUAL ANALYTICS (ORANG UNIK vs TOTAL KLIK)
+// ==========================================
+async function getRawAnalyticsRecord(env) {
+    try {
+        const rows = await supabaseFetch(env, 'jobs?status=eq.system_analytics&limit=1&select=id,description');
+        if (Array.isArray(rows) && rows.length > 0) {
+            const parsed = rows[0].description ? JSON.parse(rows[0].description) : {};
+            return {
+                rowId: rows[0].id,
+                data: {
+                    jobs: (parsed && typeof parsed.jobs === 'object' && parsed.jobs) ? parsed.jobs : {},
+                    site_visitors: Array.isArray(parsed?.site_visitors) ? parsed.site_visitors : [],
+                    total_unique_people: Number(parsed?.total_unique_people || 0)
+                }
+            };
+        }
+    } catch { /* fallback to empty */ }
+    return {
+        rowId: null,
+        data: { jobs: {}, site_visitors: [], total_unique_people: 0 }
+    };
+}
+
+async function saveRawAnalyticsRecord(env, rowId, data) {
+    const jsonStr = JSON.stringify(data);
+    if (rowId) {
+        await supabaseFetch(env, `jobs?id=eq.${rowId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ description: jsonStr })
+        });
+    } else {
+        await supabaseFetch(env, 'jobs', {
+            method: 'POST',
+            body: JSON.stringify({
+                title: 'SYSTEM_ANALYTICS',
+                company: 'SYSTEM',
+                location: 'SYSTEM',
+                status: 'system_analytics',
+                description: jsonStr
+            })
+        });
+    }
+}
+
+export async function trackJobClick(env, jobId, visitorHash = '', action = 'view') {
+    const numId = Number(jobId);
+    if (!Number.isFinite(numId) || numId <= 0) return null;
+    const key = String(numId);
+    const cleanHash = String(visitorHash || '').trim().slice(0, 32);
+
+    const { rowId, data } = await getRawAnalyticsRecord(env);
+    const currentEntry = data.jobs[key] && typeof data.jobs[key] === 'object'
+        ? data.jobs[key]
+        : { clicks: 0, unique_clicks: 0, _v: [] };
+
+    const nextClicks = Number(currentEntry.clicks || 0) + 1;
+    const prevVisitors = Array.isArray(currentEntry._v) ? currentEntry._v : [];
+    let nextUnique = Number(currentEntry.unique_clicks || 0);
+    let nextVisitors = prevVisitors;
+    let isUnique = false;
+
+    if (cleanHash && !prevVisitors.includes(cleanHash)) {
+        isUnique = true;
+        nextUnique += 1;
+        nextVisitors = [...prevVisitors, cleanHash].slice(-300);
+    } else if (!cleanHash) {
+        isUnique = true;
+        nextUnique += 1;
+    } else {
+        nextUnique = Math.max(nextUnique, 1);
+    }
+
+    data.jobs[key] = {
+        clicks: nextClicks,
+        unique_clicks: Math.min(nextClicks, nextUnique),
+        _v: nextVisitors,
+        last_action: String(action || 'view').slice(0, 20),
+        updated_at: new Date().toISOString()
+    };
+
+    // Track deduplicated unique visitors across the entire portal
+    if (cleanHash && !data.site_visitors.includes(cleanHash)) {
+        data.site_visitors = [...data.site_visitors, cleanHash].slice(-2000);
+        data.total_unique_people = Math.max(Number(data.total_unique_people || 0) + 1, data.site_visitors.length);
+    } else if (!cleanHash) {
+        data.total_unique_people = Number(data.total_unique_people || 0) + 1;
+    }
+
+    // Persist analytics + keep jobs.views_count synchronized
+    await Promise.all([
+        saveRawAnalyticsRecord(env, rowId, data),
+        (async () => {
+            try {
+                const rows = await supabaseFetch(env, `jobs?id=eq.${encodeURIComponent(numId)}&select=id,views_count`);
+                if (Array.isArray(rows) && rows.length > 0) {
+                    const nextViews = Math.max(Number(rows[0].views_count || 0) + 1, nextClicks);
+                    await supabaseFetch(env, `jobs?id=eq.${encodeURIComponent(numId)}`, {
+                        method: 'PATCH',
+                        headers: { 'Prefer': 'return=minimal' },
+                        body: JSON.stringify({ views_count: nextViews })
+                    });
+                }
+            } catch { /* ignore non-fatal sync error */ }
+        })()
+    ]);
+
+    return {
+        job_id: numId,
+        clicks: nextClicks,
+        unique_clicks: Math.min(nextClicks, nextUnique),
+        is_unique: isUnique
+    };
+}
+
+export async function getPortalAnalytics(env) {
+    const [{ data }, bioData] = await Promise.all([
+        getRawAnalyticsRecord(env),
+        getBioLinks(env, { includeVisitorHashes: true }).catch(() => ({ links: [] }))
+    ]);
+
+    const cleanJobs = {};
+    let totalTrackedJobClicks = 0;
+    let sumJobUnique = 0;
+    for (const [jid, entry] of Object.entries(data.jobs || {})) {
+        if (!entry || typeof entry !== 'object') continue;
+        const clicks = Number(entry.clicks || 0);
+        const uniqueClicks = Math.min(clicks, Number(entry.unique_clicks || 0));
+        cleanJobs[jid] = { clicks, unique_clicks: uniqueClicks };
+        totalTrackedJobClicks += clicks;
+        sumJobUnique += uniqueClicks;
+    }
+
+    const bioLinks = Array.isArray(bioData?.links) ? bioData.links : [];
+    const totalBioClicks = bioLinks.reduce((acc, l) => acc + Number(l.clicks || 0), 0);
+    const bioVisitorUnion = new Set();
+    let fallbackBioUnique = 0;
+    bioLinks.forEach(l => {
+        if (Array.isArray(l._v) && l._v.length > 0) {
+            l._v.forEach(h => bioVisitorUnion.add(h));
+        }
+        fallbackBioUnique = Math.max(fallbackBioUnique, Number(l.unique_clicks || 0));
+    });
+    const totalBioUniquePeople = Math.max(bioVisitorUnion.size, fallbackBioUnique);
+
+    const jobUniquePeople = Math.max(
+        Number(data.total_unique_people || 0),
+        Array.isArray(data.site_visitors) ? data.site_visitors.length : 0
+    );
+
+    // Combined deduplicated unique visitors across jobs + bio links
+    const combinedVisitors = new Set([...(data.site_visitors || []), ...bioVisitorUnion]);
+    const combinedUniquePeople = Math.max(combinedVisitors.size, jobUniquePeople, totalBioUniquePeople);
+
+    return {
+        jobs: cleanJobs,
+        summary: {
+            total_job_clicks: totalTrackedJobClicks,
+            total_job_unique_people: jobUniquePeople,
+            sum_job_unique_clicks: sumJobUnique,
+            total_bio_clicks: totalBioClicks,
+            total_bio_unique_people: totalBioUniquePeople,
+            combined_unique_people: combinedUniquePeople
+        }
+    };
 }
 
 export async function getCompanyImages(env) {

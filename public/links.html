@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>KitaKerja · Link Resmi & Info Lowongan Kerja</title>
   <meta name="description" content="Akses cepat Portal Lowongan Kerja Resmi KitaKerja, Grup Loker Aktif, & Layanan CV ATS Friendly.">
+  <link rel="icon" type="image/png" sizes="192x192" href="/uploads/kerjahub-favicon.png?v=20261127_01">
+  <link rel="shortcut icon" type="image/png" href="/uploads/kerjahub-favicon.png?v=20261127_01">
+  <link rel="apple-touch-icon" href="/uploads/kerjahub-favicon.png?v=20261127_01">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" media="print" onload="this.media='all'">
@@ -797,16 +800,38 @@
         el._t = setTimeout(() => el.classList.remove('show'), 2200);
       }
 
+      function getBioVisitorId() {
+        const KEY = 'kh_visitor_id_v1';
+        try {
+          let vid = localStorage.getItem(KEY);
+          if (!vid) {
+            vid = (window.crypto && crypto.randomUUID)
+              ? crypto.randomUUID()
+              : ('v_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 12));
+            localStorage.setItem(KEY, vid);
+          }
+          return vid;
+        } catch {
+          return 'anon_' + Math.random().toString(36).slice(2, 12);
+        }
+      }
+
       function trackClick(linkId) {
         if (!linkId) return;
         const endpoint = `/api/bio-links/${encodeURIComponent(linkId)}/click`;
+        const payload = JSON.stringify({ visitor_id: getBioVisitorId() });
         try {
           if (navigator.sendBeacon) {
-            navigator.sendBeacon(endpoint, new Blob(['{}'], { type: 'application/json' }));
+            navigator.sendBeacon(endpoint, new Blob([payload], { type: 'application/json' }));
             return;
           }
         } catch (e) {}
-        fetch(endpoint, { method: 'POST', keepalive: true }).catch(() => {});
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true
+        }).catch(() => {});
       }
 
       function applyThemeAndEffects(profile) {
@@ -877,9 +902,8 @@
 
         const avatarEl = document.getElementById('bio-avatar');
         if (avatarEl) {
-          avatarEl.innerHTML = profile.avatar
-            ? `<img src="${esc(profile.avatar)}" alt="${esc(profile.name || 'Profil')}" decoding="async">`
-            : SVG_ICONS.briefcase;
+          const avatarSrc = profile.avatar || '/uploads/kerjahub-logo-hd.png?v=20261127_01';
+          avatarEl.innerHTML = `<img src="${esc(avatarSrc)}" alt="${esc(profile.name || 'KerjaHub')}" decoding="async">`;
         }
 
         const listEl = document.getElementById('bio-links-list');
