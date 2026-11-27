@@ -19,7 +19,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/style.css?v=20261127_01">
+  <link rel="stylesheet" href="./css/style.css?v=20261127_02">
   <!-- Start Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
@@ -71,13 +71,22 @@
 
   <!-- HERO SECTION -->
   <section class="hero">
+    <div class="hero-ambient-orbs" aria-hidden="true">
+      <span class="hero-orb orb-a"></span>
+      <span class="hero-orb orb-b"></span>
+      <span class="hero-orb orb-c"></span>
+    </div>
     <div class="container hero-content">
+      <div class="hero-live-pill">
+        <span class="live-dot-pulse" aria-hidden="true"></span>
+        <span>✨ Portal Loker Resmi &amp; Terverifikasi · <strong>Update Harian</strong> · 🛡️ 100% Gratis</span>
+      </div>
       <h1 class="hero-title">
-        Temukan Poster & Info Karir <br>
+        Temukan Poster &amp; Info Karir <br>
         <span class="text-gradient">Cepat, Transparan, Langsung ke Perekrut</span>
       </h1>
       <p class="hero-desc">
-        Akses ratusan poster rekrutmen resmi dari berbagai perusahaan. Periksa deskripsi posisi, unduh flyer pengumuman,
+        Akses ratusan poster rekrutmen resmi dari berbagai perusahaan. Periksa deskripsi posisi, lokasi penempatan, unduh flyer pengumuman,
         dan hubungi kontak HRD resmi secara langsung.
       </p>
 
@@ -189,8 +198,7 @@
 
       <!-- TRENDING POPULAR CATEGORIES BY VIEWS -->
       <div class="trending-keywords" id="kategori-section">
-        <span class="trending-label"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Kategori
-          Terpopuler:</span>
+        <span class="trending-label">🔥 Kategori Terpopuler:</span>
         <button type="button" class="chip-keyword active" id="btn-search-all-cat" data-category="Semua"
           title="Tampilkan Semua Kategori">
           <i class="fa-solid fa-layer-group" style="color: #6366f1;"></i> Semua Kategori
@@ -224,7 +232,7 @@
           <div class="stat-icon purple"><i class="fa-brands fa-whatsapp"></i></div>
           <div>
             <div class="stat-number">Respons Cepat</div>
-            <div class="stat-text">Terhubung via WhatsApp & Email</div>
+            <div class="stat-text">Terhubung via WA &amp; Email</div>
           </div>
         </div>
       </div>
@@ -241,18 +249,18 @@
       <!-- INTERACTIVE TAB NAVIGATION -->
       <div class="job-tabs-nav" id="job-tabs-container">
         <button type="button" class="job-tab-btn active" data-tab="all">
-          <i class="fa-solid fa-briefcase"></i> Semua Lowongan <span class="job-tab-badge" id="tab-count-all">0</span>
+          <span class="tab-emoji" aria-hidden="true">💼</span> Semua Lowongan <span class="job-tab-badge" id="tab-count-all">0</span>
         </button>
         <button type="button" class="job-tab-btn" data-tab="featured">
-          <i class="fa-solid fa-star"></i> Rekomendasi Unggulan <span class="job-tab-badge"
+          <span class="tab-emoji" aria-hidden="true">⭐</span> Rekomendasi Unggulan <span class="job-tab-badge"
             id="tab-count-featured">0</span>
         </button>
         <button type="button" class="job-tab-btn" data-tab="remote">
-          <i class="fa-solid fa-laptop-code"></i> Remote (WFH) <span class="job-tab-badge"
+          <span class="tab-emoji" aria-hidden="true">🏠</span> Remote (WFH) <span class="job-tab-badge"
             id="tab-count-remote">0</span>
         </button>
         <button type="button" class="job-tab-btn" data-tab="freshgrad">
-          <i class="fa-solid fa-graduation-cap"></i> Fresh Graduate <span class="job-tab-badge"
+          <span class="tab-emoji" aria-hidden="true">🎓</span> Fresh Graduate <span class="job-tab-badge"
             id="tab-count-freshgrad">0</span>
         </button>
       </div>
@@ -338,15 +346,15 @@
           </div>
 
           <!-- Panduan Pelamar Box -->
-          <div id="panduan-pelamar"
-            style="margin-top: 24px; padding: 18px; background: var(--bg-surface-alt); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-            <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">
-              <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Panduan Pelamar Kerja
+          <div id="panduan-pelamar" class="guide-box-pro">
+            <div class="guide-box-title">
+              <span>💡 Panduan Pelamar Kerja</span>
             </div>
-            <ul style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; padding-left: 18px; margin: 0;">
-              <li>Periksa kualifikasi posisi dan batas waktu rekrutmen.</li>
-              <li>Gunakan <strong>Template Chat Lamaran</strong> resmi saat menghubungi HRD.</li>
-              <li>Siapkan berkas CV dan Portofolio terbaru dalam format PDF.</li>
+            <ul class="guide-box-list">
+              <li>✅ Periksa kualifikasi posisi, lokasi penempatan &amp; batas waktu.</li>
+              <li>💬 Gunakan <strong>Template Chat Lamaran</strong> resmi saat menghubungi HRD.</li>
+              <li>📄 Siapkan CV ATS &amp; Portofolio terbaru dalam format PDF.</li>
+              <li>🛡️ Rekrutmen resmi <strong>100% gratis</strong> tanpa biaya apapun.</li>
             </ul>
           </div>
 
@@ -363,7 +371,7 @@
         <div class="listings-area">
           <div class="listings-topbar">
             <div class="results-count">
-              Menampilkan <span id="results-count-num">0</span> Poster Lowongan
+              ✨ Menampilkan <span id="results-count-num">0</span> Poster Lowongan
             </div>
 
             <div class="topbar-controls">
@@ -528,7 +536,7 @@
     </button>
   </div>
 
-  <script src="./js/app.js?v=20261127_01" defer></script>
+  <script src="./js/app.js?v=20261127_02" defer></script>
 </body>
 
 </html>

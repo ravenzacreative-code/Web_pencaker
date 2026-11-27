@@ -5855,3 +5855,343 @@ body {
     border-radius: 7px;
   }
 }
+
+/* ==============================================================
+   2026-11-27 V2: LIVELY USER PORTAL UPGRADE (DESKTOP & MOBILE)
+   Ambient Aurora Hero, Live Pill, Placement Chip & Pro Harmony
+   ============================================================== */
+.hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-ambient-orbs {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(56px);
+  opacity: 0.42;
+  will-change: transform;
+}
+
+.hero-orb.orb-a {
+  width: 360px;
+  height: 360px;
+  top: -110px;
+  left: -70px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.55) 0%, transparent 70%);
+  animation: khOrbDriftA 14s ease-in-out infinite alternate;
+}
+
+.hero-orb.orb-b {
+  width: 340px;
+  height: 340px;
+  top: -60px;
+  right: -60px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.48) 0%, transparent 70%);
+  animation: khOrbDriftB 17s ease-in-out infinite alternate;
+}
+
+.hero-orb.orb-c {
+  width: 300px;
+  height: 300px;
+  bottom: -110px;
+  left: 42%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.36) 0%, transparent 70%);
+  animation: khOrbDriftA 19s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes khOrbDriftA {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(28px, 18px, 0) scale(1.08); }
+}
+
+@keyframes khOrbDriftB {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(-26px, 22px, 0) scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-orb,
+  .live-dot-pulse,
+  .job-card {
+    animation: none !important;
+  }
+}
+
+.hero-live-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 16px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.24);
+  box-shadow: 0 6px 20px -8px rgba(37, 99, 235, 0.26);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+  max-width: 100%;
+  line-height: 1.35;
+}
+
+.hero-live-pill strong {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+[data-theme="dark"] .hero-live-pill {
+  background: rgba(19, 27, 46, 0.78);
+  border-color: rgba(96, 165, 250, 0.32);
+  color: #e2e8f0;
+  box-shadow: 0 8px 22px -8px rgba(37, 99, 235, 0.4);
+}
+
+[data-theme="dark"] .hero-live-pill strong {
+  color: #60a5fa;
+}
+
+.live-dot-pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65);
+  animation: khLivePulse 2.1s infinite;
+}
+
+@keyframes khLivePulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Elevated Glassmorphic Stats Ribbon with Subtle Micro-Hover */
+.stats-ribbon {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(203, 213, 225, 0.75);
+  box-shadow: 0 12px 30px -14px rgba(15, 23, 42, 0.14);
+}
+
+[data-theme="dark"] .stats-ribbon {
+  background: rgba(19, 27, 46, 0.82);
+  border-color: rgba(51, 65, 85, 0.85);
+}
+
+.stats-ribbon .stat-item {
+  padding: 6px 8px;
+  border-radius: 14px;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease;
+}
+
+.stats-ribbon .stat-item:hover {
+  transform: translateY(-2px);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.stats-ribbon .stat-icon {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 4px 12px -4px rgba(15, 23, 42, 0.12);
+}
+
+/* Lively Tab Pills with Pro Emoji */
+.job-tab-btn .tab-emoji {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.job-tab-btn.active {
+  box-shadow: 0 6px 16px -6px rgba(37, 99, 235, 0.45);
+}
+
+/* Pro Sidebar Guide Box */
+.guide-box-pro {
+  margin-top: 22px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.9), rgba(245, 243, 255, 0.82));
+  border-radius: 14px;
+  border: 1px solid rgba(147, 197, 253, 0.55);
+}
+
+[data-theme="dark"] .guide-box-pro {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(30, 27, 75, 0.55));
+  border-color: rgba(99, 102, 241, 0.32);
+}
+
+.guide-box-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guide-box-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Lively Job Card Accent Glow, Subtle Entrance & Placement Location Chip */
+.job-card {
+  animation: khCardRiseIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.job-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #6366f1, #06b6d4);
+  opacity: 0;
+  z-index: 6;
+  transition: opacity 0.22s ease;
+  pointer-events: none;
+}
+
+.job-card:not(.job-card-locked):hover::before {
+  opacity: 1;
+}
+
+.job-card:not(.job-card-locked):hover {
+  transform: translateY(-5px);
+  border-color: rgba(59, 130, 246, 0.38);
+  box-shadow: 0 18px 34px -14px rgba(29, 78, 216, 0.22), 0 8px 14px -8px rgba(15, 23, 42, 0.08);
+}
+
+@keyframes khCardRiseIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.job-location.job-location-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(225, 29, 72, 0.08);
+  border: 1px solid rgba(225, 29, 72, 0.2);
+  color: #be123c;
+  font-size: 0.74rem;
+  font-weight: 700;
+  max-width: 100%;
+  line-height: 1.3;
+}
+
+.job-location.job-location-chip i {
+  color: #e11d48;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.job-location.job-location-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .job-location.job-location-chip {
+  background: rgba(244, 63, 94, 0.16);
+  border-color: rgba(251, 113, 133, 0.32);
+  color: #fda4af;
+}
+
+[data-theme="dark"] .job-location.job-location-chip i {
+  color: #fb7185;
+}
+
+/* Mobile Polish for Hero Live Pill & Stats Ribbon */
+@media (max-width: 640px) {
+  .hero {
+    padding: 26px 0 22px 0;
+  }
+
+  .hero-live-pill {
+    font-size: 0.72rem;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .hero-orb.orb-a,
+  .hero-orb.orb-b {
+    width: 210px;
+    height: 210px;
+    opacity: 0.32;
+  }
+
+  .stats-ribbon {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 14px 12px !important;
+    margin: 22px 0 10px 0 !important;
+    border-radius: 16px !important;
+  }
+
+  .stats-ribbon .stat-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 8px 6px;
+    background: rgba(248, 250, 252, 0.7);
+    border: 1px solid rgba(226, 232, 240, 0.75);
+  }
+
+  [data-theme="dark"] .stats-ribbon .stat-item {
+    background: rgba(15, 23, 42, 0.55);
+    border-color: rgba(51, 65, 85, 0.65);
+  }
+
+  .stats-ribbon .stat-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 1.05rem;
+  }
+
+  .stats-ribbon .stat-number {
+    font-size: 1.08rem;
+  }
+
+  .stats-ribbon .stat-text {
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+  .job-location.job-location-chip {
+    font-size: 0.71rem;
+    padding: 2px 7px;
+  }
+}

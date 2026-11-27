@@ -2543,7 +2543,10 @@ function renderJobs(jobs) {
             <div class="company-avatar">${initial}</div>
             <div class="company-meta">
               <div class="company-name">${escapeHtml(job.company_name)}</div>
-              <div class="job-location"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(job.location || 'Indonesia')}</div>
+              <div class="job-location job-location-chip" title="Lokasi Penempatan: ${escapeHtml(job.location || 'Indonesia')}">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>${escapeHtml(job.location || 'Indonesia')}</span>
+              </div>
             </div>
           </div>
 

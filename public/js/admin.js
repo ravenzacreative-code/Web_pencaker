@@ -1840,6 +1840,7 @@ function setupJobFormSubmit() {
     const whatsapp = uploadForm.querySelector('[name="whatsapp"]')?.value.trim() || '';
     const email = uploadForm.querySelector('[name="email"]')?.value.trim() || '';
     const emailSubject = uploadForm.querySelector('[name="email_subject"]')?.value.trim() || '';
+    const locationVal = (uploadForm.querySelector('[name="location"]')?.value || '').trim();
 
     // Smart fallback: if user typed description text but didn't fill the 3 bulk boxes, extract structured lines
     if (reqLines.length === 0 && respLines.length === 0 && benLines.length === 0 && desc) {
@@ -1863,6 +1864,7 @@ function setupJobFormSubmit() {
     openPosterStudio({
       title: title || 'OPERATOR PRODUKSI',
       company_name: company || 'PERUSAHAAN TERVERIFIKASI',
+      location: locationVal,
       responsibilities: respLines,
       requirements: reqLines.length ? reqLines : [
         'Pendidikan minimal SMA/SMK sederajat',
@@ -5667,6 +5669,7 @@ function generateFlyerPosterDataUrl(jobData) {
 
   const compInp = document.getElementById('poster-input-company');
   const titleInp = document.getElementById('poster-input-title');
+  const locInp = document.getElementById('poster-input-location');
   const deadInp = document.getElementById('poster-input-deadline');
   const applyInp = document.getElementById('poster-input-apply-info');
   const qrInp = document.getElementById('poster-input-qr-url');
@@ -5674,6 +5677,10 @@ function generateFlyerPosterDataUrl(jobData) {
 
   if (compInp) compInp.value = jobData.company_name || '';
   if (titleInp) titleInp.value = jobData.title || '';
+  if (locInp) {
+    const rawLoc = String(jobData.location || '').trim();
+    locInp.value = (rawLoc && rawLoc.toLowerCase() !== 'indonesia') ? rawLoc : '';
+  }
   if (deadInp) deadInp.value = jobData.deadline || '';
   if (applyInp) applyInp.value = jobData.apply_info || (jobData.company_name ? `Kirim CV/Lamaran melalui tautan resmi ${jobData.company_name}.` : '');
   let flyerQr = (jobData.official_url || '').trim();
@@ -6891,6 +6898,7 @@ function openPosterStudio(jobData, isPublishIntent = false) {
   // Fill in form inputs
   const compInp = document.getElementById('poster-input-company');
   const titleInp = document.getElementById('poster-input-title');
+  const locInp = document.getElementById('poster-input-location');
   const deadInp = document.getElementById('poster-input-deadline');
   const emailSubjInp = document.getElementById('poster-input-email-subject');
   const applyInp = document.getElementById('poster-input-apply-info');
@@ -6900,6 +6908,10 @@ function openPosterStudio(jobData, isPublishIntent = false) {
 
   if (compInp) compInp.value = jobData.company_name || 'PERUSAHAAN TERVERIFIKASI';
   if (titleInp) titleInp.value = jobData.title || 'OPERATOR PRODUKSI';
+  if (locInp) {
+    const rawLoc = String(jobData.location || '').trim();
+    locInp.value = (rawLoc && rawLoc.toLowerCase() !== 'indonesia') ? rawLoc : '';
+  }
   
   const contacts = extractJobContacts(jobData);
   const emailVal = contacts.email || jobData.email || '';
@@ -7452,6 +7464,7 @@ function renderPosterCanvas() {
 
   const company = (document.getElementById('poster-input-company')?.value || '').trim();
   const title = (document.getElementById('poster-input-title')?.value || '').trim().toUpperCase();
+  const placementLocation = (document.getElementById('poster-input-location')?.value || '').trim();
   const responsibilities = window.getDynamicListValues ? window.getDynamicListValues('poster-resp-items') : [];
   const requirements = window.getDynamicListValues ? window.getDynamicListValues('poster-req-items') : [];
   const benefits = window.getDynamicListValues ? window.getDynamicListValues('poster-ben-items') : [];
@@ -7599,8 +7612,20 @@ function renderPosterCanvas() {
       ctx.restore();
     }
 
+    // 5B. OPTIONAL PLACEMENT LOCATION PILL (DRAWN CLEANLY BELOW POSITION BADGE WHEN FILLED)
+    const locOffsetH = drawPosterLocationPill(ctx, {
+      x: 56,
+      y: badgeY + badgeH + 14,
+      maxW: (drawMascotOnCustom && hasMascot) ? 580 : 940,
+      locationText: placementLocation,
+      accentColor: '#e11d48',
+      bgColor: '#eff6ff',
+      borderColor: '#93c5fd',
+      textColor: '#0f172a'
+    });
+
     // 6. QUALIFICATIONS SECTION ("Kualifikasi")
-    const kualY = badgeY + badgeH + 38;
+    const kualY = badgeY + badgeH + 38 + locOffsetH;
     ctx.textAlign = 'left';
     ctx.fillStyle = '#000000';
     ctx.font = '800 28px "Plus Jakarta Sans", Arial, sans-serif';
@@ -7853,7 +7878,18 @@ function renderPosterCanvas() {
     if (stdReq.length > 0) activeSections.push({ title: 'Kualifikasi', items: stdReq });
     if (stdBen.length > 0) activeSections.push({ title: 'Benefit', items: stdBen });
 
-    let curY = badgeY + badgeH + 34;
+    const locOffsetH3 = drawPosterLocationPill(ctx, {
+      x: 56,
+      y: badgeY + badgeH + 12,
+      maxW: hasMascot ? 550 : 940,
+      locationText: placementLocation,
+      accentColor: p.accentOrange,
+      bgColor: '#f8fafc',
+      borderColor: p.badgeBorder,
+      textColor: '#0f172a'
+    });
+
+    let curY = badgeY + badgeH + 34 + locOffsetH3;
     const maxStdY = 736;
     const maxStdW = hasMascot ? 545 : 930;
 
@@ -7985,6 +8021,93 @@ function renderPosterCanvas() {
       if (thumbImg) thumbImg.src = currentDataUrl;
     }
   } catch (e) {}
+}
+
+// Helper: draw clean vector Map Pin + Placement Location pill on Poster Canvas (zero clipping/collision)
+function drawPosterLocationPill(ctx, opts = {}) {
+  const rawLoc = String(opts.locationText || '').trim();
+  if (!rawLoc) return 0;
+
+  const {
+    x = 56,
+    y = 320,
+    maxW = 560,
+    accentColor = '#e11d48',
+    bgColor = '#eff6ff',
+    borderColor = '#93c5fd',
+    textColor = '#0f172a'
+  } = opts;
+
+  ctx.save();
+  const fullLabel = `Penempatan: ${rawLoc}`;
+  const iconPadLeft = 42;
+  const padRight = 18;
+  const textMaxW = Math.max(180, maxW - iconPadLeft - padRight);
+
+  let fontSize = 18.5;
+  let lines = [];
+  for (const fs of [18.5, 17, 15.5, 14.5]) {
+    fontSize = fs;
+    ctx.font = `700 ${fs}px "Plus Jakarta Sans", Arial, sans-serif`;
+    lines = measureCanvasWrappedLines(ctx, fullLabel, textMaxW);
+    if (lines.length <= 2) break;
+  }
+  if (lines.length > 2) {
+    lines = [lines[0], lines[1].slice(0, Math.max(8, lines[1].length - 3)) + '...'];
+  }
+
+  const lineH = Math.round(fontSize * 1.32);
+  let longestW = 0;
+  ctx.font = `700 ${fontSize}px "Plus Jakarta Sans", Arial, sans-serif`;
+  lines.forEach(l => { longestW = Math.max(longestW, ctx.measureText(l).width); });
+
+  const pillW = Math.min(maxW, Math.max(210, Math.ceil(iconPadLeft + longestW + padRight)));
+  const pillH = Math.max(40, lines.length * lineH + 16);
+
+  // Pill background & subtle crisp border
+  ctx.fillStyle = bgColor;
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 2;
+  roundRect(ctx, x, y, pillW, pillH, 12, true, true);
+
+  // Crisp vector Map Pin icon on left
+  const pinCx = x + 22;
+  const pinCy = y + Math.round(pillH / 2) - 2;
+  ctx.fillStyle = accentColor;
+  ctx.beginPath();
+  ctx.arc(pinCx, pinCy - 2, 7.5, Math.PI, 0, false);
+  ctx.lineTo(pinCx, pinCy + 11);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(pinCx, pinCy - 2, 2.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Location text lines (bold "Penempatan:" prefix + crisp address)
+  ctx.textAlign = 'left';
+  const startTextY = y + Math.round((pillH - (lines.length * lineH)) / 2) + Math.round(fontSize * 0.92);
+  lines.forEach((line, idx) => {
+    const ly = startTextY + idx * lineH;
+    if (idx === 0 && line.startsWith('Penempatan: ')) {
+      const prefix = 'Penempatan: ';
+      const rest = line.slice(prefix.length);
+      ctx.font = `800 ${fontSize}px "Plus Jakarta Sans", Arial, sans-serif`;
+      ctx.fillStyle = accentColor;
+      ctx.fillText(prefix, x + iconPadLeft, ly);
+      const pw = ctx.measureText(prefix).width;
+      ctx.font = `700 ${fontSize}px "Plus Jakarta Sans", Arial, sans-serif`;
+      ctx.fillStyle = textColor;
+      ctx.fillText(rest, x + iconPadLeft + pw, ly);
+    } else {
+      ctx.font = `700 ${fontSize}px "Plus Jakarta Sans", Arial, sans-serif`;
+      ctx.fillStyle = textColor;
+      ctx.fillText(line, x + iconPadLeft, ly);
+    }
+  });
+
+  ctx.restore();
+  return pillH + 14;
 }
 
 // Helper: draw transparent PNG mascot preserving aspect ratio cleanly
@@ -8266,6 +8389,7 @@ window.publishJobFromStudio = async function() {
 
     const compInp = document.getElementById('poster-input-company');
     const titleInp = document.getElementById('poster-input-title');
+    const locInp = document.getElementById('poster-input-location');
     const deadInp = document.getElementById('poster-input-deadline');
     const emailSubjInp = document.getElementById('poster-input-email-subject');
     const applyInp = document.getElementById('poster-input-apply-info');
@@ -8274,6 +8398,7 @@ window.publishJobFromStudio = async function() {
 
     const updatedComp = (compInp ? compInp.value.trim() : '') || currentPosterJobData.company_name || 'Perusahaan';
     const updatedTitle = (titleInp ? titleInp.value.trim() : '') || currentPosterJobData.title || 'Lowongan Kerja';
+    const updatedLocation = (locInp ? locInp.value.trim() : '') || currentPosterJobData.location || 'Indonesia';
     const updatedDead = deadInp ? deadInp.value.trim() : '';
     const updatedEmailSubj = emailSubjInp ? emailSubjInp.value.trim() : '';
     const updatedApply = (applyInp ? applyInp.value.trim() : '') || currentPosterJobData.apply_info || '';
@@ -8339,7 +8464,7 @@ window.publishJobFromStudio = async function() {
       company_name: updatedComp,
       category: currentPosterJobData.category || 'Operasional',
       job_type: currentPosterJobData.job_type || 'Full Time',
-      location: currentPosterJobData.location || 'Indonesia',
+      location: updatedLocation,
       salary_display: currentPosterJobData.salary_display || 'Kompetitif',
       experience_level: currentPosterJobData.experience_level || 'Fresh Graduate',
       cover_image: studioCover,
@@ -8568,6 +8693,7 @@ window.savePosterChangesToJob = async function() {
 
     const compInp = document.getElementById('poster-input-company');
     const titleInp = document.getElementById('poster-input-title');
+    const locInp = document.getElementById('poster-input-location');
     const deadInp = document.getElementById('poster-input-deadline');
     const emailSubjInp = document.getElementById('poster-input-email-subject');
     const applyInp = document.getElementById('poster-input-apply-info');
@@ -8576,6 +8702,7 @@ window.savePosterChangesToJob = async function() {
 
     const updatedComp = compInp ? compInp.value.trim() : '';
     const updatedTitle = titleInp ? titleInp.value.trim() : '';
+    const updatedLoc = locInp ? locInp.value.trim() : '';
     const updatedDead = deadInp ? deadInp.value.trim() : '';
     const updatedEmailSubj = emailSubjInp ? emailSubjInp.value.trim() : '';
     const updatedApply = applyInp ? applyInp.value.trim() : '';
@@ -8626,6 +8753,7 @@ window.savePosterChangesToJob = async function() {
       const updatePayload = {
         title: updatedTitle || currentPosterJobData.title,
         company_name: updatedComp || currentPosterJobData.company_name,
+        location: updatedLoc || currentPosterJobData.location || 'Indonesia',
         deadline: updatedDead,
         apply_info: updatedApply,
         responsibilities: respList,
@@ -9031,6 +9159,7 @@ function setupOfficialVacancyGenerator() {
   [
     'poster-input-company',
     'poster-input-title',
+    'poster-input-location',
     'poster-input-requirements',
     'poster-input-deadline',
     'poster-input-apply-info',
@@ -9040,6 +9169,38 @@ function setupOfficialVacancyGenerator() {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', () => renderPosterCanvas());
   });
+
+  // Quick-add custom placement location directly into Master Data from Upload / Edit / Poster Studio
+  window.quickAddLocationToMaster = async function(inputId) {
+    const inp = document.getElementById(inputId);
+    const val = (inp ? inp.value : '').trim();
+    if (!val) {
+      showAdminToast('Lokasi Kosong', 'Ketik nama alamat / kota penempatan terlebih dahulu sebelum menyimpannya ke daftar.', 'warning');
+      if (inp) inp.focus();
+      return;
+    }
+    const token = getAdminToken();
+    try {
+      const { ok, data } = await safeFetchJson(getApiEndpoint('/api/master-data'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ type: 'location', name: val })
+      });
+      if (ok && data && data.data) {
+        if (typeof setMasterData === 'function') setMasterData(data.data);
+        if (typeof renderMasterDataChips === 'function') renderMasterDataChips();
+        if (typeof populateMasterSelectOptions === 'function') populateMasterSelectOptions();
+        showAdminToast('Lokasi Penempatan Disimpan!', `"${val}" berhasil ditambahkan ke daftar Master Lokasi.`, 'success');
+      } else {
+        showAdminToast('Gagal Menyimpan Lokasi', data?.error || 'Pastikan sesi Admin masih aktif.', 'error');
+      }
+    } catch (e) {
+      showAdminToast('Gagal Menyimpan Lokasi', 'Tidak dapat menghubungi server.', 'error');
+    }
+  };
 
   // Reset Barcode URL to public website posting (?job=...)
   const btnResetQr = document.getElementById('btn-reset-qr-to-portal');

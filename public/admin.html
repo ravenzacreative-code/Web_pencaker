@@ -16,7 +16,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/admin.css?v=20261127_01">
+  <link rel="stylesheet" href="./css/admin.css?v=20261127_02">
   <link rel="stylesheet" href="./css/cv-builder.css?v=20261116_04">
   <!-- Start Admin Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialAdminJobsPrefetch = fetch('/api/jobs?status=all').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
@@ -689,9 +689,14 @@
                     </div>
 
                     <div class="form-group">
-                      <label class="form-label">Lokasi Kerja</label>
+                      <label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                        <span><i class="fa-solid fa-location-dot" style="color:#e11d48;"></i> Alamat / Lokasi Penempatan</span>
+                        <button type="button" class="btn-inline-add-loc" onclick="quickAddLocationToMaster('upload-location')" title="Simpan lokasi ini ke daftar Master Lokasi agar bisa dipilih cepat nanti">
+                          <i class="fa-solid fa-plus"></i> Simpan Lokasi
+                        </button>
+                      </label>
                       <input type="text" name="location" id="upload-location" list="master-locations-list"
-                        class="form-input" placeholder="Opsional — Contoh: Jakarta Selatan (SCBD) atau Remote">
+                        class="form-input" placeholder="Contoh: Kawasan Industri EJIP Cikarang / Jakarta Selatan (Tampil di Poster)">
                     </div>
                   </div>
                 </div>
@@ -2377,8 +2382,14 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Lokasi</label>
-              <input type="text" name="location" id="edit-location" list="master-locations-list" class="form-input">
+              <label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                <span><i class="fa-solid fa-location-dot" style="color:#e11d48;"></i> Alamat / Lokasi Penempatan</span>
+                <button type="button" class="btn-inline-add-loc" onclick="quickAddLocationToMaster('edit-location')" title="Simpan lokasi ini ke Master Lokasi">
+                  <i class="fa-solid fa-plus"></i> Simpan
+                </button>
+              </label>
+              <input type="text" name="location" id="edit-location" list="master-locations-list" class="form-input"
+                placeholder="Contoh: Kawasan Jababeka II, Cikarang">
             </div>
           </div>
 
@@ -2885,6 +2896,21 @@
                 <input type="text" id="poster-input-title" class="form-input" placeholder="OPERATOR PRODUKSI">
               </div>
 
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label class="form-label" style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                  <span><i class="fa-solid fa-location-dot" style="color: #e11d48;"></i> Alamat / Lokasi Penempatan (Opsional)</span>
+                  <span style="display:inline-flex; align-items:center; gap:6px;">
+                    <button type="button" class="btn-inline-add-loc" onclick="quickAddLocationToMaster('poster-input-location')" title="Tambahkan lokasi ini ke Master Data Lokasi">
+                      <i class="fa-solid fa-plus"></i> Simpan
+                    </button>
+                    <span style="font-size: 0.72rem; color: #059669; font-weight: 600;"><i class="fa-solid fa-bolt"></i> Tampil di Poster</span>
+                  </span>
+                </label>
+                <input type="text" id="poster-input-location" list="master-locations-list" class="form-input"
+                  placeholder="Contoh: Kawasan Industri MM2100, Cikarang Barat (Kosongkan jika tidak ditampilkan)"
+                  style="font-weight: 600;">
+              </div>
+
               <!-- 3 SEKSI DINAMIS: TANGGUNG JAWAB, KUALIFIKASI, BENEFIT (DIGAMBAR KE POSTER) -->
               <div class="dynamic-manager-card" data-category="responsibilities" id="poster-resp-card"
                 style="margin-bottom: 12px;">
@@ -3069,7 +3095,7 @@
     </div>
   </div>
 
-  <script src="./js/admin.js?v=20261127_01" defer></script>
+  <script src="./js/admin.js?v=20261127_02" defer></script>
   <script src="./js/cv-builder.js?v=20261116_04" defer></script>
 </body>
 
