@@ -6903,3 +6903,241 @@ body {
     background-size: 56px 56px;
   }
 }
+
+/* ==============================================================
+   2026-11-27 V6: HARMONIOUS STUDIO-GRADE VISUAL REFINEMENT
+   Soft Balanced Background Opacity + Eye-Catching Foreground Pop
+   ============================================================== */
+body {
+  background-color: #f3f7ff;
+  background-image:
+    radial-gradient(ellipse 68% 46% at 6% 4%, rgba(59, 130, 246, 0.14) 0%, transparent 62%),
+    radial-gradient(ellipse 64% 46% at 94% 8%, rgba(99, 102, 241, 0.13) 0%, transparent 64%),
+    radial-gradient(ellipse 60% 48% at 88% 82%, rgba(6, 182, 212, 0.12) 0%, transparent 66%),
+    radial-gradient(ellipse 62% 48% at 10% 90%, rgba(129, 140, 248, 0.11) 0%, transparent 66%),
+    linear-gradient(160deg, #f4f8ff 0%, #f7f9ff 36%, #f5f3ff 68%, #f0faff 100%);
+}
+
+[data-theme="dark"] body {
+  background-color: #080d1a;
+  background-image:
+    radial-gradient(ellipse 68% 44% at 8% 4%, rgba(37, 99, 235, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 62% 44% at 92% 10%, rgba(99, 102, 241, 0.2) 0%, transparent 62%),
+    radial-gradient(ellipse 60% 48% at 86% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 64%),
+    radial-gradient(ellipse 60% 46% at 12% 88%, rgba(124, 58, 237, 0.14) 0%, transparent 64%),
+    linear-gradient(160deg, #080d1a 0%, #0d152a 50%, #091224 100%);
+}
+
+/* Soft, Whisper-Quiet Luxury Opacity for All Background Layers */
+.kh-aurora-cloud.cloud-1 {
+  opacity: 0.58;
+  filter: blur(92px);
+}
+
+.kh-aurora-cloud.cloud-2 {
+  opacity: 0.54;
+  filter: blur(96px);
+}
+
+.kh-aurora-cloud.cloud-3 {
+  opacity: 0.5;
+  filter: blur(96px);
+}
+
+.kh-bg-light-beam {
+  opacity: 0.55;
+}
+
+.kh-bg-arch-grid {
+  background-image:
+    linear-gradient(to right, rgba(37, 99, 235, 0.032) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 99, 235, 0.032) 1px, transparent 1px);
+  background-size: 96px 96px;
+}
+
+[data-theme="dark"] .kh-bg-arch-grid {
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+}
+
+.kh-bg-dot-grid {
+  background-image: radial-gradient(rgba(37, 99, 235, 0.09) 1.1px, transparent 1.1px);
+  background-size: 32px 32px;
+  opacity: 0.45;
+}
+
+[data-theme="dark"] .kh-bg-dot-grid {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.11) 1.1px, transparent 1.1px);
+  opacity: 0.36;
+}
+
+.kh-bg-wave {
+  opacity: 0.46;
+}
+
+[data-theme="dark"] .kh-bg-wave {
+  opacity: 0.34;
+}
+
+/* Remove Busy Clutter (+ / diamonds) & Soften Halos/Prisms into Delicate Studio Accents */
+.kh-geo-plus,
+.kh-geo-diamond {
+  display: none !important;
+}
+
+.kh-geo-ring {
+  border-style: solid !important;
+  border-width: 1px;
+  border-color: rgba(59, 130, 246, 0.12);
+  box-shadow: inset 0 0 0 22px rgba(99, 102, 241, 0.022);
+  opacity: 0.65;
+}
+
+.kh-orbit-dot {
+  width: 6px;
+  height: 6px;
+  top: -3px;
+  margin-left: -3px;
+  opacity: 0.62;
+  box-shadow: 0 0 8px 2px rgba(56, 189, 248, 0.38);
+}
+
+.kh-glass-prism {
+  opacity: 0.48;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.48) 0%, rgba(219, 234, 254, 0.16) 100%);
+  border-color: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 14px 32px -18px rgba(37, 99, 235, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .kh-glass-prism {
+  opacity: 0.38;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+.kh-spark-node {
+  width: 6px;
+  height: 6px;
+  filter: blur(0.6px);
+  box-shadow: 0 0 10px 2px rgba(56, 189, 248, 0.34);
+  animation: khSparkSoft 5.5s ease-in-out infinite;
+}
+
+@keyframes khSparkSoft {
+  0%, 100% { opacity: 0.16; transform: scale(0.85); }
+  50% { opacity: 0.52; transform: scale(1.15); }
+}
+
+/* Eye-Catching Foreground Cohesion from Every Angle (Navbar -> Hero -> Cards -> Pagination) */
+.navbar {
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(203, 213, 225, 0.65);
+  box-shadow: 0 4px 24px -14px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="dark"] .navbar {
+  background: rgba(11, 17, 32, 0.82);
+  border-bottom-color: rgba(51, 65, 85, 0.6);
+}
+
+.hero-title {
+  letter-spacing: -0.03em;
+}
+
+.text-gradient {
+  background: linear-gradient(125deg, #1d4ed8 0%, #4f46e5 48%, #0284c7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="dark"] .text-gradient {
+  background: linear-gradient(125deg, #60a5fa 0%, #818cf8 48%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.search-wrapper {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 20px 44px -20px rgba(29, 78, 216, 0.2),
+    0 4px 14px -4px rgba(15, 23, 42, 0.06),
+    0 0 0 1px rgba(148, 163, 184, 0.22);
+}
+
+[data-theme="dark"] .search-wrapper {
+  background: rgba(17, 25, 44, 0.9);
+  border-color: rgba(71, 85, 105, 0.55);
+  box-shadow:
+    0 20px 44px -18px rgba(2, 6, 23, 0.72),
+    0 0 0 1px rgba(96, 165, 250, 0.16);
+}
+
+.stats-ribbon {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 16px 36px -18px rgba(29, 78, 216, 0.16),
+    0 0 0 1px rgba(148, 163, 184, 0.2);
+}
+
+[data-theme="dark"] .stats-ribbon {
+  background: rgba(17, 25, 44, 0.88);
+  border-color: rgba(71, 85, 105, 0.5);
+  box-shadow: 0 16px 36px -16px rgba(2, 6, 23, 0.65);
+}
+
+.filter-sidebar {
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid rgba(226, 232, 240, 0.88);
+  box-shadow: 0 12px 28px -16px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="dark"] .filter-sidebar {
+  background: rgba(17, 25, 44, 0.9);
+  border-color: rgba(51, 65, 85, 0.72);
+}
+
+.job-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow:
+    0 10px 26px -16px rgba(15, 23, 42, 0.14),
+    0 2px 6px -2px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="dark"] .job-card {
+  background: rgba(17, 25, 44, 0.92);
+  border-color: rgba(51, 65, 85, 0.72);
+  box-shadow: 0 12px 28px -16px rgba(2, 6, 23, 0.68);
+}
+
+.jobs-pagination {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 12px 28px -16px rgba(29, 78, 216, 0.15);
+}
+
+[data-theme="dark"] .jobs-pagination {
+  background: rgba(17, 25, 44, 0.9);
+  border-color: rgba(51, 65, 85, 0.75);
+}
+
+@media (max-width: 640px) {
+  .kh-bg-wave {
+    opacity: 0.34;
+  }
+
+  .kh-glass-prism {
+    opacity: 0.3;
+  }
+
+  .kh-geo-ring {
+    opacity: 0.4;
+  }
+}
