@@ -2023,6 +2023,11 @@ function applyFiltersAndRender() {
   });
 
   filteredJobs = list;
+  const filterSig = JSON.stringify(activeFilters) + '::' + (window.activeCvKeywords ? window.activeCvKeywords.join(',') : '');
+  if (filterSig !== window._lastJobFilterSignature) {
+    window._lastJobFilterSignature = filterSig;
+    window.currentJobPage = 1;
+  }
   renderActiveFilterChips();
   if (typeof renderPopularCategoriesByViews === 'function') renderPopularCategoriesByViews();
   renderJobs(filteredJobs);
@@ -2455,21 +2460,99 @@ window.generateCompanyBannerDataUrl = generateCompanyBannerDataUrl;
 window.openJobPosterById = openJobPosterById;
 window.isManualJobFlyer = isManualJobFlyer;
 
+// Pagination State & Controls
+window.currentJobPage = window.currentJobPage || 1;
+window._lastJobFilterSignature = window._lastJobFilterSignature || '';
+
+function getJobsPerPage() {
+  return (typeof window !== 'undefined' && window.innerWidth <= 640) ? 8 : 12;
+}
+
+window.goToJobPage = function (page) {
+  const perPage = getJobsPerPage();
+  const totalPages = Math.max(1, Math.ceil((filteredJobs || []).length / perPage));
+  const target = Math.min(totalPages, Math.max(1, Number(page) || 1));
+  if (target === window.currentJobPage) return;
+  window.currentJobPage = target;
+  renderJobs(filteredJobs);
+  const section = document.getElementById('lowongan');
+  if (section && typeof section.scrollIntoView === 'function') {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+function renderJobsPagination(totalItems, currentPage, totalPages, startIdx, endIdx) {
+  const nav = document.getElementById('jobs-pagination');
+  if (!nav) return;
+  if (totalItems === 0 || totalPages <= 1) {
+    nav.style.display = 'none';
+    nav.innerHTML = '';
+    return;
+  }
+
+  const pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (currentPage > 3) pages.push('...');
+    const from = Math.max(2, currentPage - 1);
+    const to = Math.min(totalPages - 1, currentPage + 1);
+    for (let i = from; i <= to; i++) pages.push(i);
+    if (currentPage < totalPages - 2) pages.push('...');
+    pages.push(totalPages);
+  }
+
+  const pageBtnsHtml = pages.map(p => {
+    if (p === '...') {
+      return '<span class="pg-ellipsis" aria-hidden="true">&hellip;</span>';
+    }
+    const isAct = p === currentPage;
+    return `<button type="button" class="pg-btn pg-num ${isAct ? 'active' : ''}" onclick="goToJobPage(${p})" ${isAct ? 'aria-current="page"' : ''}>${p}</button>`;
+  }).join('');
+
+  nav.style.display = 'flex';
+  nav.innerHTML = `
+    <div class="pg-summary">
+      Menampilkan <strong>${startIdx + 1}&ndash;${endIdx}</strong> dari <strong>${totalItems}</strong> lowongan &middot; Halaman <strong>${currentPage}</strong>/${totalPages}
+    </div>
+    <div class="pg-controls">
+      <button type="button" class="pg-btn pg-nav" onclick="goToJobPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''} aria-label="Halaman sebelumnya">
+        <i class="fa-solid fa-chevron-left"></i> <span>Sebelumnya</span>
+      </button>
+      <div class="pg-numbers">${pageBtnsHtml}</div>
+      <button type="button" class="pg-btn pg-nav" onclick="goToJobPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''} aria-label="Halaman berikutnya">
+        <span>Berikutnya</span> <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  `;
+}
+
 // Render Job Cards
 function renderJobs(jobs) {
   const container = document.getElementById('jobs-container');
   if (!container) return;
 
   if (jobs.length === 0) {
+    renderJobsPagination(0, 1, 1, 0, 0);
     showEmptyState();
     return;
   }
 
-  const lockedCount = jobs.filter(isJobLocked).length;
-  const openCount = jobs.length - lockedCount;
+  const perPage = getJobsPerPage();
+  const totalPages = Math.max(1, Math.ceil(jobs.length / perPage));
+  const currentPage = Math.min(totalPages, Math.max(1, Number(window.currentJobPage) || 1));
+  window.currentJobPage = currentPage;
+
+  const startIdx = (currentPage - 1) * perPage;
+  const endIdx = Math.min(jobs.length, startIdx + perPage);
+  const pageJobs = jobs.slice(startIdx, endIdx);
+
+  const lockedTotalCount = jobs.filter(isJobLocked).length;
+  const pageHasOpenBefore = jobs.slice(0, startIdx).some(j => !isJobLocked(j)) || pageJobs.some(j => !isJobLocked(j));
   let closedDividerInserted = false;
 
-  const cardsHtml = jobs.map((job, idx) => {
+  const cardsHtml = pageJobs.map((job, idx) => {
     const coverSrc = getEffectiveJobCover(job);
     const rawFlyers = Array.isArray(job.flyer_images) && job.flyer_images.length > 0
       ? job.flyer_images
@@ -2479,12 +2562,12 @@ function renderJobs(jobs) {
 
     const isLocked = isJobLocked(job);
     let closedDividerHtml = '';
-    if (isLocked && !closedDividerInserted && openCount > 0) {
+    if (isLocked && !closedDividerInserted && pageHasOpenBefore) {
       closedDividerInserted = true;
       closedDividerHtml = `
         <div class="closed-jobs-divider" role="separator" aria-label="Lowongan Ditutup">
           <span class="closed-divider-line"></span>
-          <span class="closed-divider-pill"><i class="fa-solid fa-lock"></i> Lowongan Ditutup / CLOSED (${lockedCount})</span>
+          <span class="closed-divider-pill"><i class="fa-solid fa-lock"></i> Lowongan Ditutup / CLOSED (${lockedTotalCount})</span>
           <span class="closed-divider-line"></span>
         </div>
       `;
@@ -2492,6 +2575,8 @@ function renderJobs(jobs) {
     const initial = job.company_name ? job.company_name.charAt(0).toUpperCase() : 'C';
     const timeAgo = formatTimeAgo(job.created_at);
     const urgencyBadge = calculateUrgencyBadge(job.deadline);
+    const rawSalaryText = String(job.salary_display || '').trim();
+    const showSalaryPill = Boolean(rawSalaryText && !/^(gaji\s*)?(kompetitif|negosiasi|negotiable|rahasia|-|n\/a|tidak\s*disebutkan)$/i.test(rawSalaryText));
     const isPriorityCard = idx < 4;
     const loadingAttr = isPriorityCard ? 'eager' : 'lazy';
     const fetchPriorityAttr = isPriorityCard ? ' fetchpriority="high"' : '';
@@ -2555,7 +2640,7 @@ function renderJobs(jobs) {
           <div class="job-badges">
             ${isLocked ? '<span class="pill pill-expired"><i class="fa-solid fa-lock"></i> CLOSED · Ditutup</span>' : platformPill}
             <span class="pill pill-type"><i class="fa-regular fa-clock"></i> ${escapeHtml(job.job_type)}</span>
-            ${job.salary_display ? `<span class="pill pill-salary"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(job.salary_display)}</span>` : ''}
+            ${showSalaryPill ? `<span class="pill pill-salary"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(rawSalaryText)}</span>` : ''}
             ${isLocked ? '' : channelPillsHtml}
             ${isLocked ? '' : urgencyBadge}
           </div>
@@ -2618,13 +2703,14 @@ function renderJobs(jobs) {
   ` : '';
 
   container.innerHTML = noticeHtml + cardsHtml;
+  renderJobsPagination(jobs.length, currentPage, totalPages, startIdx, endIdx);
   container.querySelectorAll('.job-poster-preview img').forEach(img => {
     if (img.complete && img.naturalWidth > 0) {
       window.markPosterLoaded(img);
     }
   });
-  // Background-warm flyers for top 3 visible jobs once main cards render
-  const topIds = jobs.slice(0, 3).map(j => j.id);
+  // Background-warm flyers for top 3 visible jobs on current page
+  const topIds = pageJobs.slice(0, 3).map(j => j.id);
   const scheduleWarm = window.requestIdleCallback || ((fn) => setTimeout(fn, 550));
   scheduleWarm(() => topIds.forEach(id => window.prefetchJobAssets(id)));
 }

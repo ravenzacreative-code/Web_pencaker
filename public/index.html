@@ -19,7 +19,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/style.css?v=20261127_03">
+  <link rel="stylesheet" href="./css/style.css?v=20261127_04">
   <!-- Start Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
@@ -29,6 +29,45 @@
 </head>
 
 <body>
+  <!-- AESTHETIC ARCHITECTURAL & GEOMETRIC BACKGROUND ORNAMENTS (LIGHT & DARK HARMONY) -->
+  <div class="kh-bg-ornaments" aria-hidden="true">
+    <div class="kh-bg-dot-grid"></div>
+    <svg class="kh-bg-wave wave-top" viewBox="0 0 1440 420" fill="none" preserveAspectRatio="none">
+      <path d="M-40 190C190 90 420 280 710 180C980 85 1190 230 1480 110" stroke="url(#khWaveStroke1)" stroke-width="1.5" stroke-dasharray="6 8" opacity="0.55" />
+      <path d="M-40 245C240 130 510 315 800 205C1080 100 1240 265 1480 155" stroke="url(#khWaveStroke1)" stroke-width="1.2" opacity="0.38" />
+      <path d="M980 -30C1140 80 1240 20 1460 150V-30H980Z" fill="url(#khWaveFill1)" opacity="0.4" />
+      <defs>
+        <linearGradient id="khWaveStroke1" x1="0" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#2563eb" stop-opacity="0.15" />
+          <stop offset="50%" stop-color="#4f46e5" stop-opacity="0.55" />
+          <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.18" />
+        </linearGradient>
+        <linearGradient id="khWaveFill1" x1="980" y1="0" x2="1460" y2="180" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.14" />
+          <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.02" />
+        </linearGradient>
+      </defs>
+    </svg>
+    <svg class="kh-bg-wave wave-bottom" viewBox="0 0 1440 360" fill="none" preserveAspectRatio="none">
+      <path d="M-40 260C260 160 520 330 820 220C1090 120 1260 270 1480 175" stroke="url(#khWaveStroke2)" stroke-width="1.4" opacity="0.45" />
+      <path d="M-40 310C310 215 620 355 930 250C1180 165 1310 295 1480 225" stroke="url(#khWaveStroke2)" stroke-width="1.2" stroke-dasharray="5 9" opacity="0.42" />
+      <defs>
+        <linearGradient id="khWaveStroke2" x1="0" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.14" />
+          <stop offset="50%" stop-color="#2563eb" stop-opacity="0.48" />
+          <stop offset="100%" stop-color="#6366f1" stop-opacity="0.14" />
+        </linearGradient>
+      </defs>
+    </svg>
+    <span class="kh-geo-ring ring-1"></span>
+    <span class="kh-geo-ring ring-2"></span>
+    <span class="kh-geo-diamond diamond-1"></span>
+    <span class="kh-geo-diamond diamond-2"></span>
+    <span class="kh-geo-plus plus-1">+</span>
+    <span class="kh-geo-plus plus-2">+</span>
+    <span class="kh-geo-plus plus-3">+</span>
+  </div>
+
   <!-- UNIFIED FLATICON-STYLE DUOTONE SVG ICON PACK (100% COHESIVE BRAND PALETTE) -->
   <svg class="kh-icon-sprite" aria-hidden="true" focusable="false">
     <defs>
@@ -184,13 +223,6 @@
       <span class="hero-orb orb-c"></span>
     </div>
     <div class="container hero-content">
-      <div class="hero-live-pill">
-        <span class="live-dot-pulse" aria-hidden="true"></span>
-        <svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-sparkles"/></svg>
-        <span>Portal Loker Resmi &amp; Terverifikasi · <strong>Update Harian</strong> ·</span>
-        <svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-shield-check"/></svg>
-        <span>100% Gratis</span>
-      </div>
       <h1 class="hero-title">
         Temukan Poster &amp; Info Karir <br>
         <span class="text-gradient">Cepat, Transparan, Langsung ke Perekrut</span>
@@ -528,6 +560,11 @@
           <div class="jobs-grid" id="jobs-container">
             <!-- Rendered by JavaScript -->
           </div>
+
+          <!-- Responsive Pagination Bar -->
+          <nav class="jobs-pagination" id="jobs-pagination" aria-label="Navigasi Halaman Lowongan" style="display: none;">
+            <!-- Rendered by JavaScript -->
+          </nav>
         </div>
 
       </div>
@@ -648,7 +685,7 @@
     </button>
   </div>
 
-  <script src="./js/app.js?v=20261127_03" defer></script>
+  <script src="./js/app.js?v=20261127_04" defer></script>
 </body>
 
 </html>

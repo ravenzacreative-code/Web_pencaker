@@ -6325,3 +6325,306 @@ body {
     row-gap: 2px;
   }
 }
+
+/* ==============================================================
+   2026-11-27 V4: AESTHETIC BACKGROUND ORNAMENTS & PAGINATION
+   Architectural Dot-Grid, Wave Curves, Floating Geometry & Pager
+   ============================================================== */
+.kh-bg-ornaments {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero,
+.main-section,
+.footer,
+footer {
+  position: relative;
+  z-index: 1;
+}
+
+.kh-bg-dot-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(37, 99, 235, 0.14) 1.25px, transparent 1.25px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 88% 72% at 50% 35%, #000 38%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 88% 72% at 50% 35%, #000 38%, transparent 100%);
+  opacity: 0.72;
+}
+
+[data-theme="dark"] .kh-bg-dot-grid {
+  background-image: radial-gradient(rgba(96, 165, 250, 0.16) 1.2px, transparent 1.2px);
+  opacity: 0.55;
+}
+
+.kh-bg-wave {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.kh-bg-wave.wave-top {
+  top: 52px;
+  min-height: 260px;
+}
+
+.kh-bg-wave.wave-bottom {
+  bottom: 0;
+  min-height: 220px;
+}
+
+.kh-geo-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(59, 130, 246, 0.22);
+  box-shadow: inset 0 0 0 14px rgba(99, 102, 241, 0.04);
+  will-change: transform;
+}
+
+.kh-geo-ring.ring-1 {
+  width: 240px;
+  height: 240px;
+  top: 11%;
+  right: 4%;
+  border-style: dashed;
+  animation: khGeoSpin 36s linear infinite;
+}
+
+.kh-geo-ring.ring-2 {
+  width: 180px;
+  height: 180px;
+  bottom: 14%;
+  left: 3%;
+  border-color: rgba(6, 182, 212, 0.24);
+  animation: khGeoFloat 12s ease-in-out infinite alternate;
+}
+
+.kh-geo-diamond {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1.8px solid rgba(79, 70, 229, 0.28);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.08));
+  transform: rotate(45deg);
+  will-change: transform;
+}
+
+.kh-geo-diamond.diamond-1 {
+  top: 22%;
+  left: 7%;
+  animation: khDiamondDrift 9s ease-in-out infinite alternate;
+}
+
+.kh-geo-diamond.diamond-2 {
+  top: 62%;
+  right: 6%;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(6, 182, 212, 0.34);
+  animation: khDiamondDrift 11s ease-in-out infinite alternate-reverse;
+}
+
+.kh-geo-plus {
+  position: absolute;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: rgba(37, 99, 235, 0.25);
+  user-select: none;
+}
+
+.kh-geo-plus.plus-1 { top: 15%; left: 14%; }
+.kh-geo-plus.plus-2 { top: 44%; right: 8%; font-size: 1.5rem; color: rgba(6, 182, 212, 0.28); }
+.kh-geo-plus.plus-3 { bottom: 22%; left: 10%; color: rgba(99, 102, 241, 0.25); }
+
+[data-theme="dark"] .kh-geo-ring {
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] .kh-geo-diamond {
+  border-color: rgba(129, 140, 248, 0.3);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+[data-theme="dark"] .kh-geo-plus {
+  color: rgba(96, 165, 250, 0.22);
+}
+
+@keyframes khGeoSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes khGeoFloat {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(14px, -16px, 0) scale(1.05); }
+}
+
+@keyframes khDiamondDrift {
+  0% { transform: rotate(45deg) translate3d(0, 0, 0); }
+  100% { transform: rotate(60deg) translate3d(0, -14px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kh-geo-ring,
+  .kh-geo-diamond {
+    animation: none !important;
+  }
+}
+
+/* Sleek Responsive Pagination Bar */
+.jobs-pagination {
+  margin-top: 28px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 26px -14px rgba(15, 23, 42, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+[data-theme="dark"] .jobs-pagination {
+  background: rgba(19, 27, 46, 0.86);
+  border-color: rgba(51, 65, 85, 0.85);
+}
+
+.pg-summary {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.pg-summary strong {
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+.pg-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pg-numbers {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-family: var(--font-heading);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.16s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+}
+
+.pg-btn:hover:not(:disabled):not(.active) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.pg-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.pg-btn.active {
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 6px 16px -5px rgba(37, 99, 235, 0.52);
+}
+
+.pg-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.pg-ellipsis {
+  padding: 0 4px;
+  color: var(--text-light);
+  font-weight: 700;
+  user-select: none;
+}
+
+@media (max-width: 640px) {
+  .kh-geo-ring.ring-1 {
+    width: 140px;
+    height: 140px;
+    top: 8%;
+    right: -32px;
+  }
+
+  .kh-geo-ring.ring-2 {
+    width: 120px;
+    height: 120px;
+    left: -30px;
+  }
+
+  .kh-geo-plus {
+    font-size: 1rem;
+  }
+
+  .jobs-pagination {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 14px 12px;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .pg-summary {
+    font-size: 0.76rem;
+  }
+
+  .pg-controls {
+    width: 100%;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .pg-btn {
+    min-width: 34px;
+    height: 36px;
+    padding: 0 9px;
+    font-size: 0.78rem;
+  }
+
+  .pg-btn.pg-nav span {
+    display: none;
+  }
+
+  .pg-btn.pg-nav {
+    min-width: 36px;
+    padding: 0 10px;
+  }
+}
