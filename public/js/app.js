@@ -1376,9 +1376,9 @@ function renderPopularCategoriesByViews() {
 
   const isAllActive = !activeFilters.category || activeFilters.category === 'Semua';
   let html = `
-    <span class="trending-label"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Kategori Terpopuler:</span>
+    <span class="trending-label"><svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-flame"/></svg> Kategori Terpopuler:</span>
     <button type="button" class="chip-keyword ${isAllActive ? 'active' : ''}" id="btn-search-all-cat" data-category="Semua" title="Tampilkan Semua Kategori">
-      <i class="fa-solid fa-layer-group" style="color: ${isAllActive ? '#ffffff' : '#6366f1'};"></i> Semua Kategori
+      <svg class="pro-ico pro-ico-xs" aria-hidden="true"><use href="#ico-layers"/></svg> Semua Kategori
     </button>
   `;
 
@@ -2544,7 +2544,7 @@ function renderJobs(jobs) {
             <div class="company-meta">
               <div class="company-name">${escapeHtml(job.company_name)}</div>
               <div class="job-location job-location-chip" title="Lokasi Penempatan: ${escapeHtml(job.location || 'Indonesia')}">
-                <i class="fa-solid fa-location-dot"></i>
+                <svg class="pro-ico pro-ico-xs" aria-hidden="true"><use href="#ico-pin"/></svg>
                 <span>${escapeHtml(job.location || 'Indonesia')}</span>
               </div>
             </div>

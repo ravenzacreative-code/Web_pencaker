@@ -6195,3 +6195,133 @@ body {
     padding: 2px 7px;
   }
 }
+
+/* ==============================================================
+   2026-11-27 V3: UNIFIED FLATICON-STYLE DUOTONE SVG ICON SYSTEM
+   100% Cohesive Royal Blue -> Indigo -> Cyan Brand Harmony
+   ============================================================== */
+:root {
+  --kh-ico-1: #2563eb;
+  --kh-ico-2: #4f46e5;
+  --kh-ico-3: #06b6d4;
+  --kh-ico-soft-1: #dbeafe;
+  --kh-ico-soft-2: #cffafe;
+}
+
+[data-theme="dark"] {
+  --kh-ico-1: #60a5fa;
+  --kh-ico-2: #818cf8;
+  --kh-ico-3: #22d3ee;
+  --kh-ico-soft-1: rgba(59, 130, 246, 0.24);
+  --kh-ico-soft-2: rgba(34, 211, 238, 0.22);
+}
+
+.kh-icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pro-ico {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), filter 0.2s ease;
+}
+
+.pro-ico-xs { width: 15px; height: 15px; }
+.pro-ico-sm { width: 18px; height: 18px; }
+.pro-ico-md { width: 20px; height: 20px; }
+.pro-ico-lg { width: 26px; height: 26px; }
+
+/* Unified Brand Palette on Stats Ribbon Icons (Zero Clashing Colors) */
+.stats-ribbon .stat-icon.unified {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.11), rgba(6, 182, 212, 0.13));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: var(--primary);
+}
+
+[data-theme="dark"] .stats-ribbon .stat-icon.unified {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(34, 211, 238, 0.16));
+  border-color: rgba(96, 165, 250, 0.28);
+}
+
+.stats-ribbon .stat-item:hover .pro-ico {
+  transform: scale(1.1) translateY(-1px);
+}
+
+/* Active Tabs & Chips: Bulletproof Crisp White Contrast across all browsers */
+.job-tab-btn.active .pro-ico,
+.chip-keyword.active .pro-ico {
+  filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(15, 23, 42, 0.14));
+}
+
+.job-tab-btn:hover .pro-ico,
+.chip-keyword:hover .pro-ico {
+  transform: scale(1.1);
+}
+
+/* Unified Cohesive Placement Location Chip (Matches Brand Blue-Indigo-Cyan) */
+.job-location.job-location-chip {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(6, 182, 212, 0.1));
+  border-color: rgba(59, 130, 246, 0.24);
+  color: #1d4ed8;
+}
+
+[data-theme="dark"] .job-location.job-location-chip {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(6, 182, 212, 0.16));
+  border-color: rgba(96, 165, 250, 0.34);
+  color: #93c5fd;
+}
+
+/* Clean Alignment for Results Count & Guide List Items */
+.results-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.guide-box-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.guide-box-list li .pro-ico {
+  margin-top: 2px;
+}
+
+/* Unified Chip Views Badge (Brand Blue-Cyan instead of clashing Orange) */
+.chip-views-badge {
+  background: rgba(37, 99, 235, 0.1) !important;
+  color: #1d4ed8 !important;
+}
+
+[data-theme="dark"] .chip-views-badge {
+  background: rgba(96, 165, 250, 0.18) !important;
+  color: #93c5fd !important;
+}
+
+.chip-keyword.active .chip-views-badge {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 640px) {
+  .stats-ribbon .stat-icon.unified {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stats-ribbon .pro-ico-lg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .hero-live-pill {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+}

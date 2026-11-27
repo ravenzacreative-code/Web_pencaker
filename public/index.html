@@ -19,7 +19,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/style.css?v=20261127_02">
+  <link rel="stylesheet" href="./css/style.css?v=20261127_03">
   <!-- Start Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialJobsPrefetch = fetch('/api/jobs').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
   <!-- Supabase JS Client (Self-Hosted Local Vendor Asset) -->
@@ -29,6 +29,113 @@
 </head>
 
 <body>
+  <!-- UNIFIED FLATICON-STYLE DUOTONE SVG ICON PACK (100% COHESIVE BRAND PALETTE) -->
+  <svg class="kh-icon-sprite" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="khGradMain" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="var(--kh-ico-1, #2563eb)" />
+        <stop offset="55%" stop-color="var(--kh-ico-2, #4f46e5)" />
+        <stop offset="100%" stop-color="var(--kh-ico-3, #06b6d4)" />
+      </linearGradient>
+      <linearGradient id="khGradSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="var(--kh-ico-soft-1, #dbeafe)" />
+        <stop offset="100%" stop-color="var(--kh-ico-soft-2, #cffafe)" />
+      </linearGradient>
+
+      <symbol id="ico-sparkles" viewBox="0 0 24 24">
+        <path d="M12 2.5L14.2 8.4L20.1 10.6L14.2 12.8L12 18.7L9.8 12.8L3.9 10.6L9.8 8.4L12 2.5Z" fill="url(#khGradMain)" />
+        <path d="M18.5 15L19.4 17.3L21.7 18.2L19.4 19.1L18.5 21.4L17.6 19.1L15.3 18.2L17.6 17.3L18.5 15Z" fill="url(#khGradMain)" opacity="0.65" />
+        <circle cx="6.2" cy="5.5" r="1.4" fill="url(#khGradMain)" opacity="0.55" />
+      </symbol>
+
+      <symbol id="ico-shield-check" viewBox="0 0 24 24">
+        <path d="M12 2.5L4.5 5.6V11.3C4.5 16.2 7.7 20.5 12 21.8C16.3 20.5 19.5 16.2 19.5 11.3V5.6L12 2.5Z" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M8.8 12.1L11.1 14.4L15.6 9.8" fill="none" stroke="url(#khGradMain)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
+
+      <symbol id="ico-flame" viewBox="0 0 24 24">
+        <path d="M12.6 2.5C12.6 2.5 17.8 6.4 17.8 12.3C17.8 16.5 15.2 20.5 11.8 20.5C8.3 20.5 6 17.4 6 13.7C6 11.2 7.2 8.8 8.7 7.4C8.6 9.1 9.5 10.3 10.6 10.6C10.1 7.6 11.4 4.5 12.6 2.5Z" fill="url(#khGradMain)" />
+        <path d="M12 11.8C13.6 13.1 14.5 14.7 14.5 16.3C14.5 18 13.3 19.3 11.8 19.3C10.3 19.3 9.2 18.1 9.2 16.5C9.2 14.9 10.3 13.2 12 11.8Z" fill="url(#khGradSoft)" />
+      </symbol>
+
+      <symbol id="ico-layers" viewBox="0 0 24 24">
+        <path d="M12 3.5L20.5 8L12 12.5L3.5 8L12 3.5Z" fill="url(#khGradMain)" />
+        <path d="M3.5 12.2L12 16.7L20.5 12.2" fill="none" stroke="url(#khGradMain)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.72" />
+        <path d="M3.5 16.2L12 20.7L20.5 16.2" fill="none" stroke="url(#khGradMain)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.45" />
+      </symbol>
+
+      <symbol id="ico-poster" viewBox="0 0 24 24">
+        <rect x="4" y="3" width="16" height="18" rx="3.2" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" />
+        <rect x="7" y="6.2" width="10" height="6.2" rx="1.6" fill="url(#khGradMain)" />
+        <circle cx="9.6" cy="8.5" r="1.1" fill="#ffffff" />
+        <path d="M7.8 11.7L10.6 9.3L12.7 11.1L14.4 9.7L16.3 11.7H7.8Z" fill="#ffffff" opacity="0.9" />
+        <path d="M7.5 15.2H16.5M7.5 18H13.5" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linecap="round" />
+      </symbol>
+
+      <symbol id="ico-verified-badge" viewBox="0 0 24 24">
+        <path d="M12 2.4L14.6 4.2L17.8 4.4L18.9 7.4L21.4 9.4L20.6 12.5L21.4 15.6L18.9 17.6L17.8 20.6L14.6 20.8L12 22.6L9.4 20.8L6.2 20.6L5.1 17.6L2.6 15.6L3.4 12.5L2.6 9.4L5.1 7.4L6.2 4.4L9.4 4.2L12 2.4Z" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.6" stroke-linejoin="round" />
+        <path d="M8.7 12.4L10.9 14.6L15.4 10.1" fill="none" stroke="url(#khGradMain)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
+
+      <symbol id="ico-bolt-chat" viewBox="0 0 24 24">
+        <path d="M12 3.2C6.9 3.2 3 6.8 3 11.4C3 13.7 4 15.7 5.7 17.2L4.6 21L8.8 19.4C9.8 19.6 10.9 19.8 12 19.8C17.1 19.8 21 16.1 21 11.4C21 6.8 17.1 3.2 12 3.2Z" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M12.8 6.8L9.2 12H12L11.2 16.2L14.8 11H12L12.8 6.8Z" fill="url(#khGradMain)" />
+      </symbol>
+
+      <symbol id="ico-briefcase" viewBox="0 0 24 24">
+        <path d="M9 6.5V5.2C9 4.3 9.7 3.6 10.6 3.6H13.4C14.3 3.6 15 4.3 15 5.2V6.5" fill="none" stroke="url(#khGradMain)" stroke-width="1.9" stroke-linecap="round" />
+        <rect x="3" y="6.6" width="18" height="13.8" rx="3.2" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" />
+        <path d="M3.5 11.8C6.6 13.4 17.4 13.4 20.5 11.8" fill="none" stroke="url(#khGradMain)" stroke-width="1.8" />
+        <rect x="10.4" y="11" width="3.2" height="2.8" rx="0.9" fill="url(#khGradMain)" />
+      </symbol>
+
+      <symbol id="ico-star-pro" viewBox="0 0 24 24">
+        <path d="M12 2.8L14.8 8.5L21.1 9.4L16.5 13.8L17.6 20.1L12 17.1L6.4 20.1L7.5 13.8L2.9 9.4L9.2 8.5L12 2.8Z" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M12 6.5L13.4 9.4L16.6 9.9L14.3 12.1L14.8 15.3L12 13.8L9.2 15.3L9.7 12.1L7.4 9.9L10.6 9.4L12 6.5Z" fill="url(#khGradMain)" />
+      </symbol>
+
+      <symbol id="ico-home-work" viewBox="0 0 24 24">
+        <path d="M3.2 10.8L12 3.6L20.8 10.8V19.2C20.8 20.1 20.1 20.8 19.2 20.8H4.8C3.9 20.8 3.2 20.1 3.2 19.2V10.8Z" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linejoin="round" />
+        <rect x="8" y="11.4" width="8" height="5.4" rx="1.2" fill="url(#khGradMain)" />
+        <path d="M6.8 18H17.2" stroke="url(#khGradMain)" stroke-width="1.9" stroke-linecap="round" />
+      </symbol>
+
+      <symbol id="ico-grad-cap" viewBox="0 0 24 24">
+        <path d="M2.6 9.8L12 5L21.4 9.8L12 14.6L2.6 9.8Z" fill="url(#khGradMain)" />
+        <path d="M6.3 12V16.6C6.3 18.2 8.9 19.6 12 19.6C15.1 19.6 17.7 18.2 17.7 16.6V12" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M20.2 10.5V16.2" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linecap="round" />
+        <circle cx="20.2" cy="17.2" r="1.2" fill="url(#khGradMain)" />
+      </symbol>
+
+      <symbol id="ico-bulb" viewBox="0 0 24 24">
+        <path d="M12 3.2C8.3 3.2 5.5 6 5.5 9.6C5.5 11.9 6.7 13.7 8.4 14.9C8.9 15.3 9.2 15.9 9.2 16.6V17.2H14.8V16.6C14.8 15.9 15.1 15.3 15.6 14.9C17.3 13.7 18.5 11.9 18.5 9.6C18.5 6 15.7 3.2 12 3.2Z" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M9.6 20.2H14.4M10.4 17.2V11.2L12 12.6L13.6 11.2V17.2" fill="none" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
+
+      <symbol id="ico-check-circle" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.2" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" />
+        <path d="M8.3 12.3L10.8 14.8L15.9 9.6" fill="none" stroke="url(#khGradMain)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
+
+      <symbol id="ico-chat-dots" viewBox="0 0 24 24">
+        <path d="M4.2 5.4C4.2 4.3 5.1 3.4 6.2 3.4H17.8C18.9 3.4 19.8 4.3 19.8 5.4V15.2C19.8 16.3 18.9 17.2 17.8 17.2H9.6L5.4 20.4V17.2H6.2C5.1 17.2 4.2 16.3 4.2 15.2V5.4Z" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linejoin="round" />
+        <circle cx="8.8" cy="10.3" r="1.3" fill="url(#khGradMain)" />
+        <circle cx="12" cy="10.3" r="1.3" fill="url(#khGradMain)" />
+        <circle cx="15.2" cy="10.3" r="1.3" fill="url(#khGradMain)" />
+      </symbol>
+
+      <symbol id="ico-doc-cv" viewBox="0 0 24 24">
+        <path d="M6.2 3.2H14.6L18.8 7.4V19.6C18.8 20.4 18.1 21 17.3 21H6.2C5.4 21 4.8 20.4 4.8 19.6V4.6C4.8 3.8 5.4 3.2 6.2 3.2Z" fill="url(#khGradSoft)" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linejoin="round" />
+        <circle cx="9.6" cy="9.2" r="1.9" fill="url(#khGradMain)" />
+        <path d="M8 14.5H15.6M8 17.5H13.4" stroke="url(#khGradMain)" stroke-width="1.8" stroke-linecap="round" />
+      </symbol>
+
+      <symbol id="ico-pin" viewBox="0 0 24 24">
+        <path d="M12 2.6C7.8 2.6 4.6 5.8 4.6 9.9C4.6 14.8 10.6 20.2 11.5 21C11.8 21.3 12.2 21.3 12.5 21C13.4 20.2 19.4 14.8 19.4 9.9C19.4 5.8 16.2 2.6 12 2.6Z" fill="url(#khGradMain)" />
+        <circle cx="12" cy="9.8" r="3" fill="url(#khGradSoft)" />
+      </symbol>
+    </defs>
+  </svg>
 
   <!-- NAVBAR -->
   <header class="navbar">
@@ -79,7 +186,10 @@
     <div class="container hero-content">
       <div class="hero-live-pill">
         <span class="live-dot-pulse" aria-hidden="true"></span>
-        <span>✨ Portal Loker Resmi &amp; Terverifikasi · <strong>Update Harian</strong> · 🛡️ 100% Gratis</span>
+        <svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-sparkles"/></svg>
+        <span>Portal Loker Resmi &amp; Terverifikasi · <strong>Update Harian</strong> ·</span>
+        <svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-shield-check"/></svg>
+        <span>100% Gratis</span>
       </div>
       <h1 class="hero-title">
         Temukan Poster &amp; Info Karir <br>
@@ -198,38 +308,38 @@
 
       <!-- TRENDING POPULAR CATEGORIES BY VIEWS -->
       <div class="trending-keywords" id="kategori-section">
-        <span class="trending-label">🔥 Kategori Terpopuler:</span>
+        <span class="trending-label"><svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-flame"/></svg> Kategori Terpopuler:</span>
         <button type="button" class="chip-keyword active" id="btn-search-all-cat" data-category="Semua"
           title="Tampilkan Semua Kategori">
-          <i class="fa-solid fa-layer-group" style="color: #6366f1;"></i> Semua Kategori
+          <svg class="pro-ico pro-ico-xs" aria-hidden="true"><use href="#ico-layers"/></svg> Semua Kategori
         </button>
       </div>
 
       <!-- STATS RIBBON -->
       <div class="stats-ribbon">
         <div class="stat-item">
-          <div class="stat-icon blue"><i class="fa-solid fa-file-image"></i></div>
+          <div class="stat-icon unified"><svg class="pro-ico pro-ico-lg" aria-hidden="true"><use href="#ico-poster"/></svg></div>
           <div>
             <div class="stat-number">100%</div>
             <div class="stat-text">Poster Rekrutmen Resmi</div>
           </div>
         </div>
         <div class="stat-item">
-          <div class="stat-icon teal"><i class="fa-solid fa-user-shield"></i></div>
+          <div class="stat-icon unified"><svg class="pro-ico pro-ico-lg" aria-hidden="true"><use href="#ico-shield-check"/></svg></div>
           <div>
             <div class="stat-number">Aman</div>
             <div class="stat-text">Tanpa Registrasi Akun</div>
           </div>
         </div>
         <div class="stat-item">
-          <div class="stat-icon amber"><i class="fa-solid fa-handshake"></i></div>
+          <div class="stat-icon unified"><svg class="pro-ico pro-ico-lg" aria-hidden="true"><use href="#ico-verified-badge"/></svg></div>
           <div>
             <div class="stat-number">Terverifikasi</div>
             <div class="stat-text">Kontak Langsung Perekrut</div>
           </div>
         </div>
         <div class="stat-item">
-          <div class="stat-icon purple"><i class="fa-brands fa-whatsapp"></i></div>
+          <div class="stat-icon unified"><svg class="pro-ico pro-ico-lg" aria-hidden="true"><use href="#ico-bolt-chat"/></svg></div>
           <div>
             <div class="stat-number">Respons Cepat</div>
             <div class="stat-text">Terhubung via WA &amp; Email</div>
@@ -249,18 +359,18 @@
       <!-- INTERACTIVE TAB NAVIGATION -->
       <div class="job-tabs-nav" id="job-tabs-container">
         <button type="button" class="job-tab-btn active" data-tab="all">
-          <span class="tab-emoji" aria-hidden="true">💼</span> Semua Lowongan <span class="job-tab-badge" id="tab-count-all">0</span>
+          <svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-briefcase"/></svg> Semua Lowongan <span class="job-tab-badge" id="tab-count-all">0</span>
         </button>
         <button type="button" class="job-tab-btn" data-tab="featured">
-          <span class="tab-emoji" aria-hidden="true">⭐</span> Rekomendasi Unggulan <span class="job-tab-badge"
+          <svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-star-pro"/></svg> Rekomendasi Unggulan <span class="job-tab-badge"
             id="tab-count-featured">0</span>
         </button>
         <button type="button" class="job-tab-btn" data-tab="remote">
-          <span class="tab-emoji" aria-hidden="true">🏠</span> Remote (WFH) <span class="job-tab-badge"
+          <svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-home-work"/></svg> Remote (WFH) <span class="job-tab-badge"
             id="tab-count-remote">0</span>
         </button>
         <button type="button" class="job-tab-btn" data-tab="freshgrad">
-          <span class="tab-emoji" aria-hidden="true">🎓</span> Fresh Graduate <span class="job-tab-badge"
+          <svg class="pro-ico pro-ico-sm" aria-hidden="true"><use href="#ico-grad-cap"/></svg> Fresh Graduate <span class="job-tab-badge"
             id="tab-count-freshgrad">0</span>
         </button>
       </div>
@@ -348,13 +458,14 @@
           <!-- Panduan Pelamar Box -->
           <div id="panduan-pelamar" class="guide-box-pro">
             <div class="guide-box-title">
-              <span>💡 Panduan Pelamar Kerja</span>
+              <svg class="pro-ico pro-ico-md" aria-hidden="true"><use href="#ico-bulb"/></svg>
+              <span>Panduan Pelamar Kerja</span>
             </div>
             <ul class="guide-box-list">
-              <li>✅ Periksa kualifikasi posisi, lokasi penempatan &amp; batas waktu.</li>
-              <li>💬 Gunakan <strong>Template Chat Lamaran</strong> resmi saat menghubungi HRD.</li>
-              <li>📄 Siapkan CV ATS &amp; Portofolio terbaru dalam format PDF.</li>
-              <li>🛡️ Rekrutmen resmi <strong>100% gratis</strong> tanpa biaya apapun.</li>
+              <li><svg class="pro-ico pro-ico-xs" aria-hidden="true"><use href="#ico-check-circle"/></svg><span>Periksa kualifikasi posisi, lokasi penempatan &amp; batas waktu.</span></li>
+              <li><svg class="pro-ico pro-ico-xs" aria-hidden="true"><use href="#ico-chat-dots"/></svg><span>Gunakan <strong>Template Chat Lamaran</strong> resmi saat menghubungi HRD.</span></li>
+              <li><svg class="pro-ico pro-ico-xs" aria-hidden="true"><use href="#ico-doc-cv"/></svg><span>Siapkan CV ATS &amp; Portofolio terbaru dalam format PDF.</span></li>
+              <li><svg class="pro-ico pro-ico-xs" aria-hidden="true"><use href="#ico-shield-check"/></svg><span>Rekrutmen resmi <strong>100% gratis</strong> tanpa biaya apapun.</span></li>
             </ul>
           </div>
 
@@ -371,7 +482,8 @@
         <div class="listings-area">
           <div class="listings-topbar">
             <div class="results-count">
-              ✨ Menampilkan <span id="results-count-num">0</span> Poster Lowongan
+              <svg class="pro-ico pro-ico-md" aria-hidden="true"><use href="#ico-sparkles"/></svg>
+              Menampilkan <span id="results-count-num">0</span> Poster Lowongan
             </div>
 
             <div class="topbar-controls">
@@ -536,7 +648,7 @@
     </button>
   </div>
 
-  <script src="./js/app.js?v=20261127_02" defer></script>
+  <script src="./js/app.js?v=20261127_03" defer></script>
 </body>
 
 </html>
