@@ -7141,3 +7141,8 @@ body {
     opacity: 0.4;
   }
 }
+
+.brand-logo-static {
+  cursor: default;
+  user-select: none;
+}

@@ -16,7 +16,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
 
-  <link rel="stylesheet" href="./css/admin.css?v=20261127_02">
+  <link rel="stylesheet" href="./css/admin.css?v=20261127_03">
   <link rel="stylesheet" href="./css/cv-builder.css?v=20261116_04">
   <!-- Start Admin Jobs Prefetch Immediately at t=0ms -->
   <script>window.__initialAdminJobsPrefetch = fetch('/api/jobs?status=all').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });</script>
@@ -31,25 +31,49 @@
 <body>
 
   <!-- ============================================================== -->
-  <!-- ADMIN AUTH GATEKEEPER (LOGIN SCREEN)                           -->
+  <!-- ADMIN AUTH GATEKEEPER (STUDIO-GRADE GLASS LOGIN SCREEN)        -->
   <!-- ============================================================== -->
   <div id="admin-login-modal" class="auth-gate-wrapper">
+    <!-- Ambient Studio Aurora Backdrop -->
+    <div class="auth-bg-scene" aria-hidden="true">
+      <div class="auth-bg-orb orb-1"></div>
+      <div class="auth-bg-orb orb-2"></div>
+      <div class="auth-bg-orb orb-3"></div>
+      <div class="auth-bg-grid"></div>
+      <div class="auth-bg-ring"></div>
+    </div>
+
     <div class="auth-gate-card">
+      <div class="auth-card-topline" aria-hidden="true"></div>
+
       <div class="auth-gate-header">
-        <div class="auth-logo-badge auth-logo-hd">
-          <img src="/uploads/kerjahub-logo-hd.png?v=20261127_01" alt="KerjaHub Logo" width="68" height="68" decoding="async">
+        <div class="auth-logo-halo">
+          <div class="auth-logo-badge auth-logo-hd">
+            <img src="/uploads/kerjahub-logo-hd.png?v=20261127_01" alt="KerjaHub Logo" width="76" height="76" decoding="async">
+          </div>
         </div>
+
+        <div class="auth-sec-pill">
+          <span class="auth-sec-dot" aria-hidden="true"></span>
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>SecureEnvVault &middot; Akses Terenkripsi</span>
+        </div>
+
         <h2>Admin Portal KerjaHub</h2>
-        <p>Akses khusus administrator untuk mengunggah poster lowongan dan mengelola data Cloud.</p>
+        <p>Masuk ke pusat kendali untuk mengelola lowongan, studio poster HD, link bio, dan analitik pengunjung real-time.</p>
       </div>
 
-      <form id="admin-login-form">
-        <div class="form-group">
-          <label class="form-label" for="admin-password-input">Kata Sandi Administrator</label>
+      <form id="admin-login-form" class="auth-login-form">
+        <div class="form-group auth-form-group">
+          <label class="form-label auth-field-label" for="admin-password-input">
+            <i class="fa-solid fa-key"></i> Kata Sandi Administrator
+          </label>
           <div class="password-input-group">
-            <input type="password" id="admin-password-input" class="form-input" placeholder="Masukkan password admin..."
-              required autocomplete="current-password">
-            <button type="button" class="btn-toggle-pass" id="btn-toggle-password" title="Lihat password">
+            <span class="auth-input-prefix" aria-hidden="true"><i class="fa-solid fa-lock"></i></span>
+            <input type="password" id="admin-password-input" class="form-input auth-pass-input"
+              placeholder="Masukkan kata sandi admin..." required autocomplete="current-password">
+            <button type="button" class="btn-toggle-pass" id="btn-toggle-password" title="Lihat / sembunyikan password"
+              aria-label="Lihat atau sembunyikan password">
               <i class="fa-solid fa-eye"></i>
             </button>
           </div>
@@ -61,12 +85,20 @@
         </div>
 
         <button type="submit" class="btn-login-submit" id="btn-submit-login">
-          <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Panel Admin
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Masuk ke Panel Admin</span>
         </button>
       </form>
 
       <div class="auth-gate-footer">
-        <a href="./" class="back-link"><i class="fa-solid fa-arrow-left"></i> Kembali ke Website Publik</a>
+        <a href="./" class="back-link">
+          <i class="fa-solid fa-arrow-left"></i> Kembali ke Website Publik
+        </a>
+        <div class="auth-credit-row">
+          <span>KerjaHub Admin Suite</span>
+          <span>&middot;</span>
+          <a href="https://daysheet.id" target="_blank" rel="noopener noreferrer" class="auth-daysheet-link">by Daysheet.id</a>
+        </div>
       </div>
     </div>
   </div>
@@ -81,7 +113,7 @@
     <!-- SIDEBAR -->
     <aside class="admin-sidebar" id="admin-sidebar">
       <div class="sidebar-header">
-        <a href="./admin.html" class="sidebar-brand">
+        <div class="sidebar-brand sidebar-brand-static">
           <div class="brand-glow-circle brand-glow-hd" aria-hidden="true">
             <img src="/uploads/kerjahub-logo-hd.png?v=20261127_01" alt="KerjaHub" width="42" height="42" decoding="async">
           </div>
@@ -89,7 +121,7 @@
             <span class="brand-title">KerjaHub</span>
             <span class="brand-badge">ADMIN SUITE</span>
           </div>
-        </a>
+        </div>
         <button type="button" class="btn-sidebar-close-mobile" id="btn-close-sidebar-mobile" title="Tutup Menu Navigasi"
           aria-label="Tutup Menu Navigasi">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
