@@ -8697,6 +8697,7 @@ window.savePosterChangesToJob = async function() {
     const deadInp = document.getElementById('poster-input-deadline');
     const emailSubjInp = document.getElementById('poster-input-email-subject');
     const applyInp = document.getElementById('poster-input-apply-info');
+    const compWebInp = document.getElementById('poster-input-company-website');
     const qrInp = document.getElementById('poster-input-qr-url');
     const hashInp = document.getElementById('poster-input-hashtag');
 
@@ -8708,6 +8709,10 @@ window.savePosterChangesToJob = async function() {
     const updatedApply = applyInp ? applyInp.value.trim() : '';
     const updatedQr = qrInp ? qrInp.value.trim() : '';
     const updatedHash = hashInp ? hashInp.value.trim() : '';
+    let updatedCompWeb = compWebInp ? compWebInp.value.trim() : '';
+    if (/(kitakerja\.biz\.id|job-portal|localhost|127\.0\.0\.1|\?job=)/i.test(updatedCompWeb)) {
+      updatedCompWeb = '';
+    }
 
     const respList = window.getDynamicListValues ? window.getDynamicListValues('poster-resp-items') : [];
     const reqList = window.getDynamicListValues ? window.getDynamicListValues('poster-req-items') : [];
@@ -8734,8 +8739,13 @@ window.savePosterChangesToJob = async function() {
       } catch (e) {
         contacts = {};
       }
-      if (updatedQr) {
-        contacts.website = updatedQr;
+      // Never overwrite company website with internal QR portal link (kitakerja.biz.id/?job=...)
+      if (updatedCompWeb) {
+        contacts.website = updatedCompWeb;
+        contacts.website_url = updatedCompWeb;
+      } else if (/(kitakerja\.biz\.id|job-portal|\?job=)/i.test(String(contacts.website || contacts.website_url || ''))) {
+        contacts.website = '';
+        contacts.website_url = '';
       }
       contacts.email_subject = updatedEmailSubj || contacts.email_subject || '';
       contacts.apply_info = updatedApply;
@@ -8754,6 +8764,7 @@ window.savePosterChangesToJob = async function() {
         title: updatedTitle || currentPosterJobData.title,
         company_name: updatedComp || currentPosterJobData.company_name,
         location: updatedLoc || currentPosterJobData.location || 'Indonesia',
+        website_url: contacts.website || '',
         deadline: updatedDead,
         apply_info: updatedApply,
         responsibilities: respList,
